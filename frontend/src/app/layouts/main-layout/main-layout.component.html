@@ -1,0 +1,15 @@
+<div class="h-dvh overflow-hidden bg-surface">
+  <app-sidebar />
+  <div
+    class="flex h-dvh min-w-0 flex-col transition-all duration-300"
+    [class.lg:pl-72]="!sidebar.collapsed()"
+    [class.lg:pl-[88px]]="sidebar.collapsed()"
+  >
+    <app-topbar class="relative z-30 shrink-0" />
+    <main class="app-scrollbar relative z-0 min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
+      <div class="mx-auto w-full min-w-0 max-w-[1600px] px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:py-8 lg:px-10 lg:py-10">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+</div>

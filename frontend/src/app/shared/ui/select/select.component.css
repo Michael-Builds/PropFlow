@@ -1,0 +1,13 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+:host(.w-auto) {
+  width: auto;
+  min-width: max-content;
+}
+
+:host(.w-full) {
+  width: 100%;
+}

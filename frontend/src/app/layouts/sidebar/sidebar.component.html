@@ -1,0 +1,67 @@
+<aside
+  class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-white/10 bg-sidebar text-white transition-all duration-300 -translate-x-full lg:translate-x-0"
+  [class.lg:w-72]="!collapsed()"
+  [class.lg:w-[88px]]="collapsed()"
+  [class.translate-x-0]="mobileOpen()"
+>
+  <div class="flex items-center gap-3 border-b border-white/10 px-5 py-5">
+    <div class="flex size-9 items-center justify-center rounded-xl bg-brand text-sm font-bold">PF</div>
+    @if (expanded()) {
+      <div>
+        <p class="text-sm font-semibold">PropFlow</p>
+        <p class="text-[11px] text-white/55">Property operations</p>
+      </div>
+    }
+  </div>
+  <nav class="app-scrollbar flex-1 overflow-y-auto px-2 py-4">
+    @for (section of visibleSections(); track section.id) {
+      <div class="mb-5">
+        @if (expanded()) {
+          <p class="mb-2 px-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
+            {{ section.label }}
+          </p>
+        }
+        <ul class="space-y-1.5">
+          @for (item of section.items; track item.id) {
+            <li>
+              <a
+                [routerLink]="item.path"
+                routerLinkActive="bg-sidebar-active text-white !border-l-white"
+                class="group flex items-center gap-3 border-l-4 border-l-transparent px-4 py-2.5 text-sm font-medium text-white/75 transition hover:border-l-white/70 hover:bg-sidebar-hover hover:text-white md:cursor-pointer"
+                [class.justify-center]="!expanded()"
+                (click)="sidebar.closeMobile()"
+              >
+                <app-icon [name]="item.icon" [size]="18" />
+                @if (expanded()) {
+                  <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
+                  @if (item.badgeKey === 'notifications' && unread() > 0) {
+                    <span class="rounded-full bg-danger px-1.5 text-[10px] font-bold">{{ unread() }}</span>
+                  }
+                }
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </nav>
+  <button
+    type="button"
+    class="m-3 flex items-center gap-3 rounded-xl border border-white/10 px-3 py-2 text-left transition hover:bg-white/8 md:cursor-pointer"
+    (click)="logout()"
+  >
+    <span class="flex size-8 items-center justify-center rounded-lg bg-white/10 text-xs font-semibold">
+      {{ auth.user()?.initials }}
+    </span>
+    @if (expanded()) {
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-[13px] font-medium">{{ auth.displayName() }}</span>
+        <span class="block text-[11px] text-white/45">{{ auth.roleLabel() }}</span>
+      </span>
+      <app-icon name="logout" [size]="15" />
+    }
+  </button>
+</aside>
+@if (mobileOpen()) {
+  <button type="button" class="fixed inset-0 z-30 bg-black/50 lg:hidden" (click)="sidebar.closeMobile()"></button>
+}

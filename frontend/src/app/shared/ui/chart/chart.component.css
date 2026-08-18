@@ -1,0 +1,61 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-apex-chart {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Keep ApexCharts canvas sized; do not force svg height:auto (collapses plots). */
+:host ::ng-deep .apexcharts-canvas {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+:host ::ng-deep .apexcharts-svg {
+  max-width: 100% !important;
+}
+
+:host ::ng-deep .apexcharts-inner,
+:host ::ng-deep .apexcharts-graphical,
+:host ::ng-deep foreignObject {
+  max-width: 100%;
+}
+
+:host ::ng-deep .apexcharts-legend {
+  inset-inline: 0 !important;
+  max-width: 100% !important;
+  padding: 0 4px !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+}
+
+:host ::ng-deep .apexcharts-tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgb(15 16 53 / 0.1) !important;
+  border: 1px solid #e2e6f0 !important;
+}
+
+:host ::ng-deep .apexcharts-tooltip-title {
+  background: #f5f7fc !important;
+  border-bottom-color: #eef1f8 !important;
+  font-weight: 600 !important;
+}
+
+:host ::ng-deep .apexcharts-legend-series {
+  display: inline-flex !important;
+  align-items: center;
+  margin: 2px 6px !important;
+}
+
+:host ::ng-deep .apexcharts-datalabel-label,
+:host ::ng-deep .apexcharts-datalabel-value {
+  font-family: Figtree, ui-sans-serif, system-ui, sans-serif !important;
+}

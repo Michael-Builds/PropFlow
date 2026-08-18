@@ -1,0 +1,48 @@
+import { NavIconName } from '../interfaces/nav.interface';
+
+export const ICON_HERO_MAP: Record<NavIconName, string> = {
+  dashboard: 'heroHome',
+  building: 'heroBuildingOffice2',
+  door: 'heroKey',
+  users: 'heroUsers',
+  file: 'heroDocumentText',
+  invoice: 'heroClipboardDocumentList',
+  wallet: 'heroBanknotes',
+  alert: 'heroExclamationTriangle',
+  wrench: 'heroWrenchScrewdriver',
+  folder: 'heroFolder',
+  bell: 'heroBell',
+  shield: 'heroShieldCheck',
+  palette: 'heroSwatch',
+  notifications: 'heroBell',
+  settings: 'heroCog6Tooth',
+  chevron: 'heroChevronDown',
+  search: 'heroMagnifyingGlass',
+  menu: 'heroBars3',
+  close: 'heroXMark',
+  logout: 'heroArrowRightOnRectangle',
+  check: 'heroCheck',
+  warning: 'heroExclamationTriangle',
+  info: 'heroInformationCircle',
+  error: 'heroXCircle',
+  plus: 'heroPlus',
+  filter: 'heroFunnel',
+  refresh: 'heroArrowPath',
+  eye: 'heroEye',
+  eyeOff: 'heroEyeSlash',
+  mail: 'heroEnvelope',
+  lock: 'heroLockClosed',
+  phone: 'heroPhone',
+  copy: 'heroClipboardDocument',
+  trash: 'heroTrash',
+  edit: 'heroPencilSquare',
+  external: 'heroArrowTopRightOnSquare',
+  download: 'heroArrowDownTray',
+  globe: 'heroGlobeAlt',
+  activity: 'heroChartBar',
+  clock: 'heroClock',
+};
+
+export function heroIconName(name: NavIconName): string {
+  return ICON_HERO_MAP[name];
+}

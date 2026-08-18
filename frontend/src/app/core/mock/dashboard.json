@@ -1,0 +1,76 @@
+{
+  "posture": {
+    "label": "Portfolio healthy",
+    "region": "Accra · org_001",
+    "message": "Occupancy is steady, collections are tracking at 82%, and one plumbing ticket is inside SLA today.",
+    "syncedAt": "2026-08-18T09:40:00.000Z",
+    "score": 8.6
+  },
+  "kpis": [
+    { "label": "Occupancy", "value": "84%", "hint": "61 of 72 units", "delta": 2.1, "icon": "building" },
+    { "label": "Collected", "value": "GHS 71,250", "hint": "Posted this month", "delta": 4.8, "icon": "wallet" },
+    { "label": "Arrears", "value": "GHS 15,150", "hint": "Outstanding balance", "delta": -1.2, "icon": "alert" },
+    { "label": "Open tickets", "value": "6", "hint": "Maintenance queue", "delta": -8.0, "icon": "wrench" },
+    { "label": "Collection rate", "value": "82%", "hint": "Due vs posted", "delta": 1.4, "icon": "invoice" },
+    { "label": "Compliance", "value": "91%", "hint": "Documents in date", "delta": 0.6, "icon": "folder" }
+  ],
+  "ticketPipeline": [
+    { "status": "Open", "count": 2, "tone": "warning" },
+    { "status": "Assigned", "count": 2, "tone": "info" },
+    { "status": "In progress", "count": 1, "tone": "info" },
+    { "status": "Resolved", "count": 8, "tone": "success" },
+    { "status": "Closed", "count": 14, "tone": "muted" },
+    { "status": "Breached", "count": 1, "tone": "danger" }
+  ],
+  "collectionTrend": {
+    "labels": ["Mar", "Apr", "May", "Jun", "Jul", "Aug"],
+    "datasets": [
+      { "label": "Collected", "data": [54000, 61000, 58000, 67000, 72000, 71250], "color": "#0028f2" },
+      { "label": "Due", "data": [72000, 74000, 76000, 80000, 84000, 86400], "color": "#94a3b8" }
+    ]
+  },
+  "occupancyMix": {
+    "labels": ["Occupied", "Vacant", "Maintenance"],
+    "data": [61, 8, 3],
+    "colors": ["#0f9f6e", "#d97706", "#0284c7"]
+  },
+  "ticketSla": {
+    "labels": ["Plumbing", "Electrical", "HVAC", "Other"],
+    "datasets": [
+      { "label": "On time", "data": [12, 8, 5, 4], "color": "#0f9f6e" },
+      { "label": "Breached", "data": [1, 0, 0, 0], "color": "#d90a2c" }
+    ]
+  },
+  "arrearsAging": {
+    "labels": ["Current", "1-30", "31-60", "61-90", "90+"],
+    "data": [71250, 1500, 1200, 0, 0]
+  },
+  "properties": [
+    { "name": "Airport Hills Court", "health": "healthy", "units": 24, "occupancy": 92, "arrears": "GHS 0" },
+    { "name": "Cantonments Grove", "health": "watch", "units": 12, "occupancy": 83, "arrears": "GHS 1,500" },
+    { "name": "Tema Community 25", "health": "risk", "units": 36, "occupancy": 78, "arrears": "GHS 13,650" }
+  ],
+  "sla": {
+    "onTime": 94,
+    "breached": 1,
+    "open": 6,
+    "avgHours": 6.4
+  },
+  "activity": [
+    { "id": "act_001", "title": "Payment posted", "meta": "Ama Boateng · GHS 2,500", "time": "2h ago", "status": "success", "icon": "wallet" },
+    { "id": "act_002", "title": "Ticket assigned", "meta": "tck_001 · AquaFix Ltd", "time": "4h ago", "status": "info", "icon": "wrench" },
+    { "id": "act_003", "title": "Lease ending soon", "meta": "Efua Sarpong · C-12", "time": "1d ago", "status": "warning", "icon": "file" },
+    { "id": "act_004", "title": "Document expiring", "meta": "Fire certificate · Airport Hills", "time": "1d ago", "status": "warning", "icon": "folder" }
+  ],
+  "openAlerts": [
+    { "title": "Plumbing SLA due today", "source": "Airport Hills · Unit B-04", "time": "Due 18:00", "severity": "danger" },
+    { "title": "Kojo Mensah in 1-30 arrears", "source": "Collections · GHS 1,500", "time": "Reminder queued", "severity": "warning" },
+    { "title": "Fire certificate expires in 10 days", "source": "Airport Hills Court", "time": "Compliance", "severity": "warning" }
+  ],
+  "quickActions": [
+    { "label": "Add property", "description": "Register a building or block", "path": "/properties", "icon": "building" },
+    { "label": "Post payment", "description": "Apply a receipt to an invoice", "path": "/payments", "icon": "wallet" },
+    { "label": "Create ticket", "description": "Open a maintenance work order", "path": "/tickets", "icon": "wrench" },
+    { "label": "Arrears console", "description": "Age balances and remind tenants", "path": "/arrears", "icon": "alert" }
+  ]
+}

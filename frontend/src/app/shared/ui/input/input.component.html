@@ -1,0 +1,55 @@
+<label class="flex w-full flex-col gap-1.5">
+  @if (label()) {
+    <span class="text-sm font-medium text-text-primary md:text-base">{{ label() }}</span>
+  }
+
+  <div class="relative flex items-center">
+    @if (leftIcon(); as leading) {
+      <span
+        class="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-11 items-center justify-center text-text-muted"
+        aria-hidden="true"
+      >
+        <app-icon [name]="leading" [size]="18" />
+      </span>
+    }
+
+    <input
+      class="h-11 w-full rounded-md border border-border bg-white text-sm leading-none text-text-primary shadow-none outline-none transition placeholder:text-text-muted focus:border-brand focus:shadow-none disabled:cursor-not-allowed disabled:bg-surface md:h-12 md:text-base"
+      [class.pl-11]="!!leftIcon()"
+      [class.pl-3.5]="!leftIcon()"
+      [class.md:pl-4]="!leftIcon()"
+      [class.pr-11]="showRightToggle() || showRightIcon()"
+      [class.pr-3.5]="!showRightToggle() && !showRightIcon()"
+      [class.md:pr-4]="!showRightToggle() && !showRightIcon()"
+      [type]="inputType()"
+      [placeholder]="resolvedPlaceholder()"
+      [disabled]="isDisabled()"
+      [value]="value()"
+      (input)="onInput($event)"
+      (blur)="onTouched()"
+    />
+
+    @if (showRightToggle()) {
+      <button
+        type="button"
+        class="absolute inset-y-0 right-0 z-10 inline-flex w-11 items-center justify-center rounded-r-md text-text-muted transition hover:bg-surface hover:text-text-primary disabled:pointer-events-none disabled:opacity-50 md:cursor-pointer"
+        [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+        [disabled]="isDisabled()"
+        (click)="togglePasswordVisibility()"
+      >
+        <app-icon [name]="showPassword() ? 'eyeOff' : 'eye'" [size]="18" />
+      </button>
+    } @else if (showRightIcon()) {
+      <span
+        class="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-11 items-center justify-center text-text-muted"
+        aria-hidden="true"
+      >
+        <app-icon [name]="rightIcon()!" [size]="18" />
+      </span>
+    }
+  </div>
+
+  @if (hint()) {
+    <span class="text-xs text-text-muted md:text-sm">{{ hint() }}</span>
+  }
+</label>

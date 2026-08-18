@@ -1,0 +1,39 @@
+<button
+  type="button"
+  role="checkbox"
+  class="group inline-flex max-w-full items-start gap-3 text-left outline-none"
+  [class.cursor-pointer]="!isDisabled()"
+  [class.cursor-not-allowed]="isDisabled()"
+  [attr.aria-checked]="indeterminate() ? 'mixed' : value()"
+  [attr.aria-label]="ariaLabel() || label() || null"
+  [attr.aria-disabled]="isDisabled()"
+  [disabled]="isDisabled()"
+  (click)="toggle()"
+  (blur)="onTouched()"
+>
+  <span [class]="boxClass" aria-hidden="true">
+    @if (indeterminate()) {
+      <span class="block h-0.5 w-2.5 rounded-full bg-white"></span>
+    } @else if (value()) {
+      <app-icon name="check" [size]="size() === 'sm' ? 11 : 13" [strokeWidth]="2.6" />
+    }
+  </span>
+
+  @if (label() || description()) {
+    <span class="min-w-0 pt-px">
+      @if (label()) {
+        <span
+          class="block text-sm font-medium text-text-primary"
+          [class.group-hover:text-brand]="!isDisabled()"
+        >
+          {{ label() }}
+        </span>
+      }
+      @if (description()) {
+        <span class="mt-0.5 block text-xs leading-relaxed text-text-secondary">
+          {{ description() }}
+        </span>
+      }
+    </span>
+  }
+</button>

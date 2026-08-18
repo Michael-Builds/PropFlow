@@ -1,0 +1,242 @@
+[
+  {
+    "id": "ntf_001",
+    "title": "Arrears reminder queued",
+    "message": "Fire certificate expires in 10 days",
+    "type": "arrears",
+    "read": true,
+    "createdAt": "2026-08-12 07:00"
+  },
+  {
+    "id": "ntf_002",
+    "title": "Document expiring",
+    "message": "Plumbing ticket is due today",
+    "type": "compliance",
+    "read": false,
+    "createdAt": "2026-08-13 08:00"
+  },
+  {
+    "id": "ntf_003",
+    "title": "Ticket SLA warning",
+    "message": "Efua Sarpong lease ends 30 Sep",
+    "type": "maintenance",
+    "read": false,
+    "createdAt": "2026-08-14 09:00"
+  },
+  {
+    "id": "ntf_004",
+    "title": "Lease ending soon",
+    "message": "Ama Boateng · GHS 2,500 received",
+    "type": "lease",
+    "read": true,
+    "createdAt": "2026-08-15 10:00"
+  },
+  {
+    "id": "ntf_005",
+    "title": "Payment posted",
+    "message": "Kojo Mensah · 1-30 days · GHS 1,500",
+    "type": "arrears",
+    "read": false,
+    "createdAt": "2026-08-16 11:00"
+  },
+  {
+    "id": "ntf_006",
+    "title": "Arrears reminder queued",
+    "message": "Fire certificate expires in 10 days",
+    "type": "compliance",
+    "read": false,
+    "createdAt": "2026-08-17 12:00"
+  },
+  {
+    "id": "ntf_007",
+    "title": "Document expiring",
+    "message": "Plumbing ticket is due today",
+    "type": "maintenance",
+    "read": true,
+    "createdAt": "2026-08-18 13:00"
+  },
+  {
+    "id": "ntf_008",
+    "title": "Ticket SLA warning",
+    "message": "Efua Sarpong lease ends 30 Sep",
+    "type": "lease",
+    "read": false,
+    "createdAt": "2026-08-12 14:00"
+  },
+  {
+    "id": "ntf_009",
+    "title": "Lease ending soon",
+    "message": "Ama Boateng · GHS 2,500 received",
+    "type": "arrears",
+    "read": false,
+    "createdAt": "2026-08-13 15:00"
+  },
+  {
+    "id": "ntf_010",
+    "title": "Payment posted",
+    "message": "Kojo Mensah · 1-30 days · GHS 1,500",
+    "type": "compliance",
+    "read": true,
+    "createdAt": "2026-08-14 16:00"
+  },
+  {
+    "id": "ntf_011",
+    "title": "Arrears reminder queued",
+    "message": "Fire certificate expires in 10 days",
+    "type": "maintenance",
+    "read": false,
+    "createdAt": "2026-08-15 07:00"
+  },
+  {
+    "id": "ntf_012",
+    "title": "Document expiring",
+    "message": "Plumbing ticket is due today",
+    "type": "lease",
+    "read": false,
+    "createdAt": "2026-08-16 08:00"
+  },
+  {
+    "id": "ntf_013",
+    "title": "Ticket SLA warning",
+    "message": "Efua Sarpong lease ends 30 Sep",
+    "type": "arrears",
+    "read": true,
+    "createdAt": "2026-08-17 09:00"
+  },
+  {
+    "id": "ntf_014",
+    "title": "Lease ending soon",
+    "message": "Ama Boateng · GHS 2,500 received",
+    "type": "compliance",
+    "read": false,
+    "createdAt": "2026-08-18 10:00"
+  },
+  {
+    "id": "ntf_015",
+    "title": "Payment posted",
+    "message": "Kojo Mensah · 1-30 days · GHS 1,500",
+    "type": "maintenance",
+    "read": false,
+    "createdAt": "2026-08-12 11:00"
+  },
+  {
+    "id": "ntf_016",
+    "title": "Arrears reminder queued",
+    "message": "Fire certificate expires in 10 days",
+    "type": "lease",
+    "read": true,
+    "createdAt": "2026-08-13 12:00"
+  },
+  {
+    "id": "ntf_017",
+    "title": "Document expiring",
+    "message": "Plumbing ticket is due today",
+    "type": "arrears",
+    "read": false,
+    "createdAt": "2026-08-14 13:00"
+  },
+  {
+    "id": "ntf_018",
+    "title": "Ticket SLA warning",
+    "message": "Efua Sarpong lease ends 30 Sep",
+    "type": "compliance",
+    "read": false,
+    "createdAt": "2026-08-15 14:00"
+  },
+  {
+    "id": "ntf_019",
+    "title": "Lease ending soon",
+    "message": "Ama Boateng · GHS 2,500 received",
+    "type": "maintenance",
+    "read": true,
+    "createdAt": "2026-08-16 15:00"
+  },
+  {
+    "id": "ntf_020",
+    "title": "Payment posted",
+    "message": "Kojo Mensah · 1-30 days · GHS 1,500",
+    "type": "lease",
+    "read": false,
+    "createdAt": "2026-08-17 16:00"
+  },
+  {
+    "id": "ntf_021",
+    "title": "Arrears reminder queued",
+    "message": "Fire certificate expires in 10 days",
+    "type": "arrears",
+    "read": false,
+    "createdAt": "2026-08-18 07:00"
+  },
+  {
+    "id": "ntf_022",
+    "title": "Document expiring",
+    "message": "Plumbing ticket is due today",
+    "type": "compliance",
+    "read": true,
+    "createdAt": "2026-08-12 08:00"
+  },
+  {
+    "id": "ntf_023",
+    "title": "Ticket SLA warning",
+    "message": "Efua Sarpong lease ends 30 Sep",
+    "type": "maintenance",
+    "read": false,
+    "createdAt": "2026-08-13 09:00"
+  },
+  {
+    "id": "ntf_024",
+    "title": "Lease ending soon",
+    "message": "Ama Boateng · GHS 2,500 received",
+    "type": "lease",
+    "read": false,
+    "createdAt": "2026-08-14 10:00"
+  },
+  {
+    "id": "ntf_025",
+    "title": "Payment posted",
+    "message": "Kojo Mensah · 1-30 days · GHS 1,500",
+    "type": "arrears",
+    "read": true,
+    "createdAt": "2026-08-15 11:00"
+  },
+  {
+    "id": "ntf_026",
+    "title": "Arrears reminder queued",
+    "message": "Fire certificate expires in 10 days",
+    "type": "compliance",
+    "read": false,
+    "createdAt": "2026-08-16 12:00"
+  },
+  {
+    "id": "ntf_027",
+    "title": "Document expiring",
+    "message": "Plumbing ticket is due today",
+    "type": "maintenance",
+    "read": false,
+    "createdAt": "2026-08-17 13:00"
+  },
+  {
+    "id": "ntf_028",
+    "title": "Ticket SLA warning",
+    "message": "Efua Sarpong lease ends 30 Sep",
+    "type": "lease",
+    "read": true,
+    "createdAt": "2026-08-18 14:00"
+  },
+  {
+    "id": "ntf_029",
+    "title": "Lease ending soon",
+    "message": "Ama Boateng · GHS 2,500 received",
+    "type": "arrears",
+    "read": false,
+    "createdAt": "2026-08-12 15:00"
+  },
+  {
+    "id": "ntf_030",
+    "title": "Payment posted",
+    "message": "Kojo Mensah · 1-30 days · GHS 1,500",
+    "type": "compliance",
+    "read": false,
+    "createdAt": "2026-08-13 16:00"
+  }
+]

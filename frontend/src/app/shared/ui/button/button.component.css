@@ -1,0 +1,16 @@
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+:host button {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Icon / row-action hosts are fixed squares — fill both axes. */
+:host.size-8 button {
+  height: 100%;
+  min-width: 2rem;
+  min-height: 2rem;
+}

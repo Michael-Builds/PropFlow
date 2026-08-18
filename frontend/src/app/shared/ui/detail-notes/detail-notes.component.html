@@ -1,0 +1,15 @@
+@if (notes().length === 0) {
+  <p class="text-sm text-text-muted">{{ emptyLabel() }}</p>
+} @else {
+  <ul class="space-y-4">
+    @for (note of notes(); track note.id) {
+      <li class="rounded-md border border-border-light bg-surface/30 px-4 py-3">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <p class="text-sm font-medium text-text-primary">{{ note.author }}</p>
+          <time class="text-xs text-text-muted tabular-nums">{{ note.at | date: 'medium' }}</time>
+        </div>
+        <p class="mt-2 text-sm leading-relaxed text-text-secondary">{{ note.body }}</p>
+      </li>
+    }
+  </ul>
+}

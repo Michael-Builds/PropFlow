@@ -1,0 +1,41 @@
+<div
+  class="pointer-events-none fixed top-4 right-4 z-10000 flex w-[min(100vw-2rem,24rem)] flex-col gap-2"
+  aria-live="polite"
+>
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div
+      class="app-toast pointer-events-auto flex items-start gap-3 rounded-md border bg-white p-3.5 shadow-none"
+      [class.border-success/20]="toast.variant === 'success'"
+      [class.border-danger/20]="toast.variant === 'error'"
+      [class.border-warning/20]="toast.variant === 'warning'"
+      [class.border-info/20]="toast.variant === 'info'"
+    >
+      <div
+        class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md"
+        [class.bg-success-soft]="toast.variant === 'success'"
+        [class.text-success]="toast.variant === 'success'"
+        [class.bg-danger-soft]="toast.variant === 'error'"
+        [class.text-danger]="toast.variant === 'error'"
+        [class.bg-warning-soft]="toast.variant === 'warning'"
+        [class.text-warning]="toast.variant === 'warning'"
+        [class.bg-info-soft]="toast.variant === 'info'"
+        [class.text-info]="toast.variant === 'info'"
+      >
+        <app-icon [name]="toastService.variantIcon(toast.variant)" [size]="16" />
+      </div>
+      <div class="min-w-0 flex-1">
+        @if (toast.title) {
+          <p class="text-sm font-semibold text-text-primary">{{ toast.title }}</p>
+        }
+        <p class="text-sm text-text-secondary">{{ toast.message }}</p>
+      </div>
+      <app-button
+        variant="ghost"
+        size="xs"
+        icon="close"
+        ariaLabel="Dismiss notification"
+        (pressed)="toastService.dismiss(toast.id)"
+      />
+    </div>
+  }
+</div>

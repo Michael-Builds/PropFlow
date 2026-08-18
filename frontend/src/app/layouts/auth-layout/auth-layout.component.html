@@ -1,0 +1,90 @@
+<div class="grid min-h-dvh lg:grid-cols-2">
+  <aside
+    class="auth-brand relative hidden overflow-hidden bg-navy-deep text-white lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-12 xl:px-16 xl:py-14"
+  >
+    <div class="auth-brand-pattern pointer-events-none absolute inset-0" aria-hidden="true">
+      <svg class="absolute inset-0 size-full opacity-50" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="auth-property-grid" width="56" height="56" patternUnits="userSpaceOnUse">
+            <path
+              d="M8 36 V20 L28 8 L48 20 V36 H8 Z M18 36 V26 H26 V36 M30 22 H38 V28 H30 Z"
+              fill="none"
+              stroke="rgba(255,255,255,0.08)"
+              stroke-width="1"
+            />
+          </pattern>
+          <linearGradient id="auth-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3d5cff" stop-opacity="0.18" />
+            <stop offset="100%" stop-color="#0028f2" stop-opacity="0.02" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#auth-property-grid)" />
+        <rect width="100%" height="100%" fill="url(#auth-glow)" />
+      </svg>
+      <svg
+        class="absolute -right-10 -bottom-6 h-[62%] w-auto"
+        viewBox="0 0 360 360"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="292" cy="84" r="46" stroke="rgba(255,255,255,0.07)" stroke-width="1.2" />
+        <circle cx="292" cy="84" r="18" fill="rgba(61,92,255,0.12)" />
+        <path
+          d="M48 292 V148 L180 52 L312 148 V292 H48 Z"
+          fill="rgba(61,92,255,0.08)"
+          stroke="rgba(255,255,255,0.12)"
+          stroke-width="1.4"
+        />
+        <path d="M120 292 V210 H168 V292" stroke="rgba(255,255,255,0.16)" stroke-width="1.2" />
+        <path d="M200 168 H248 V208 H200 Z" stroke="rgba(61,92,255,0.45)" stroke-width="1.4" />
+        <path d="M208 120 H240" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" />
+        <path d="M72 168 H108 V188 H72 Z" stroke="rgba(255,255,255,0.12)" stroke-width="1" />
+      </svg>
+    </div>
+    <div class="absolute inset-y-0 right-0 w-px bg-white/10" aria-hidden="true"></div>
+    <header class="relative z-10">
+      <div class="flex items-center gap-3.5">
+        <div class="flex size-10 items-center justify-center rounded-xl bg-brand text-sm font-bold">PF</div>
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/45">Property operations</p>
+          <p class="mt-0.5 text-base font-semibold tracking-tight">PropFlow</p>
+        </div>
+      </div>
+    </header>
+    <div class="relative z-10 max-w-lg">
+      <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-light">{{ brandCopy.eyebrow }}</p>
+      <h1 class="mt-4 text-4xl leading-[1.18] font-semibold tracking-tight xl:text-[2.75rem]">
+        @for (line of brandCopy.headline; track line) {
+          <span class="block">{{ line }}</span>
+        }
+      </h1>
+      <p class="mt-4 max-w-md text-[15px] leading-relaxed text-white/60">{{ brandCopy.description }}</p>
+      <ul class="mt-10 space-y-3.5">
+        @for (item of highlights; track item) {
+          <li class="flex items-center gap-3 text-sm text-white/80">
+            <span class="flex size-6 shrink-0 items-center justify-center rounded-full border border-white/15 text-brand-light">
+              <app-icon name="check" [size]="12" />
+            </span>
+            <span>{{ item }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+    <footer class="relative z-10 text-xs text-white/35">© {{ year }} PropFlow</footer>
+  </aside>
+
+  <section class="relative flex min-h-dvh flex-col bg-white">
+    <div class="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-8 sm:py-10 md:px-12 lg:px-10 xl:px-16">
+      <div class="mb-8 flex w-full max-w-md items-center gap-3 lg:hidden">
+        <div class="flex size-10 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white">PF</div>
+        <div>
+          <p class="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand">Property operations</p>
+          <p class="text-base font-semibold text-navy">PropFlow</p>
+        </div>
+      </div>
+      <div class="w-full max-w-md lg:max-w-none lg:w-[min(70%,28rem)] xl:w-[70%]">
+        <router-outlet />
+      </div>
+    </div>
+  </section>
+</div>

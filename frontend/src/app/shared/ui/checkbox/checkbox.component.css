@@ -1,0 +1,10 @@
+:host {
+  display: inline-flex;
+  max-width: 100%;
+}
+
+button:focus-visible .app-check-focus,
+button:focus-visible span:first-child {
+  outline: 2px solid color-mix(in srgb, var(--color-brand) 35%, transparent);
+  outline-offset: 2px;
+}

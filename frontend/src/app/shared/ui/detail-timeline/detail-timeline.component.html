@@ -1,0 +1,30 @@
+@if (events().length === 0) {
+  <p class="text-sm text-text-muted">{{ emptyLabel() }}</p>
+} @else {
+  <ol class="relative space-y-0">
+    @for (event of events(); track event.id; let last = $last) {
+      <li class="relative flex gap-3 pb-5" [class.pb-0]="last">
+        @if (!last) {
+          <span class="absolute top-3 left-[7px] h-[calc(100%-0.25rem)] w-px bg-border" aria-hidden="true"></span>
+        }
+        <span
+          class="relative z-10 mt-1.5 size-3.5 shrink-0 rounded-full border-2 border-white"
+          [class.bg-text-muted]="!event.tone || event.tone === 'neutral'"
+          [class.bg-info]="event.tone === 'info'"
+          [class.bg-success]="event.tone === 'success'"
+          [class.bg-warning]="event.tone === 'warning'"
+          [class.bg-danger]="event.tone === 'danger'"
+        ></span>
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <p class="text-sm font-medium text-text-primary">{{ event.title }}</p>
+            <time class="text-xs text-text-muted tabular-nums">{{ event.at | date: 'medium' }}</time>
+          </div>
+          @if (event.description) {
+            <p class="mt-1 text-sm text-text-secondary">{{ event.description }}</p>
+          }
+        </div>
+      </li>
+    }
+  </ol>
+}

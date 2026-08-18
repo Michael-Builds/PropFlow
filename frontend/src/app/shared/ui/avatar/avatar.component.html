@@ -1,0 +1,10 @@
+<span
+  [class]="classes()"
+  [style.background-color]="bgColor()"
+  [style.color]="textColor()"
+  [style.font-size.px]="fontSize()"
+  [attr.aria-label]="label() || initials()"
+  role="img"
+>
+  {{ initials() }}
+</span>

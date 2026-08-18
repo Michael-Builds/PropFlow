@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --color-brand: var(--pf-brand);
+  --color-brand-light: var(--pf-brand-light);
+  --color-brand-dark: var(--pf-brand-dark);
+  --color-brand-soft: var(--pf-brand-soft);
+  --color-brand-muted: var(--pf-brand-muted);
+  --color-navy: var(--pf-navy);
+  --color-navy-deep: var(--pf-navy-deep);
+  --color-sidebar: var(--pf-sidebar);
+  --color-sidebar-hover: #ffffff14;
+  --color-sidebar-active: #ffffff1f;
+  --color-surface: var(--pf-surface);
+  --color-card: #ffffff;
+  --color-border: #e2e6f0;
+  --color-border-light: #eef1f8;
+  --color-text-primary: #161519;
+  --color-text-secondary: #60606b;
+  --color-text-muted: #8b8b96;
+  --color-success: #0f9f6e;
+  --color-success-soft: #e8f8f1;
+  --color-warning: #d97706;
+  --color-warning-soft: #fff7ed;
+  --color-danger: #d90a2c;
+  --color-danger-soft: #fef1f3;
+  --color-info: #0284c7;
+  --color-info-soft: #eef9fe;
+  --shadow-card: 0 1px 2px rgb(15 16 53 / 0.04), 0 4px 16px rgb(15 16 53 / 0.04);
+  --shadow-elevated: 0 8px 30px rgb(15 16 53 / 0.12);
+}
+
+:root,
+[data-theme='atlantic'] {
+  --pf-brand: #0028f2;
+  --pf-brand-light: #3d5cff;
+  --pf-brand-dark: #001fc0;
+  --pf-brand-soft: #ecf0fb;
+  --pf-brand-muted: #f3f7ff;
+  --pf-navy: #19195f;
+  --pf-navy-deep: #0f1035;
+  --pf-sidebar: #0f1035;
+  --pf-surface: #f5f7fc;
+}
+
+[data-theme='forest'] {
+  --pf-brand: #0f7a4a;
+  --pf-brand-light: #2db87a;
+  --pf-brand-dark: #0a5c37;
+  --pf-brand-soft: #e7f7ef;
+  --pf-brand-muted: #f3fbf7;
+  --pf-navy: #12352a;
+  --pf-navy-deep: #0b211a;
+  --pf-sidebar: #0b211a;
+  --pf-surface: #f4f8f6;
+}
+
+[data-theme='ember'] {
+  --pf-brand: #c2410c;
+  --pf-brand-light: #ea580c;
+  --pf-brand-dark: #9a3412;
+  --pf-brand-soft: #fff1e8;
+  --pf-brand-muted: #fff7f2;
+  --pf-navy: #3f1d12;
+  --pf-navy-deep: #1c0f0b;
+  --pf-sidebar: #1c0f0b;
+  --pf-surface: #faf6f3;
+}
+
+[data-theme='graphite'] {
+  --pf-brand: #334155;
+  --pf-brand-light: #64748b;
+  --pf-brand-dark: #1e293b;
+  --pf-brand-soft: #eef2f6;
+  --pf-brand-muted: #f8fafc;
+  --pf-navy: #1e293b;
+  --pf-navy-deep: #0f172a;
+  --pf-sidebar: #0f172a;
+  --pf-surface: #f8fafc;
+}
+
+[data-theme='orchid'] {
+  --pf-brand: #6d28d9;
+  --pf-brand-light: #8b5cf6;
+  --pf-brand-dark: #5b21b6;
+  --pf-brand-soft: #f3eefc;
+  --pf-brand-muted: #faf7ff;
+  --pf-navy: #2e1065;
+  --pf-navy-deep: #1e0b3d;
+  --pf-sidebar: #1e0b3d;
+  --pf-surface: #f7f5fb;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  a,
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  @media (min-width: 768px) {
+    button,
+    a,
+    [role='button'] {
+      cursor: pointer;
+    }
+  }
+}
+
+body.pf-modal-open {
+  overflow: hidden;
+}
+
+.app-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.app-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-navy) 25%, transparent);
+  border-radius: 999px;
+}

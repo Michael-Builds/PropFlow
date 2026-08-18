@@ -1,0 +1,7 @@
+<span [class]="classes">
+  @if (label()) {
+    {{ label() }}
+  } @else {
+    <ng-content />
+  }
+</span>

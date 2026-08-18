@@ -1,0 +1,242 @@
+[
+  {
+    "id": "arr_001",
+    "tenantId": "tnt_001",
+    "tenant": "Ama Owusu",
+    "lease": "lea_001",
+    "invoiceId": "inv_001",
+    "bucket": "61-90 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-08"
+  },
+  {
+    "id": "arr_002",
+    "tenantId": "tnt_002",
+    "tenant": "Kojo Asante",
+    "lease": "lea_002",
+    "invoiceId": "inv_002",
+    "bucket": "31-60 days",
+    "balance": "GHS 1,200",
+    "lastReminder": "2026-08-09"
+  },
+  {
+    "id": "arr_003",
+    "tenantId": "tnt_003",
+    "tenant": "Efua Darko",
+    "lease": "lea_003",
+    "invoiceId": "inv_003",
+    "bucket": "1-30 days",
+    "balance": "GHS 2,500",
+    "lastReminder": "2026-08-10"
+  },
+  {
+    "id": "arr_004",
+    "tenantId": "tnt_004",
+    "tenant": "Yaw Appiah",
+    "lease": "lea_004",
+    "invoiceId": "inv_004",
+    "bucket": "31-60 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-11"
+  },
+  {
+    "id": "arr_005",
+    "tenantId": "tnt_005",
+    "tenant": "Akosua Osei",
+    "lease": "lea_005",
+    "invoiceId": "inv_005",
+    "bucket": "61-90 days",
+    "balance": "GHS 800",
+    "lastReminder": "2026-08-12"
+  },
+  {
+    "id": "arr_006",
+    "tenantId": "tnt_006",
+    "tenant": "Kwesi Agyeman",
+    "lease": "lea_006",
+    "invoiceId": "inv_006",
+    "bucket": "31-60 days",
+    "balance": "GHS 1,500",
+    "lastReminder": "2026-08-13"
+  },
+  {
+    "id": "arr_007",
+    "tenantId": "tnt_007",
+    "tenant": "Abena Addo",
+    "lease": "lea_007",
+    "invoiceId": "inv_007",
+    "bucket": "1-30 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-14"
+  },
+  {
+    "id": "arr_008",
+    "tenantId": "tnt_008",
+    "tenant": "Kofi Frimpong",
+    "lease": "lea_008",
+    "invoiceId": "inv_008",
+    "bucket": "31-60 days",
+    "balance": "GHS 2,500",
+    "lastReminder": "2026-08-15"
+  },
+  {
+    "id": "arr_009",
+    "tenantId": "tnt_009",
+    "tenant": "Adwoa Nkrumah",
+    "lease": "lea_009",
+    "invoiceId": "inv_009",
+    "bucket": "61-90 days",
+    "balance": "GHS 4,200",
+    "lastReminder": "2026-08-16"
+  },
+  {
+    "id": "arr_010",
+    "tenantId": "tnt_010",
+    "tenant": "Kwame Quaye",
+    "lease": "lea_010",
+    "invoiceId": "inv_010",
+    "bucket": "31-60 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-17"
+  },
+  {
+    "id": "arr_011",
+    "tenantId": "tnt_011",
+    "tenant": "Akua Tetteh",
+    "lease": "lea_011",
+    "invoiceId": "inv_011",
+    "bucket": "1-30 days",
+    "balance": "GHS 1,500",
+    "lastReminder": "2026-08-08"
+  },
+  {
+    "id": "arr_012",
+    "tenantId": "tnt_012",
+    "tenant": "Fiifi Ansah",
+    "lease": "lea_012",
+    "invoiceId": "inv_012",
+    "bucket": "31-60 days",
+    "balance": "GHS 1,200",
+    "lastReminder": "2026-08-09"
+  },
+  {
+    "id": "arr_013",
+    "tenantId": "tnt_013",
+    "tenant": "Nana Baffoe",
+    "lease": "lea_013",
+    "invoiceId": "inv_013",
+    "bucket": "61-90 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-10"
+  },
+  {
+    "id": "arr_014",
+    "tenantId": "tnt_014",
+    "tenant": "Esi Boateng",
+    "lease": "lea_014",
+    "invoiceId": "inv_014",
+    "bucket": "31-60 days",
+    "balance": "GHS 4,200",
+    "lastReminder": "2026-08-11"
+  },
+  {
+    "id": "arr_015",
+    "tenantId": "tnt_015",
+    "tenant": "Kwabena Mensah",
+    "lease": "lea_015",
+    "invoiceId": "inv_015",
+    "bucket": "1-30 days",
+    "balance": "GHS 800",
+    "lastReminder": "2026-08-12"
+  },
+  {
+    "id": "arr_016",
+    "tenantId": "tnt_016",
+    "tenant": "Aba Sarpong",
+    "lease": "lea_016",
+    "invoiceId": "inv_016",
+    "bucket": "31-60 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-13"
+  },
+  {
+    "id": "arr_017",
+    "tenantId": "tnt_017",
+    "tenant": "Ama Owusu",
+    "lease": "lea_017",
+    "invoiceId": "inv_017",
+    "bucket": "61-90 days",
+    "balance": "GHS 1,200",
+    "lastReminder": "2026-08-14"
+  },
+  {
+    "id": "arr_018",
+    "tenantId": "tnt_018",
+    "tenant": "Kojo Asante",
+    "lease": "lea_018",
+    "invoiceId": "inv_018",
+    "bucket": "31-60 days",
+    "balance": "GHS 2,500",
+    "lastReminder": "2026-08-15"
+  },
+  {
+    "id": "arr_019",
+    "tenantId": "tnt_019",
+    "tenant": "Efua Darko",
+    "lease": "lea_019",
+    "invoiceId": "inv_019",
+    "bucket": "1-30 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-16"
+  },
+  {
+    "id": "arr_020",
+    "tenantId": "tnt_020",
+    "tenant": "Yaw Appiah",
+    "lease": "lea_020",
+    "invoiceId": "inv_020",
+    "bucket": "31-60 days",
+    "balance": "GHS 800",
+    "lastReminder": "2026-08-17"
+  },
+  {
+    "id": "arr_021",
+    "tenantId": "tnt_021",
+    "tenant": "Akosua Osei",
+    "lease": "lea_021",
+    "invoiceId": "inv_021",
+    "bucket": "61-90 days",
+    "balance": "GHS 1,500",
+    "lastReminder": "2026-08-08"
+  },
+  {
+    "id": "arr_022",
+    "tenantId": "tnt_022",
+    "tenant": "Kwesi Agyeman",
+    "lease": "lea_022",
+    "invoiceId": "inv_022",
+    "bucket": "31-60 days",
+    "balance": "GHS 900",
+    "lastReminder": "2026-08-09"
+  },
+  {
+    "id": "arr_023",
+    "tenantId": "tnt_023",
+    "tenant": "Abena Addo",
+    "lease": "lea_023",
+    "invoiceId": "inv_023",
+    "bucket": "1-30 days",
+    "balance": "GHS 2,500",
+    "lastReminder": "2026-08-10"
+  },
+  {
+    "id": "arr_024",
+    "tenantId": "tnt_024",
+    "tenant": "Kofi Frimpong",
+    "lease": "lea_024",
+    "invoiceId": "inv_024",
+    "bucket": "31-60 days",
+    "balance": "GHS 4,200",
+    "lastReminder": "2026-08-11"
+  }
+]

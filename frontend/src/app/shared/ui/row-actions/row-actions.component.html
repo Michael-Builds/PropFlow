@@ -1,0 +1,14 @@
+<div class="inline-flex items-center justify-center gap-1.5" (click)="$event.stopPropagation()">
+  @for (action of actions(); track action.id) {
+    <app-button
+      [variant]="buttonVariant(action)"
+      [iconOnly]="true"
+      [disabled]="disabled()"
+      [ariaLabel]="action.label"
+      [attr.title]="action.label"
+      (pressed)="onSelect(action, $event)"
+    >
+      <ng-icon [name]="iconName(action)" size="16" />
+    </app-button>
+  }
+</div>

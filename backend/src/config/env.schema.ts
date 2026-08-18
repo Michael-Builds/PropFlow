@@ -1,0 +1,36 @@
+import * as Joi from 'joi';
+
+export const envSchema = Joi.object({
+  NODE_ENV: Joi.string()
+    .valid('development', 'test', 'production')
+    .default('development'),
+  PORT: Joi.number().port().default(3000),
+  API_PREFIX: Joi.string().default('api'),
+  API_VERSION: Joi.string().default('1'),
+  APP_NAME: Joi.string().default('PropFlow API'),
+  APP_URL: Joi.string().uri().default('http://localhost:3000'),
+  DATABASE_URL: Joi.string().required(),
+  JWT_ACCESS_SECRET: Joi.string().required(),
+  JWT_REFRESH_SECRET: Joi.string().required(),
+  JWT_ACCESS_TTL: Joi.number().default(3600),
+  JWT_REFRESH_TTL: Joi.number().default(1209600),
+  REDIS_HOST: Joi.string().required(),
+  REDIS_PORT: Joi.number().port().required(),
+  REDIS_USERNAME: Joi.string().allow('').optional(),
+  REDIS_PASSWORD: Joi.string().allow('').optional(),
+  REDIS_DB: Joi.number().default(0),
+  THROTTLE_SHORT_TTL_MS: Joi.number().positive().default(10_000),
+  THROTTLE_SHORT_LIMIT: Joi.number().positive().default(30),
+  THROTTLE_MEDIUM_TTL_MS: Joi.number().positive().default(60_000),
+  THROTTLE_MEDIUM_LIMIT: Joi.number().positive().default(120),
+  THROTTLE_LONG_TTL_MS: Joi.number().positive().default(3_600_000),
+  THROTTLE_LONG_LIMIT: Joi.number().positive().default(1000),
+  AWS_REGION: Joi.string().required(),
+  AWS_S3_BUCKET: Joi.string().required(),
+  AWS_ACCESS_KEY_ID: Joi.string().required(),
+  AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+  AWS_S3_ENDPOINT: Joi.string().allow('').optional(),
+  AWS_S3_FORCE_PATH_STYLE: Joi.boolean().truthy('true').falsy('false').default(false),
+  AWS_CLOUDFRONT_DOMAIN: Joi.string().allow('').optional(),
+  AUDIT_LOG_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+});

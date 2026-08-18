@@ -1,0 +1,16 @@
+:host {
+  display: flex;
+}
+
+.dialog-enter {
+  animation: dialog-fade 160ms ease-out;
+}
+
+@keyframes dialog-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

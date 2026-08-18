@@ -1,0 +1,522 @@
+[
+  {
+    "id": "pay_001",
+    "invoiceId": "inv_001",
+    "tenantId": "tnt_001",
+    "tenant": "Ama Owusu",
+    "amount": "GHS 1,800",
+    "method": "bank_transfer",
+    "reference": "MM-44000",
+    "paidAt": "2026-01-03"
+  },
+  {
+    "id": "pay_002",
+    "invoiceId": "inv_002",
+    "tenantId": "tnt_001",
+    "tenant": "Ama Owusu",
+    "amount": "GHS 1,800",
+    "method": "mobile_money",
+    "reference": "TRX-88001",
+    "paidAt": "2026-02-04"
+  },
+  {
+    "id": "pay_003",
+    "invoiceId": "inv_003",
+    "tenantId": "tnt_002",
+    "tenant": "Kojo Asante",
+    "amount": "GHS 3,200",
+    "method": "cash",
+    "reference": "TRX-88002",
+    "paidAt": "2026-03-05"
+  },
+  {
+    "id": "pay_004",
+    "invoiceId": "inv_004",
+    "tenantId": "tnt_002",
+    "tenant": "Kojo Asante",
+    "amount": "GHS 3,200",
+    "method": "bank_transfer",
+    "reference": "MM-44003",
+    "paidAt": "2026-04-06"
+  },
+  {
+    "id": "pay_005",
+    "invoiceId": "inv_005",
+    "tenantId": "tnt_003",
+    "tenant": "Efua Darko",
+    "amount": "GHS 3,575",
+    "method": "mobile_money",
+    "reference": "TRX-88004",
+    "paidAt": "2026-05-07"
+  },
+  {
+    "id": "pay_006",
+    "invoiceId": "inv_006",
+    "tenantId": "tnt_003",
+    "tenant": "Efua Darko",
+    "amount": "GHS 5,500",
+    "method": "cash",
+    "reference": "TRX-88005",
+    "paidAt": "2026-06-08"
+  },
+  {
+    "id": "pay_007",
+    "invoiceId": "inv_008",
+    "tenantId": "tnt_004",
+    "tenant": "Yaw Appiah",
+    "amount": "GHS 4,200",
+    "method": "bank_transfer",
+    "reference": "MM-44006",
+    "paidAt": "2026-07-09"
+  },
+  {
+    "id": "pay_008",
+    "invoiceId": "inv_009",
+    "tenantId": "tnt_005",
+    "tenant": "Akosua Osei",
+    "amount": "GHS 2,500",
+    "method": "mobile_money",
+    "reference": "TRX-88007",
+    "paidAt": "2026-08-10"
+  },
+  {
+    "id": "pay_009",
+    "invoiceId": "inv_010",
+    "tenantId": "tnt_005",
+    "tenant": "Akosua Osei",
+    "amount": "GHS 1,625",
+    "method": "cash",
+    "reference": "TRX-88008",
+    "paidAt": "2026-01-11"
+  },
+  {
+    "id": "pay_010",
+    "invoiceId": "inv_011",
+    "tenantId": "tnt_006",
+    "tenant": "Kwesi Agyeman",
+    "amount": "GHS 1,800",
+    "method": "bank_transfer",
+    "reference": "MM-44009",
+    "paidAt": "2026-02-12"
+  },
+  {
+    "id": "pay_011",
+    "invoiceId": "inv_012",
+    "tenantId": "tnt_006",
+    "tenant": "Kwesi Agyeman",
+    "amount": "GHS 1,800",
+    "method": "mobile_money",
+    "reference": "TRX-88010",
+    "paidAt": "2026-03-13"
+  },
+  {
+    "id": "pay_012",
+    "invoiceId": "inv_013",
+    "tenantId": "tnt_007",
+    "tenant": "Abena Addo",
+    "amount": "GHS 3,200",
+    "method": "cash",
+    "reference": "TRX-88011",
+    "paidAt": "2026-04-14"
+  },
+  {
+    "id": "pay_013",
+    "invoiceId": "inv_015",
+    "tenantId": "tnt_008",
+    "tenant": "Kofi Frimpong",
+    "amount": "GHS 3,575",
+    "method": "bank_transfer",
+    "reference": "MM-44012",
+    "paidAt": "2026-05-15"
+  },
+  {
+    "id": "pay_014",
+    "invoiceId": "inv_016",
+    "tenantId": "tnt_008",
+    "tenant": "Kofi Frimpong",
+    "amount": "GHS 5,500",
+    "method": "mobile_money",
+    "reference": "TRX-88013",
+    "paidAt": "2026-06-16"
+  },
+  {
+    "id": "pay_015",
+    "invoiceId": "inv_017",
+    "tenantId": "tnt_009",
+    "tenant": "Adwoa Nkrumah",
+    "amount": "GHS 1,800",
+    "method": "cash",
+    "reference": "TRX-88014",
+    "paidAt": "2026-07-17"
+  },
+  {
+    "id": "pay_016",
+    "invoiceId": "inv_018",
+    "tenantId": "tnt_009",
+    "tenant": "Adwoa Nkrumah",
+    "amount": "GHS 1,800",
+    "method": "bank_transfer",
+    "reference": "MM-44015",
+    "paidAt": "2026-08-18"
+  },
+  {
+    "id": "pay_017",
+    "invoiceId": "inv_019",
+    "tenantId": "tnt_010",
+    "tenant": "Kwame Quaye",
+    "amount": "GHS 3,200",
+    "method": "mobile_money",
+    "reference": "TRX-88016",
+    "paidAt": "2026-01-19"
+  },
+  {
+    "id": "pay_018",
+    "invoiceId": "inv_020",
+    "tenantId": "tnt_010",
+    "tenant": "Kwame Quaye",
+    "amount": "GHS 2,080",
+    "method": "cash",
+    "reference": "TRX-88017",
+    "paidAt": "2026-02-20"
+  },
+  {
+    "id": "pay_019",
+    "invoiceId": "inv_022",
+    "tenantId": "tnt_011",
+    "tenant": "Akua Tetteh",
+    "amount": "GHS 2,500",
+    "method": "bank_transfer",
+    "reference": "MM-44018",
+    "paidAt": "2026-03-21"
+  },
+  {
+    "id": "pay_020",
+    "invoiceId": "inv_023",
+    "tenantId": "tnt_012",
+    "tenant": "Fiifi Ansah",
+    "amount": "GHS 1,200",
+    "method": "mobile_money",
+    "reference": "TRX-88019",
+    "paidAt": "2026-04-22"
+  },
+  {
+    "id": "pay_021",
+    "invoiceId": "inv_024",
+    "tenantId": "tnt_012",
+    "tenant": "Fiifi Ansah",
+    "amount": "GHS 1,200",
+    "method": "cash",
+    "reference": "TRX-88020",
+    "paidAt": "2026-05-03"
+  },
+  {
+    "id": "pay_022",
+    "invoiceId": "inv_025",
+    "tenantId": "tnt_013",
+    "tenant": "Nana Baffoe",
+    "amount": "GHS 3,575",
+    "method": "bank_transfer",
+    "reference": "MM-44021",
+    "paidAt": "2026-06-04"
+  },
+  {
+    "id": "pay_023",
+    "invoiceId": "inv_026",
+    "tenantId": "tnt_013",
+    "tenant": "Nana Baffoe",
+    "amount": "GHS 5,500",
+    "method": "mobile_money",
+    "reference": "TRX-88022",
+    "paidAt": "2026-07-05"
+  },
+  {
+    "id": "pay_024",
+    "invoiceId": "inv_027",
+    "tenantId": "tnt_014",
+    "tenant": "Esi Boateng",
+    "amount": "GHS 1,800",
+    "method": "cash",
+    "reference": "TRX-88023",
+    "paidAt": "2026-08-06"
+  },
+  {
+    "id": "pay_025",
+    "invoiceId": "inv_029",
+    "tenantId": "tnt_015",
+    "tenant": "Kwabena Mensah",
+    "amount": "GHS 3,200",
+    "method": "bank_transfer",
+    "reference": "MM-44024",
+    "paidAt": "2026-01-07"
+  },
+  {
+    "id": "pay_026",
+    "invoiceId": "inv_030",
+    "tenantId": "tnt_015",
+    "tenant": "Kwabena Mensah",
+    "amount": "GHS 2,080",
+    "method": "mobile_money",
+    "reference": "TRX-88025",
+    "paidAt": "2026-02-08"
+  },
+  {
+    "id": "pay_027",
+    "invoiceId": "inv_031",
+    "tenantId": "tnt_016",
+    "tenant": "Aba Sarpong",
+    "amount": "GHS 4,200",
+    "method": "cash",
+    "reference": "TRX-88026",
+    "paidAt": "2026-03-09"
+  },
+  {
+    "id": "pay_028",
+    "invoiceId": "inv_032",
+    "tenantId": "tnt_016",
+    "tenant": "Aba Sarpong",
+    "amount": "GHS 4,200",
+    "method": "bank_transfer",
+    "reference": "MM-44027",
+    "paidAt": "2026-04-10"
+  },
+  {
+    "id": "pay_029",
+    "invoiceId": "inv_033",
+    "tenantId": "tnt_017",
+    "tenant": "Ama Owusu",
+    "amount": "GHS 5,500",
+    "method": "mobile_money",
+    "reference": "TRX-88028",
+    "paidAt": "2026-05-11"
+  },
+  {
+    "id": "pay_030",
+    "invoiceId": "inv_034",
+    "tenantId": "tnt_017",
+    "tenant": "Ama Owusu",
+    "amount": "GHS 5,500",
+    "method": "cash",
+    "reference": "TRX-88029",
+    "paidAt": "2026-06-12"
+  },
+  {
+    "id": "pay_031",
+    "invoiceId": "inv_036",
+    "tenantId": "tnt_018",
+    "tenant": "Kojo Asante",
+    "amount": "GHS 1,800",
+    "method": "bank_transfer",
+    "reference": "MM-44030",
+    "paidAt": "2026-07-13"
+  },
+  {
+    "id": "pay_032",
+    "invoiceId": "inv_037",
+    "tenantId": "tnt_019",
+    "tenant": "Efua Darko",
+    "amount": "GHS 5,500",
+    "method": "mobile_money",
+    "reference": "TRX-88031",
+    "paidAt": "2026-08-14"
+  },
+  {
+    "id": "pay_033",
+    "invoiceId": "inv_038",
+    "tenantId": "tnt_019",
+    "tenant": "Efua Darko",
+    "amount": "GHS 5,500",
+    "method": "cash",
+    "reference": "TRX-88032",
+    "paidAt": "2026-01-15"
+  },
+  {
+    "id": "pay_034",
+    "invoiceId": "inv_039",
+    "tenantId": "tnt_020",
+    "tenant": "Yaw Appiah",
+    "amount": "GHS 3,200",
+    "method": "bank_transfer",
+    "reference": "MM-44033",
+    "paidAt": "2026-02-16"
+  },
+  {
+    "id": "pay_035",
+    "invoiceId": "inv_040",
+    "tenantId": "tnt_020",
+    "tenant": "Yaw Appiah",
+    "amount": "GHS 2,080",
+    "method": "mobile_money",
+    "reference": "TRX-88034",
+    "paidAt": "2026-03-17"
+  },
+  {
+    "id": "pay_036",
+    "invoiceId": "inv_041",
+    "tenantId": "tnt_021",
+    "tenant": "Akosua Osei",
+    "amount": "GHS 5,500",
+    "method": "cash",
+    "reference": "TRX-88035",
+    "paidAt": "2026-04-18"
+  },
+  {
+    "id": "pay_037",
+    "invoiceId": "inv_043",
+    "tenantId": "tnt_022",
+    "tenant": "Kwesi Agyeman",
+    "amount": "GHS 1,800",
+    "method": "bank_transfer",
+    "reference": "MM-44036",
+    "paidAt": "2026-05-19"
+  },
+  {
+    "id": "pay_038",
+    "invoiceId": "inv_044",
+    "tenantId": "tnt_022",
+    "tenant": "Kwesi Agyeman",
+    "amount": "GHS 1,800",
+    "method": "mobile_money",
+    "reference": "TRX-88037",
+    "paidAt": "2026-06-20"
+  },
+  {
+    "id": "pay_039",
+    "invoiceId": "inv_045",
+    "tenantId": "tnt_023",
+    "tenant": "Abena Addo",
+    "amount": "GHS 1,625",
+    "method": "cash",
+    "reference": "TRX-88038",
+    "paidAt": "2026-07-21"
+  },
+  {
+    "id": "pay_040",
+    "invoiceId": "inv_046",
+    "tenantId": "tnt_023",
+    "tenant": "Abena Addo",
+    "amount": "GHS 2,500",
+    "method": "bank_transfer",
+    "reference": "MM-44039",
+    "paidAt": "2026-08-22"
+  },
+  {
+    "id": "pay_041",
+    "invoiceId": "inv_047",
+    "tenantId": "tnt_024",
+    "tenant": "Kofi Frimpong",
+    "amount": "GHS 4,200",
+    "method": "mobile_money",
+    "reference": "TRX-88040",
+    "paidAt": "2026-01-03"
+  },
+  {
+    "id": "pay_042",
+    "invoiceId": "inv_048",
+    "tenantId": "tnt_024",
+    "tenant": "Kofi Frimpong",
+    "amount": "GHS 4,200",
+    "method": "cash",
+    "reference": "TRX-88041",
+    "paidAt": "2026-02-04"
+  },
+  {
+    "id": "pay_043",
+    "invoiceId": "inv_050",
+    "tenantId": "tnt_025",
+    "tenant": "Adwoa Nkrumah",
+    "amount": "GHS 3,575",
+    "method": "bank_transfer",
+    "reference": "MM-44042",
+    "paidAt": "2026-03-05"
+  },
+  {
+    "id": "pay_044",
+    "invoiceId": "inv_051",
+    "tenantId": "tnt_026",
+    "tenant": "Kwame Quaye",
+    "amount": "GHS 3,200",
+    "method": "mobile_money",
+    "reference": "TRX-88043",
+    "paidAt": "2026-04-06"
+  },
+  {
+    "id": "pay_045",
+    "invoiceId": "inv_052",
+    "tenantId": "tnt_026",
+    "tenant": "Kwame Quaye",
+    "amount": "GHS 3,200",
+    "method": "cash",
+    "reference": "TRX-88044",
+    "paidAt": "2026-05-07"
+  },
+  {
+    "id": "pay_046",
+    "invoiceId": "inv_053",
+    "tenantId": "tnt_027",
+    "tenant": "Akua Tetteh",
+    "amount": "GHS 1,800",
+    "method": "bank_transfer",
+    "reference": "MM-44045",
+    "paidAt": "2026-06-08"
+  },
+  {
+    "id": "pay_047",
+    "invoiceId": "inv_054",
+    "tenantId": "tnt_027",
+    "tenant": "Akua Tetteh",
+    "amount": "GHS 1,800",
+    "method": "mobile_money",
+    "reference": "TRX-88046",
+    "paidAt": "2026-07-09"
+  },
+  {
+    "id": "pay_048",
+    "invoiceId": "inv_055",
+    "tenantId": "tnt_028",
+    "tenant": "Fiifi Ansah",
+    "amount": "GHS 2,080",
+    "method": "cash",
+    "reference": "TRX-88047",
+    "paidAt": "2026-08-10"
+  },
+  {
+    "id": "pay_049",
+    "invoiceId": "inv_057",
+    "tenantId": "tnt_029",
+    "tenant": "Nana Baffoe",
+    "amount": "GHS 5,500",
+    "method": "bank_transfer",
+    "reference": "MM-44048",
+    "paidAt": "2026-01-11"
+  },
+  {
+    "id": "pay_050",
+    "invoiceId": "inv_058",
+    "tenantId": "tnt_029",
+    "tenant": "Nana Baffoe",
+    "amount": "GHS 5,500",
+    "method": "mobile_money",
+    "reference": "TRX-88049",
+    "paidAt": "2026-02-12"
+  },
+  {
+    "id": "pay_051",
+    "invoiceId": "inv_059",
+    "tenantId": "tnt_030",
+    "tenant": "Esi Boateng",
+    "amount": "GHS 1,200",
+    "method": "cash",
+    "reference": "TRX-88050",
+    "paidAt": "2026-03-13"
+  },
+  {
+    "id": "pay_052",
+    "invoiceId": "inv_060",
+    "tenantId": "tnt_030",
+    "tenant": "Esi Boateng",
+    "amount": "GHS 780",
+    "method": "bank_transfer",
+    "reference": "MM-44051",
+    "paidAt": "2026-04-14"
+  }
+]

@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.dashboard-posture-pattern {
+  mask-image: linear-gradient(120deg, rgb(0 0 0 / 0.2) 0%, rgb(0 0 0 / 0.55) 52%, rgb(0 0 0 / 0.9) 100%);
+}

@@ -1,0 +1,386 @@
+[
+  {
+    "id": "aud_001",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "lea_001",
+    "ip": "102.176.10.20",
+    "createdAt": "2026-08-01 08:00"
+  },
+  {
+    "id": "aud_002",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "lea_002",
+    "ip": "102.176.10.21",
+    "createdAt": "2026-08-02 09:01"
+  },
+  {
+    "id": "aud_003",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "lea_003",
+    "ip": "102.176.10.22",
+    "createdAt": "2026-08-03 10:02"
+  },
+  {
+    "id": "aud_004",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "lea_004",
+    "ip": "102.176.10.23",
+    "createdAt": "2026-08-04 11:03"
+  },
+  {
+    "id": "aud_005",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "lea_005",
+    "ip": "102.176.10.24",
+    "createdAt": "2026-08-05 12:04"
+  },
+  {
+    "id": "aud_006",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "lea_006",
+    "ip": "102.176.10.25",
+    "createdAt": "2026-08-06 13:05"
+  },
+  {
+    "id": "aud_007",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "lea_007",
+    "ip": "102.176.10.26",
+    "createdAt": "2026-08-07 14:06"
+  },
+  {
+    "id": "aud_008",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "lea_008",
+    "ip": "102.176.10.27",
+    "createdAt": "2026-08-08 15:07"
+  },
+  {
+    "id": "aud_009",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "lea_009",
+    "ip": "102.176.10.28",
+    "createdAt": "2026-08-09 16:08"
+  },
+  {
+    "id": "aud_010",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "lea_010",
+    "ip": "102.176.10.29",
+    "createdAt": "2026-08-10 17:09"
+  },
+  {
+    "id": "aud_011",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "lea_011",
+    "ip": "102.176.10.30",
+    "createdAt": "2026-08-11 08:10"
+  },
+  {
+    "id": "aud_012",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "lea_012",
+    "ip": "102.176.10.31",
+    "createdAt": "2026-08-12 09:11"
+  },
+  {
+    "id": "aud_013",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "lea_013",
+    "ip": "102.176.10.32",
+    "createdAt": "2026-08-13 10:12"
+  },
+  {
+    "id": "aud_014",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "lea_014",
+    "ip": "102.176.10.33",
+    "createdAt": "2026-08-14 11:13"
+  },
+  {
+    "id": "aud_015",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "lea_015",
+    "ip": "102.176.10.34",
+    "createdAt": "2026-08-15 12:14"
+  },
+  {
+    "id": "aud_016",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "lea_016",
+    "ip": "102.176.10.35",
+    "createdAt": "2026-08-16 13:15"
+  },
+  {
+    "id": "aud_017",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "lea_017",
+    "ip": "102.176.10.36",
+    "createdAt": "2026-08-17 14:16"
+  },
+  {
+    "id": "aud_018",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "lea_018",
+    "ip": "102.176.10.37",
+    "createdAt": "2026-08-18 15:17"
+  },
+  {
+    "id": "aud_019",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "lea_019",
+    "ip": "102.176.10.38",
+    "createdAt": "2026-08-01 16:18"
+  },
+  {
+    "id": "aud_020",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "lea_020",
+    "ip": "102.176.10.39",
+    "createdAt": "2026-08-02 17:19"
+  },
+  {
+    "id": "aud_021",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "lea_021",
+    "ip": "102.176.10.40",
+    "createdAt": "2026-08-03 08:20"
+  },
+  {
+    "id": "aud_022",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "lea_022",
+    "ip": "102.176.10.41",
+    "createdAt": "2026-08-04 09:21"
+  },
+  {
+    "id": "aud_023",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "lea_023",
+    "ip": "102.176.10.42",
+    "createdAt": "2026-08-05 10:22"
+  },
+  {
+    "id": "aud_024",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "lea_024",
+    "ip": "102.176.10.43",
+    "createdAt": "2026-08-06 11:23"
+  },
+  {
+    "id": "aud_025",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "lea_025",
+    "ip": "102.176.10.44",
+    "createdAt": "2026-08-07 12:24"
+  },
+  {
+    "id": "aud_026",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "lea_026",
+    "ip": "102.176.10.45",
+    "createdAt": "2026-08-08 13:25"
+  },
+  {
+    "id": "aud_027",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "lea_027",
+    "ip": "102.176.10.46",
+    "createdAt": "2026-08-09 14:26"
+  },
+  {
+    "id": "aud_028",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "lea_028",
+    "ip": "102.176.10.47",
+    "createdAt": "2026-08-10 15:27"
+  },
+  {
+    "id": "aud_029",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "lea_029",
+    "ip": "102.176.10.48",
+    "createdAt": "2026-08-11 16:28"
+  },
+  {
+    "id": "aud_030",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "lea_030",
+    "ip": "102.176.10.49",
+    "createdAt": "2026-08-12 17:29"
+  },
+  {
+    "id": "aud_031",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "lea_031",
+    "ip": "102.176.10.50",
+    "createdAt": "2026-08-13 08:30"
+  },
+  {
+    "id": "aud_032",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "lea_032",
+    "ip": "102.176.10.51",
+    "createdAt": "2026-08-14 09:31"
+  },
+  {
+    "id": "aud_033",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "lea_033",
+    "ip": "102.176.10.52",
+    "createdAt": "2026-08-15 10:32"
+  },
+  {
+    "id": "aud_034",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "lea_034",
+    "ip": "102.176.10.53",
+    "createdAt": "2026-08-16 11:33"
+  },
+  {
+    "id": "aud_035",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "lea_035",
+    "ip": "102.176.10.54",
+    "createdAt": "2026-08-17 12:34"
+  },
+  {
+    "id": "aud_036",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "lea_036",
+    "ip": "102.176.10.55",
+    "createdAt": "2026-08-18 13:35"
+  },
+  {
+    "id": "aud_037",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "lea_037",
+    "ip": "102.176.10.56",
+    "createdAt": "2026-08-01 14:36"
+  },
+  {
+    "id": "aud_038",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "lea_038",
+    "ip": "102.176.10.57",
+    "createdAt": "2026-08-02 15:37"
+  },
+  {
+    "id": "aud_039",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "lea_039",
+    "ip": "102.176.10.58",
+    "createdAt": "2026-08-03 16:38"
+  },
+  {
+    "id": "aud_040",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "lea_040",
+    "ip": "102.176.10.59",
+    "createdAt": "2026-08-04 17:39"
+  },
+  {
+    "id": "aud_041",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "pay_001",
+    "ip": "102.176.10.20",
+    "createdAt": "2026-08-05 08:40"
+  },
+  {
+    "id": "aud_042",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "pay_002",
+    "ip": "102.176.10.21",
+    "createdAt": "2026-08-06 09:41"
+  },
+  {
+    "id": "aud_043",
+    "actor": "Ama Owusu",
+    "action": "POST /leases",
+    "entity": "pay_003",
+    "ip": "102.176.10.22",
+    "createdAt": "2026-08-07 10:42"
+  },
+  {
+    "id": "aud_044",
+    "actor": "Yaw Asante",
+    "action": "POST /payments",
+    "entity": "pay_004",
+    "ip": "102.176.10.23",
+    "createdAt": "2026-08-08 11:43"
+  },
+  {
+    "id": "aud_045",
+    "actor": "Kwesi Darko",
+    "action": "PATCH /tickets",
+    "entity": "pay_005",
+    "ip": "102.176.10.24",
+    "createdAt": "2026-08-09 12:44"
+  },
+  {
+    "id": "aud_046",
+    "actor": "Ama Owusu",
+    "action": "POST /invoices",
+    "entity": "pay_006",
+    "ip": "102.176.10.25",
+    "createdAt": "2026-08-10 13:45"
+  },
+  {
+    "id": "aud_047",
+    "actor": "Yaw Asante",
+    "action": "PATCH /tenants",
+    "entity": "pay_007",
+    "ip": "102.176.10.26",
+    "createdAt": "2026-08-11 14:46"
+  },
+  {
+    "id": "aud_048",
+    "actor": "Kwesi Darko",
+    "action": "POST /documents",
+    "entity": "pay_008",
+    "ip": "102.176.10.27",
+    "createdAt": "2026-08-12 15:47"
+  }
+]

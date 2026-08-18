@@ -1,0 +1,342 @@
+[
+  {
+    "id": "doc_001",
+    "entityId": "prp_001",
+    "entityType": "property",
+    "entity": "Airport Hills Court",
+    "type": "fire_certificate",
+    "expiresAt": "2025-12-10",
+    "status": "expired",
+    "uploadedAt": "2025-01-06"
+  },
+  {
+    "id": "doc_002",
+    "entityId": "tnt_002",
+    "entityType": "tenant",
+    "entity": "Kojo Asante",
+    "type": "lease_agreement",
+    "expiresAt": "2026-12-11",
+    "status": "valid",
+    "uploadedAt": "2025-02-06"
+  },
+  {
+    "id": "doc_003",
+    "entityId": "tnt_003",
+    "entityType": "tenant",
+    "entity": "Efua Darko",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-12",
+    "status": "valid",
+    "uploadedAt": "2025-03-06"
+  },
+  {
+    "id": "doc_004",
+    "entityId": "tnt_004",
+    "entityType": "tenant",
+    "entity": "Yaw Appiah",
+    "type": "insurance",
+    "expiresAt": "2026-12-13",
+    "status": "valid",
+    "uploadedAt": "2025-04-06"
+  },
+  {
+    "id": "doc_005",
+    "entityId": "prp_005",
+    "entityType": "property",
+    "entity": "Ridge Heights",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-14",
+    "status": "valid",
+    "uploadedAt": "2025-05-06"
+  },
+  {
+    "id": "doc_006",
+    "entityId": "tnt_006",
+    "entityType": "tenant",
+    "entity": "Kwesi Agyeman",
+    "type": "national_id",
+    "expiresAt": "2026-09-15",
+    "status": "expiring",
+    "uploadedAt": "2025-06-06"
+  },
+  {
+    "id": "doc_007",
+    "entityId": "tnt_007",
+    "entityType": "tenant",
+    "entity": "Abena Addo",
+    "type": "lease_agreement",
+    "expiresAt": "2026-12-16",
+    "status": "valid",
+    "uploadedAt": "2025-07-06"
+  },
+  {
+    "id": "doc_008",
+    "entityId": "tnt_008",
+    "entityType": "tenant",
+    "entity": "Kofi Frimpong",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-17",
+    "status": "valid",
+    "uploadedAt": "2025-08-06"
+  },
+  {
+    "id": "doc_009",
+    "entityId": "prp_009",
+    "entityType": "property",
+    "entity": "Kumasi Asokwa Park",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-18",
+    "status": "valid",
+    "uploadedAt": "2025-09-06"
+  },
+  {
+    "id": "doc_010",
+    "entityId": "tnt_010",
+    "entityType": "tenant",
+    "entity": "Kwame Quaye",
+    "type": "utility_bill",
+    "expiresAt": "2025-12-19",
+    "status": "expired",
+    "uploadedAt": "2025-10-06"
+  },
+  {
+    "id": "doc_011",
+    "entityId": "tnt_011",
+    "entityType": "tenant",
+    "entity": "Akua Tetteh",
+    "type": "national_id",
+    "expiresAt": "2026-09-20",
+    "status": "expiring",
+    "uploadedAt": "2025-11-06"
+  },
+  {
+    "id": "doc_012",
+    "entityId": "tnt_012",
+    "entityType": "tenant",
+    "entity": "Fiifi Ansah",
+    "type": "lease_agreement",
+    "expiresAt": "2026-12-21",
+    "status": "valid",
+    "uploadedAt": "2025-12-06"
+  },
+  {
+    "id": "doc_013",
+    "entityId": "prp_013",
+    "entityType": "property",
+    "entity": "Dansoman Courts",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-22",
+    "status": "valid",
+    "uploadedAt": "2025-01-06"
+  },
+  {
+    "id": "doc_014",
+    "entityId": "tnt_014",
+    "entityType": "tenant",
+    "entity": "Esi Boateng",
+    "type": "insurance",
+    "expiresAt": "2026-12-23",
+    "status": "valid",
+    "uploadedAt": "2025-02-06"
+  },
+  {
+    "id": "doc_015",
+    "entityId": "tnt_015",
+    "entityType": "tenant",
+    "entity": "Kwabena Mensah",
+    "type": "utility_bill",
+    "expiresAt": "2026-12-24",
+    "status": "valid",
+    "uploadedAt": "2025-03-06"
+  },
+  {
+    "id": "doc_016",
+    "entityId": "tnt_016",
+    "entityType": "tenant",
+    "entity": "Aba Sarpong",
+    "type": "national_id",
+    "expiresAt": "2026-09-25",
+    "status": "expiring",
+    "uploadedAt": "2025-04-06"
+  },
+  {
+    "id": "doc_017",
+    "entityId": "prp_017",
+    "entityType": "property",
+    "entity": "East Legon Hills",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-26",
+    "status": "valid",
+    "uploadedAt": "2025-05-06"
+  },
+  {
+    "id": "doc_018",
+    "entityId": "tnt_018",
+    "entityType": "tenant",
+    "entity": "Kojo Asante",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-27",
+    "status": "valid",
+    "uploadedAt": "2025-06-06"
+  },
+  {
+    "id": "doc_019",
+    "entityId": "tnt_019",
+    "entityType": "tenant",
+    "entity": "Efua Darko",
+    "type": "insurance",
+    "expiresAt": "2025-12-10",
+    "status": "expired",
+    "uploadedAt": "2025-07-06"
+  },
+  {
+    "id": "doc_020",
+    "entityId": "tnt_020",
+    "entityType": "tenant",
+    "entity": "Yaw Appiah",
+    "type": "utility_bill",
+    "expiresAt": "2026-12-11",
+    "status": "valid",
+    "uploadedAt": "2025-08-06"
+  },
+  {
+    "id": "doc_021",
+    "entityId": "prp_003",
+    "entityType": "property",
+    "entity": "Tema Community 25",
+    "type": "fire_certificate",
+    "expiresAt": "2026-09-12",
+    "status": "expiring",
+    "uploadedAt": "2025-09-06"
+  },
+  {
+    "id": "doc_022",
+    "entityId": "tnt_022",
+    "entityType": "tenant",
+    "entity": "Kwesi Agyeman",
+    "type": "lease_agreement",
+    "expiresAt": "2026-12-13",
+    "status": "valid",
+    "uploadedAt": "2025-10-06"
+  },
+  {
+    "id": "doc_023",
+    "entityId": "tnt_023",
+    "entityType": "tenant",
+    "entity": "Abena Addo",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-14",
+    "status": "valid",
+    "uploadedAt": "2025-11-06"
+  },
+  {
+    "id": "doc_024",
+    "entityId": "tnt_024",
+    "entityType": "tenant",
+    "entity": "Kofi Frimpong",
+    "type": "insurance",
+    "expiresAt": "2026-12-15",
+    "status": "valid",
+    "uploadedAt": "2025-12-06"
+  },
+  {
+    "id": "doc_025",
+    "entityId": "prp_007",
+    "entityType": "property",
+    "entity": "Dzorwulu Place",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-16",
+    "status": "valid",
+    "uploadedAt": "2025-01-06"
+  },
+  {
+    "id": "doc_026",
+    "entityId": "tnt_026",
+    "entityType": "tenant",
+    "entity": "Kwame Quaye",
+    "type": "national_id",
+    "expiresAt": "2026-09-17",
+    "status": "expiring",
+    "uploadedAt": "2025-02-06"
+  },
+  {
+    "id": "doc_027",
+    "entityId": "tnt_027",
+    "entityType": "tenant",
+    "entity": "Akua Tetteh",
+    "type": "lease_agreement",
+    "expiresAt": "2026-12-18",
+    "status": "valid",
+    "uploadedAt": "2025-03-06"
+  },
+  {
+    "id": "doc_028",
+    "entityId": "tnt_028",
+    "entityType": "tenant",
+    "entity": "Fiifi Ansah",
+    "type": "fire_certificate",
+    "expiresAt": "2025-12-19",
+    "status": "expired",
+    "uploadedAt": "2025-04-06"
+  },
+  {
+    "id": "doc_029",
+    "entityId": "prp_011",
+    "entityType": "property",
+    "entity": "Madina Green",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-20",
+    "status": "valid",
+    "uploadedAt": "2025-05-06"
+  },
+  {
+    "id": "doc_030",
+    "entityId": "tnt_030",
+    "entityType": "tenant",
+    "entity": "Esi Boateng",
+    "type": "utility_bill",
+    "expiresAt": "2026-12-21",
+    "status": "valid",
+    "uploadedAt": "2025-06-06"
+  },
+  {
+    "id": "doc_031",
+    "entityId": "tnt_031",
+    "entityType": "tenant",
+    "entity": "Kwabena Mensah",
+    "type": "national_id",
+    "expiresAt": "2026-09-22",
+    "status": "expiring",
+    "uploadedAt": "2025-07-06"
+  },
+  {
+    "id": "doc_032",
+    "entityId": "tnt_032",
+    "entityType": "tenant",
+    "entity": "Aba Sarpong",
+    "type": "lease_agreement",
+    "expiresAt": "2026-12-23",
+    "status": "valid",
+    "uploadedAt": "2025-08-06"
+  },
+  {
+    "id": "doc_033",
+    "entityId": "prp_015",
+    "entityType": "property",
+    "entity": "Cape Coast Harbour",
+    "type": "fire_certificate",
+    "expiresAt": "2026-12-24",
+    "status": "valid",
+    "uploadedAt": "2025-09-06"
+  },
+  {
+    "id": "doc_034",
+    "entityId": "tnt_034",
+    "entityType": "tenant",
+    "entity": "Kojo Asante",
+    "type": "insurance",
+    "expiresAt": "2026-12-25",
+    "status": "valid",
+    "uploadedAt": "2025-10-06"
+  }
+]

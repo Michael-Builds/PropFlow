@@ -1,0 +1,107 @@
+@if (inline()) {
+  <div class="flex items-center justify-center gap-3 px-4 py-8" role="status" aria-live="polite">
+    <div class="relative flex size-7 items-center justify-center" aria-hidden="true">
+      <svg class="h-full w-full animate-spin-custom" viewBox="0 0 50 50">
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#e2e6f0"
+          stroke-width="2.8"
+          stroke-dasharray="82 125.66"
+          stroke-linecap="round"
+        />
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#0028f2"
+          stroke-width="2.8"
+          stroke-dasharray="22 125.66"
+          stroke-dashoffset="-94"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span class="absolute size-[0.35rem] rounded-full bg-brand opacity-85 blur-[1px]"></span>
+    </div>
+    @if (text()) {
+      <span class="text-sm font-medium text-text-muted">{{ text() }}</span>
+    }
+  </div>
+} @else if (overlay()) {
+  <div
+    class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 backdrop-blur-[1px]"
+    role="status"
+    aria-live="polite"
+  >
+    <div class="relative flex size-10 items-center justify-center" aria-hidden="true">
+      <svg class="h-full w-full animate-spin-custom" viewBox="0 0 50 50">
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#e2e6f0"
+          stroke-width="2.8"
+          stroke-dasharray="82 125.66"
+          stroke-linecap="round"
+        />
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#0028f2"
+          stroke-width="2.8"
+          stroke-dasharray="22 125.66"
+          stroke-dashoffset="-94"
+          stroke-linecap="round"
+        />
+      </svg>
+      <span class="absolute size-1.5 rounded-full bg-brand opacity-85 blur-[3px]"></span>
+    </div>
+    @if (text()) {
+      <p class="mt-3 text-sm font-medium text-text-secondary">{{ text() }}</p>
+    }
+  </div>
+} @else if (globalLoading()) {
+  <div
+    class="loader-global pointer-events-auto fixed inset-0 z-9999 flex flex-col items-center justify-center bg-[rgb(15_16_53/0.55)] backdrop-blur-sm transition-all duration-300"
+    role="status"
+    aria-live="polite"
+    aria-busy="true"
+  >
+    <div class="relative flex size-14 items-center justify-center" aria-hidden="true">
+      <svg class="h-full w-full animate-spin-custom" viewBox="0 0 50 50">
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="white"
+          stroke-width="2.8"
+          stroke-dasharray="82 125.66"
+          stroke-linecap="round"
+          class="opacity-90"
+        />
+        <circle
+          cx="25"
+          cy="25"
+          r="20"
+          fill="none"
+          stroke="#3d5cff"
+          stroke-width="2.8"
+          stroke-dasharray="22 125.66"
+          stroke-dashoffset="-94"
+          stroke-linecap="round"
+        />
+      </svg>
+      <div class="absolute size-2 rounded-full bg-brand blur-md"></div>
+    </div>
+    <p class="mt-8 animate-loader-pulse text-center text-sm tracking-tight text-white md:text-base">
+      {{ globalLabel() }}
+    </p>
+  </div>
+}

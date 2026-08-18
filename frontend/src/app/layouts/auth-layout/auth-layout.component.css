@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.auth-brand-pattern {
+  mask-image: linear-gradient(120deg, rgb(0 0 0 / 0.18) 0%, rgb(0 0 0 / 0.5) 52%, rgb(0 0 0 / 0.88) 100%);
+}

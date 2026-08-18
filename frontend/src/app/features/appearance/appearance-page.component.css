@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+.appearance-card {
+  box-shadow: none;
+}
+
+.appearance-card:hover {
+  box-shadow: var(--shadow-card);
+}

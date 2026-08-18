@@ -1,0 +1,354 @@
+<section class="relative overflow-hidden rounded-md border border-border bg-white">
+  <div
+    class="flex flex-col gap-3 border-b border-border-light bg-surface/40 p-3.5 md:flex-row md:items-center md:justify-between md:p-4"
+  >
+    <div class="flex flex-1 flex-wrap items-center gap-2">
+      @if (searchable()) {
+        <div class="relative min-w-0 w-full flex-1 md:max-w-sm">
+          <app-icon
+            name="search"
+            [size]="16"
+            class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted"
+          />
+          <input
+            type="search"
+            class="h-10 w-full rounded-md border border-border bg-white pr-3 pl-9 text-sm outline-none transition focus:border-brand"
+            [placeholder]="searchPlaceholder()"
+            [ngModel]="search()"
+            (ngModelChange)="onSearch($event)"
+          />
+        </div>
+      }
+
+      @for (filter of filters(); track filter.key) {
+        <app-select
+          class="min-w-35"
+          size="sm"
+          [stretch]="false"
+          [leadingLabel]="filter.label"
+          [options]="filterSelectOptions(filter)"
+          [ngModel]="activeFilters()[filter.key] || ''"
+          (ngModelChange)="setFilter(filter.key, $event)"
+        />
+      }
+
+      @if (hasActiveFilters()) {
+        <app-button
+          size="sm"
+          variant="ghost"
+          label="Clear"
+          (pressed)="clearFilters()"
+        />
+      }
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      @if (selectedCount() > 0) {
+        <span
+          class="inline-flex h-8 items-center rounded-md bg-brand-soft px-2.5 text-sm font-semibold text-brand"
+        >
+          {{ selectedCount() }} selected
+        </span>
+
+        @if (exportable()) {
+          <div #exportMenuRoot class="relative">
+            <app-button
+              variant="secondary"
+              size="sm"
+              icon="download"
+              [loading]="exporting()"
+              [label]="exporting() ? 'Exporting…' : 'Export'"
+              (pressed)="toggleExportMenu()"
+            />
+
+            @if (exportMenuOpen()) {
+              <div
+                class="absolute top-[calc(100%+0.35rem)] right-0 z-30 min-w-44 overflow-hidden rounded-md border border-border bg-white p-1 shadow-(--shadow-elevated)"
+                role="menu"
+              >
+                <p
+                  class="px-3 py-1.5 text-[10px] font-semibold tracking-wide text-text-muted uppercase"
+                >
+                  Selected records
+                </p>
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-text-primary transition hover:bg-brand-muted"
+                  (click)="exportSelected('csv')"
+                >
+                  <ng-icon name="heroDocumentText" class="text-base text-text-muted" />
+                  Export CSV
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-text-primary transition hover:bg-brand-muted"
+                  (click)="exportSelected('pdf')"
+                >
+                  <ng-icon name="heroDocumentText" class="text-base text-brand" />
+                  Export PDF
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <app-button
+          variant="danger"
+          size="sm"
+          icon="trash"
+          label="Delete"
+          (pressed)="onBulkDelete()"
+        />
+        <app-button
+          variant="ghost"
+          size="sm"
+          label="Clear"
+          (pressed)="clearSelection()"
+        />
+      }
+      <ng-content select="[table-actions]" />
+    </div>
+  </div>
+
+  <div class="relative min-h-55">
+    @if (loading()) {
+      <app-loader [overlay]="true" text="Loading records..." />
+    }
+
+    <div class="hidden overflow-x-auto md:block" [class.opacity-50]="loading()">
+      <table class="w-full min-w-180 text-left text-sm">
+        <thead class="sticky top-0 z-1 bg-surface/95 backdrop-blur-sm">
+          <tr>
+            @if (selectable()) {
+              <th class="w-12 px-4 py-3">
+                <app-checkbox
+                  size="sm"
+                  ariaLabel="Select all rows on page"
+                  [checked]="allPageSelected()"
+                  [indeterminate]="somePageSelected()"
+                  (checkedChange)="toggleAll($event)"
+                />
+              </th>
+            }
+            @for (col of columns(); track col.key) {
+              <th
+                class="px-4 py-3 text-[11px] font-semibold tracking-wider text-text-muted uppercase"
+                [class.cursor-pointer]="col.sortable"
+                [class.select-none]="col.sortable"
+                [class]="col.widthClass || ''"
+                (click)="toggleSort(col)"
+              >
+                <span class="inline-flex items-center gap-1">
+                  {{ col.header }}
+                  @if (col.sortable && sortKey() === col.key) {
+                    <span class="text-brand">{{ sortDir() === 'asc' ? '↑' : '↓' }}</span>
+                  }
+                </span>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of pagedRows(); track rowId(row)) {
+            <tr
+              class="border-t border-border-light transition hover:bg-brand-muted/35"
+              [class.bg-brand-muted/25]="isSelected(row)"
+            >
+              @if (selectable()) {
+                <td class="px-4 py-3.5" (click)="$event.stopPropagation()">
+                  <app-checkbox
+                    size="sm"
+                    ariaLabel="Select row"
+                    [checked]="isSelected(row)"
+                    (checkedChange)="toggleRow(row, $event)"
+                  />
+                </td>
+              }
+              @for (col of columns(); track col.key) {
+                <td
+                  class="px-4 py-3.5 align-middle text-text-primary"
+                  [class]="col.cellClass || ''"
+                  (click)="cellType(col) === 'actions' ? $event.stopPropagation() : rowClick.emit(row)"
+                >
+                  @switch (cellType(col)) {
+                    @case ('badge') {
+                      <app-badge
+                        [variant]="badgeVariantFor(col, row)"
+                        [label]="displayValue(row, col.key)"
+                      />
+                    }
+                    @case ('date') {
+                      @if (dateValue(row, col.key); as raw) {
+                        <span class="leading-snug text-text-secondary">
+                          {{ raw | date: col.dateFormat || 'medium' }}
+                        </span>
+                      } @else {
+                        <span class="leading-snug">—</span>
+                      }
+                    }
+                    @case ('actions') {
+                      <app-row-actions
+                        [actions]="rowActionsFor(col, row)"
+                        (actionSelect)="onActionPressed($event.action, row, $event.event)"
+                      />
+                    }
+                    @default {
+                      <span class="leading-snug">{{ displayValue(row, col.key) }}</span>
+                    }
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            @if (!loading()) {
+              <tr>
+                <td [attr.colspan]="columns().length + (selectable() ? 1 : 0)" class="p-6">
+                  <app-empty-state
+                    icon="filter"
+                    [title]="emptyTitle()"
+                    [description]="emptyDescription()"
+                  />
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="divide-y divide-border-light md:hidden" [class.opacity-50]="loading()">
+      @for (row of pagedRows(); track rowId(row)) {
+        <article class="p-4" (click)="rowClick.emit(row)">
+          <div class="mb-3 flex items-start justify-between gap-3">
+            @if (selectable()) {
+              <div (click)="$event.stopPropagation()">
+                <app-checkbox
+                  size="sm"
+                  ariaLabel="Select row"
+                  [checked]="isSelected(row)"
+                  (checkedChange)="toggleRow(row, $event)"
+                />
+              </div>
+            }
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-semibold text-text-primary">
+                {{ displayValue(row, columns()[0]?.key || 'id') }}
+              </p>
+              @if (columns()[1]; as second) {
+                <div class="mt-0.5">
+                  @switch (cellType(second)) {
+                    @case ('badge') {
+                      <app-badge
+                        [variant]="badgeVariantFor(second, row)"
+                        [label]="displayValue(row, second.key)"
+                      />
+                    }
+                    @case ('date') {
+                      @if (dateValue(row, second.key); as raw) {
+                        <p class="truncate text-xs text-text-secondary">
+                          {{ raw | date: second.dateFormat || 'medium' }}
+                        </p>
+                      }
+                    }
+                    @default {
+                      <p class="truncate text-xs text-text-secondary">
+                        {{ displayValue(row, second.key) }}
+                      </p>
+                    }
+                  }
+                </div>
+              }
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            @for (col of columns().slice(2, 6); track col.key) {
+              @if (cellType(col) !== 'actions') {
+                <div>
+                  <p class="text-[10px] font-semibold tracking-wide text-text-muted uppercase">
+                    {{ col.header }}
+                  </p>
+                  <div class="mt-0.5 text-xs leading-snug text-text-primary">
+                    @switch (cellType(col)) {
+                      @case ('badge') {
+                        <app-badge
+                          [variant]="badgeVariantFor(col, row)"
+                          [label]="displayValue(row, col.key)"
+                        />
+                      }
+                      @case ('date') {
+                        @if (dateValue(row, col.key); as raw) {
+                          {{ raw | date: col.dateFormat || 'medium' }}
+                        } @else {
+                          —
+                        }
+                      }
+                      @default {
+                        {{ displayValue(row, col.key) }}
+                      }
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </article>
+      } @empty {
+        @if (!loading()) {
+          <div class="p-4">
+            <app-empty-state
+              icon="filter"
+              [title]="emptyTitle()"
+              [description]="emptyDescription()"
+            />
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <div
+    class="flex flex-col gap-3 border-t border-border-light bg-surface/30 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4"
+  >
+    <p class="text-xs text-text-secondary md:text-sm">
+      Showing
+      <span class="font-semibold tabular-nums text-text-primary">{{ pagedRows().length }}</span>
+      of
+      <span class="font-semibold tabular-nums text-text-primary">{{ filteredRows().length }}</span>
+      records
+      @if (selectedCount() > 0) {
+        <span class="text-brand"> · {{ selectedCount() }} selected</span>
+      }
+    </p>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <app-select
+        class="min-w-30"
+        size="sm"
+        [stretch]="false"
+        [options]="pageSizeSelectOptions()"
+        [ngModel]="'' + pageSize()"
+        (ngModelChange)="changePageSize(+$event)"
+      />
+
+      <app-button
+        size="sm"
+        variant="secondary"
+        label="Prev"
+        [disabled]="page() <= 1"
+        (pressed)="changePage(page() - 1)"
+      />
+      <span class="min-w-14 text-center text-sm tabular-nums text-text-secondary">
+        {{ page() }} / {{ totalPages() }}
+      </span>
+      <app-button
+        size="sm"
+        variant="secondary"
+        label="Next"
+        [disabled]="page() >= totalPages()"
+        (pressed)="changePage(page() + 1)"
+      />
+    </div>
+  </div>
+</section>

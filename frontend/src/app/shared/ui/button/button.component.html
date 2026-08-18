@@ -1,0 +1,21 @@
+<button
+  [type]="type()"
+  [disabled]="disabled() || loading()"
+  [class]="classes"
+  [attr.aria-label]="ariaLabel() || label() || null"
+  (click)="pressed.emit($event)"
+>
+  @if (loading()) {
+    <span
+      class="inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+      aria-hidden="true"
+    ></span>
+  } @else if (icon()) {
+    <app-icon [name]="icon()!" [size]="iconSize" />
+  }
+  @if (label()) {
+    <span>{{ label() }}</span>
+  } @else {
+    <ng-content />
+  }
+</button>

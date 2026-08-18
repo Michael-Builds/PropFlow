@@ -1,0 +1,56 @@
+@if (view(); as v) {
+  <app-page-header [eyebrow]="config().eyebrow" [title]="v.title" [description]="v.description">
+    <app-badge [variant]="badgeVariant()" [label]="v.badgeLabel" />
+    <a [routerLink]="listPath()" class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer">
+      Back
+    </a>
+  </app-page-header>
+
+  <app-detail-stats [stats]="v.stats" />
+
+  <div class="grid gap-4 lg:grid-cols-12">
+    <div class="space-y-4 lg:col-span-8">
+      <app-card title="Overview" subtitle="Operational profile">
+        <app-detail-fields [fields]="v.overview" />
+      </app-card>
+
+      @for (group of v.related; track group.title) {
+        <app-card [title]="group.title" [subtitle]="group.subtitle">
+          @if (group.items.length === 0) {
+            <p class="text-sm text-text-muted">{{ group.empty }}</p>
+          } @else {
+            <ul class="divide-y divide-border-light">
+              @for (item of group.items; track item.id) {
+                <li class="py-3 first:pt-0 last:pb-0">
+                  <a [routerLink]="item.path" class="block md:cursor-pointer">
+                    <p class="text-sm font-medium text-text-primary">{{ item.title }}</p>
+                    <p class="mt-0.5 text-xs text-text-secondary">{{ item.meta }}</p>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </app-card>
+      }
+
+      @if (v.documents.length) {
+        <app-card title="Documents" subtitle="Vaulted files on this record">
+          <app-detail-documents [documents]="v.documents" />
+        </app-card>
+      }
+
+      <app-card title="Timeline" subtitle="Lifecycle events">
+        <app-detail-timeline [events]="v.timeline" />
+      </app-card>
+    </div>
+
+    <div class="space-y-4 lg:col-span-4">
+      <app-card title="Quick actions" subtitle="Related operator paths">
+        <app-detail-actions [actions]="v.actions" />
+      </app-card>
+      <app-card title="Internal notes" subtitle="Ops commentary">
+        <app-detail-notes [notes]="v.notes" />
+      </app-card>
+    </div>
+  </div>
+}

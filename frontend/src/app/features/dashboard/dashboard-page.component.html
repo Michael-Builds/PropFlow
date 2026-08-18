@@ -1,0 +1,315 @@
+<div class="relative flex min-w-0 max-w-full flex-col gap-6 sm:gap-8">
+  <div class="relative z-1 flex min-w-0 max-w-full flex-col gap-6 sm:gap-8">
+    <app-page-header
+      eyebrow="PropFlow"
+      title="Operations dashboard"
+      description="Occupancy, collections, arrears, and SLA performance across the live portfolio."
+    >
+      <app-button variant="secondary" icon="refresh" label="Refresh" (pressed)="load()" />
+      @if (canManagePortfolio()) {
+        <app-button icon="plus" label="Add property" (pressed)="addProperty()" />
+      }
+    </app-page-header>
+
+    @if (dashboard(); as d) {
+      <section
+        class="dashboard-posture relative overflow-hidden rounded-md border border-white/10 bg-navy-deep px-5 py-5 text-white md:px-6 md:py-8"
+        aria-label="Portfolio posture"
+      >
+        <div class="dashboard-posture-pattern pointer-events-none absolute inset-0" aria-hidden="true">
+          <svg class="absolute inset-0 size-full opacity-50" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dash-property-grid" width="56" height="56" patternUnits="userSpaceOnUse">
+                <path
+                  d="M8 36 V20 L28 8 L48 20 V36 H8 Z M18 36 V26 H26 V36 M30 22 H38 V28 H30 Z"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dash-property-grid)" />
+          </svg>
+        </div>
+
+        <div class="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div class="flex items-start gap-3.5">
+            <div
+              class="flex size-11 shrink-0 items-center justify-center rounded-md border border-white/12 bg-white/10 text-white"
+            >
+              <app-icon name="building" [size]="22" />
+            </div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <app-badge variant="success" [label]="d.posture.label" />
+                <span class="text-[11px] font-medium tracking-wide text-white/55 uppercase">
+                  {{ d.posture.region }}
+                </span>
+              </div>
+              <p class="mt-2 max-w-xl text-sm leading-relaxed text-white/80">
+                {{ d.posture.message }}
+              </p>
+              <p class="mt-2 text-xs text-white/65">
+                Last sync {{ d.posture.syncedAt | date: 'medium' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-100">
+            @for (metric of postureMetrics(); track metric.label) {
+              <div class="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5">
+                <p class="text-[0.65rem] font-semibold tracking-[0.08em] text-white/50 uppercase">
+                  {{ metric.label }}
+                </p>
+                <p class="mt-0.5 text-base font-semibold tracking-tight text-white">
+                  {{ metric.value }}
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4" aria-label="Portfolio overview">
+        <div>
+          <h2 class="m-0 text-base font-semibold text-text-primary">Portfolio overview</h2>
+          <p class="mt-0.5 text-sm text-text-secondary">Occupancy, collections, and outstanding balances</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
+          @for (stat of primaryStats(); track stat.label; let i = $index) {
+            <app-stat-card
+              [class]="'min-w-0 ' + oddLastClass(i, primaryStats().length)"
+              [label]="stat.label"
+              [value]="stat.value"
+              [hint]="stat.hint"
+              [icon]="stat.icon"
+            />
+          }
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-3">
+          @for (stat of secondaryStats(); track stat.label; let i = $index) {
+            <div
+              class="flex min-w-0 items-start justify-between gap-3 rounded-lg border border-border-light bg-card px-3.5 py-3.5 sm:px-4"
+              [ngClass]="oddLastClass(i, secondaryStats().length)"
+            >
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-text-secondary">{{ stat.label }}</p>
+                <p class="mt-1 text-xl font-bold tabular-nums text-text-primary">{{ stat.value }}</p>
+                <p class="mt-1 text-xs text-text-muted">{{ stat.hint }}</p>
+              </div>
+              <span
+                class="shrink-0 text-xs font-semibold tabular-nums"
+                [class.text-success]="stat.delta >= 0"
+                [class.text-danger]="stat.delta < 0"
+              >
+                {{ stat.delta >= 0 ? '+' : '' }}{{ stat.delta }}%
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4" aria-label="Maintenance pipeline">
+        <div>
+          <h2 class="m-0 text-base font-semibold text-text-primary">Maintenance control</h2>
+          <p class="mt-0.5 text-sm text-text-secondary">Work-order pipeline, throughput, and SLA outcomes</p>
+        </div>
+
+        <app-card title="Ticket pipeline" subtitle="Open · Assigned · In progress · Resolved · Closed · Breached">
+          <a card-actions routerLink="/tickets" class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer">
+            Manage tickets
+          </a>
+
+          <div class="mb-4 h-2 overflow-hidden rounded-md bg-border-light">
+            <div class="flex h-full w-full">
+              @for (step of d.ticketPipeline; track step.status) {
+                <div
+                  class="h-full transition-all"
+                  [class]="pipelineToneClass(step.tone)"
+                  [style.width.%]="(step.count / pipelineTotal()) * 100"
+                  [title]="step.status + ': ' + step.count"
+                ></div>
+              }
+            </div>
+          </div>
+
+          <div class="grid gap-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+            @for (step of d.ticketPipeline; track step.status) {
+              <div class="rounded-md border border-border-light bg-surface/80 px-4 py-3.5">
+                <div class="flex items-center gap-2">
+                  <span class="size-2 rounded-md" [class]="pipelineToneClass(step.tone)"></span>
+                  <p class="text-[11px] font-semibold tracking-wide text-text-secondary uppercase">
+                    {{ step.status }}
+                  </p>
+                </div>
+                <p class="mt-2 text-xl font-semibold tabular-nums text-text-primary">{{ step.count }}</p>
+              </div>
+            }
+          </div>
+        </app-card>
+
+        <div class="grid min-w-0 max-w-full items-stretch gap-4 xl:grid-cols-3">
+          @for (chart of occupancyCharts(); track chart.id) {
+            <app-card
+              class="min-w-0 max-w-full"
+              [class]="chart.spanClass"
+              [title]="chart.title"
+              [subtitle]="chart.subtitle"
+            >
+              <app-chart
+                class="min-h-0 min-w-0 max-w-full flex-1"
+                [type]="chart.type"
+                [labels]="chart.labels"
+                [datasets]="chart.datasets"
+                [height]="chart.height"
+                [stacked]="chart.stacked ?? false"
+                [centerLabel]="chart.centerLabel ?? null"
+              />
+            </app-card>
+          }
+        </div>
+
+        <div class="grid min-w-0 max-w-full items-stretch gap-4 lg:grid-cols-2">
+          @for (chart of opsCharts(); track chart.id) {
+            <app-card class="min-w-0 max-w-full" [title]="chart.title" [subtitle]="chart.subtitle">
+              <app-chart
+                class="min-h-0 min-w-0 max-w-full flex-1"
+                [type]="chart.type"
+                [labels]="chart.labels"
+                [datasets]="chart.datasets"
+                [height]="chart.height"
+                [stacked]="chart.stacked ?? false"
+              />
+            </app-card>
+          }
+        </div>
+      </section>
+
+      <section class="flex flex-col gap-4" aria-label="Portfolio health">
+        <div>
+          <h2 class="m-0 text-base font-semibold text-text-primary">Portfolio health</h2>
+          <p class="mt-0.5 text-sm text-text-secondary">Property performance and maintenance SLA</p>
+        </div>
+
+        <app-card title="Properties" subtitle="Occupancy and arrears by building">
+          <a card-actions routerLink="/properties" class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer">
+            Manage
+          </a>
+          <div class="space-y-3">
+            @for (property of d.properties; track property.name) {
+              <div class="rounded-md border border-border-light bg-white px-4 py-3.5">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="font-semibold text-text-primary">{{ property.name }}</p>
+                      <app-badge [variant]="healthVariant(property.health)" [label]="property.health" />
+                    </div>
+                    <p class="mt-1 text-xs leading-relaxed text-text-secondary">
+                      {{ property.units }} units · {{ property.occupancy }}% occupied ·
+                      {{ property.arrears }} arrears
+                    </p>
+                  </div>
+                  <p class="text-sm font-semibold tabular-nums text-text-primary">{{ property.occupancy }}%</p>
+                </div>
+                <div class="mt-3 h-1.5 overflow-hidden rounded-md bg-border-light">
+                  <div
+                    class="h-full rounded-md bg-brand transition-all"
+                    [class.bg-warning]="property.health === 'watch'"
+                    [class.bg-danger]="property.health === 'risk'"
+                    [style.width]="occupancyWidth(property.occupancy)"
+                  ></div>
+                </div>
+              </div>
+            }
+          </div>
+        </app-card>
+
+        <app-card title="SLA desk" subtitle="Resolution speed and queue load">
+          <div class="grid grid-cols-2 gap-2.5">
+            @for (metric of slaMetrics(); track metric.label) {
+              <div class="rounded-md border border-border-light bg-surface/80 px-4 py-3.5">
+                <p class="text-[11px] text-text-muted">{{ metric.label }}</p>
+                <p class="mt-1 text-lg font-semibold tabular-nums text-text-primary">{{ metric.value }}</p>
+              </div>
+            }
+          </div>
+        </app-card>
+      </section>
+
+      <section class="flex flex-col gap-4" aria-label="Operations">
+        <div>
+          <h2 class="m-0 text-base font-semibold text-text-primary">Operations</h2>
+          <p class="mt-0.5 text-sm text-text-secondary">Activity, alerts, and frequent operator paths</p>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <app-card title="Recent activity" subtitle="Payments, tickets, leases, documents">
+            <a card-actions routerLink="/audit-logs" class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer">
+              Audit logs
+            </a>
+            <ul class="divide-y divide-border-light">
+              @for (item of d.activity; track item.id) {
+                <li class="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+                  <div class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-soft text-brand">
+                    <app-icon [name]="iconName(item.icon)" [size]="15" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-2">
+                      <p class="text-sm leading-snug font-medium text-text-primary">{{ item.title }}</p>
+                      <app-badge [variant]="statusVariant(item.status)" [label]="item.status" />
+                    </div>
+                    <p class="mt-1 text-xs text-text-secondary">{{ item.meta }}</p>
+                    <p class="mt-1 text-[11px] text-text-muted">{{ item.time }}</p>
+                  </div>
+                </li>
+              }
+            </ul>
+          </app-card>
+
+          <div class="grid gap-4 lg:grid-cols-4">
+            <app-card class="lg:col-span-3" title="Open alerts" subtitle="Needs attention">
+              <a card-actions routerLink="/notifications" class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer">
+                View all
+              </a>
+              <ul class="space-y-2.5">
+                @for (alert of d.openAlerts; track alert.title) {
+                  <li class="rounded-md border border-border-light bg-white px-4 py-3.5">
+                    <div class="flex items-start justify-between gap-2">
+                      <p class="text-sm leading-snug font-medium text-text-primary">{{ alert.title }}</p>
+                      <app-badge [variant]="statusVariant(alert.severity)" [label]="alert.severity" />
+                    </div>
+                    <p class="mt-1 text-xs text-text-secondary">{{ alert.source }}</p>
+                    <p class="mt-1.5 text-[11px] text-text-muted">{{ alert.time }}</p>
+                  </li>
+                }
+              </ul>
+            </app-card>
+
+            <app-card class="lg:col-span-1" title="Quick operations" subtitle="Common operator paths">
+              <div class="grid gap-2">
+                @for (action of quickActions(); track action.path) {
+                  <a
+                    [routerLink]="action.path"
+                    class="group flex items-center gap-3 rounded-md border border-border-light px-3 py-2.5 transition hover:border-brand/35 hover:bg-brand-muted md:cursor-pointer"
+                  >
+                    <div
+                      class="flex size-8 shrink-0 items-center justify-center rounded-md bg-navy-deep text-white transition group-hover:bg-brand"
+                    >
+                      <app-icon [name]="iconName(action.icon)" [size]="15" />
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-semibold text-text-primary">{{ action.label }}</p>
+                      <p class="truncate text-xs text-text-secondary">{{ action.description }}</p>
+                    </div>
+                  </a>
+                }
+              </div>
+            </app-card>
+          </div>
+        </div>
+      </section>
+    }
+  </div>
+</div>

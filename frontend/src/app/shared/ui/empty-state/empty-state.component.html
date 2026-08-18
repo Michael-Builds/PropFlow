@@ -1,0 +1,18 @@
+<div
+  class="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-white px-6 py-14 text-center"
+>
+  <div class="mb-4 flex size-14 items-center justify-center rounded-md bg-brand-soft text-brand">
+    <app-icon [name]="icon()" [size]="24" />
+  </div>
+  <h3 class="text-base font-semibold text-text-primary md:text-lg">{{ title() }}</h3>
+  <p class="mt-2 max-w-md text-sm text-text-secondary md:text-base">{{ description() }}</p>
+  @if (actionLabel()) {
+    <div class="mt-5">
+      <app-button
+        [icon]="actionIcon()"
+        [label]="actionLabel()!"
+        (pressed)="action?.()"
+      />
+    </div>
+  }
+</div>
