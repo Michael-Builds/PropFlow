@@ -74,7 +74,7 @@ export class AuthService {
     this.store.dispatch(AuthActions.setActiveOrg({ orgId }));
   }
 
-  canAccess(roles: UserRole[]): boolean {
+  canAccess(roles: readonly UserRole[]): boolean {
     const role = this.user()?.role;
     if (!role) return false;
     return roles.includes(role);

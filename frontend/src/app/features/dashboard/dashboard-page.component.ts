@@ -4,6 +4,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DatePipe, NgClass } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { NAV_SECTIONS } from '../../core/config/nav.config';
+import { DataCollection, collectionRoute } from '../../core/enums/data-collection.enum';
+import { UserRole, UserRoles } from '../../core/enums/user-role.enum';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { DataService } from '../../core/services/data/data.service';
 import { ToastService } from '../../core/services/toast/toast.service';
@@ -63,9 +65,11 @@ export class DashboardPageComponent {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   readonly dashboard = signal<DashboardData | null>(null);
-  readonly isPlatformAdmin = computed(() => this.auth.role() === 'platform_admin');
-  readonly canManagePortfolio = computed(() => this.auth.canAccess(['owner', 'manager']));
-  readonly canViewAudit = computed(() => this.auth.canAccess(['owner']));
+  readonly isPlatformAdmin = computed(() => this.auth.role() === UserRole.PlatformAdmin);
+  readonly canManagePortfolio = computed(() => this.auth.canAccess(UserRoles.portfolio));
+  readonly canViewAudit = computed(() => this.auth.canAccess(UserRoles.audit));
+  readonly companiesPath = collectionRoute(DataCollection.Organizations);
+  readonly propertiesPath = collectionRoute(DataCollection.Properties);
   readonly headerTitle = computed(() =>
     this.isPlatformAdmin() ? 'Platform dashboard' : 'Operations dashboard',
   );
@@ -237,7 +241,7 @@ export class DashboardPageComponent {
   }
 
   async addCompany(): Promise<void> {
-    void this.router.navigateByUrl('/organizations');
+    void this.router.navigateByUrl(collectionRoute(DataCollection.Organizations));
   }
 
   async addProperty(): Promise<void> {
@@ -247,7 +251,7 @@ export class DashboardPageComponent {
       confirmLabel: 'Continue',
     });
     if (ok) {
-      void this.router.navigateByUrl('/properties');
+      void this.router.navigateByUrl(collectionRoute(DataCollection.Properties));
     }
   }
 }

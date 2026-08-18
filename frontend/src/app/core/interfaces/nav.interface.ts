@@ -1,3 +1,7 @@
+import { UserRole } from '../enums/user-role.enum';
+
+export { UserRole };
+
 export type NavIconName =
   | 'dashboard'
   | 'building'
@@ -45,7 +49,7 @@ export interface NavItem {
   label: string;
   path: string;
   icon: NavIconName;
-  roles: UserRole[];
+  roles: readonly UserRole[];
   badgeKey?: string;
 }
 
@@ -54,5 +58,3 @@ export interface NavSection {
   label: string;
   items: NavItem[];
 }
-
-export type UserRole = 'platform_admin' | 'owner' | 'manager' | 'finance' | 'vendor' | 'tenant';

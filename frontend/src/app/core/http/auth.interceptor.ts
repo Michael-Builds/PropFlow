@@ -1,6 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import { UserRole } from '../enums/user-role.enum';
 import { AuthService } from '../services/auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -15,7 +16,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = auth.accessToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const orgId = auth.activeOrgId();
-  if (orgId && auth.role() !== 'platform_admin') {
+  if (orgId && auth.role() !== UserRole.PlatformAdmin) {
     headers['x-org-id'] = orgId;
   }
   return next(req.clone({ setHeaders: headers }));

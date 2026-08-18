@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AgreementTemplate, GeneratedAgreement } from '../../../core/interfaces/agreement.interface';
+import { AgreementTemplateId } from '../../../core/enums/domain.enum';
 import { ModalService } from '../../../core/services/modal/modal.service';
 import { AgreementService } from '../../../core/services/agreements/agreement.service';
 import { ToastService } from '../../../core/services/toast/toast.service';
@@ -54,10 +55,10 @@ export class GenerateAgreementDialogComponent implements OnInit, OnDestroy {
   readonly saving = signal(false);
   readonly savedToVault = signal(false);
   readonly error = signal<string | null>(null);
-  readonly selectedTemplateId = signal('lease_agreement');
+  readonly selectedTemplateId = signal(AgreementTemplateId.LeaseAgreement);
 
   readonly form = this.fb.nonNullable.group({
-    templateId: ['lease_agreement', Validators.required],
+    templateId: [AgreementTemplateId.LeaseAgreement, Validators.required],
     leaseId: [''],
     extraTerms: [''],
   });
@@ -79,7 +80,7 @@ export class GenerateAgreementDialogComponent implements OnInit, OnDestroy {
     return this.templates.find((template) => template.id === this.selectedTemplateId()) ?? null;
   }
 
-  selectTemplate(id: string): void {
+  selectTemplate(id: AgreementTemplateId): void {
     this.form.controls.templateId.setValue(id);
     this.selectedTemplateId.set(id);
     this.error.set(null);

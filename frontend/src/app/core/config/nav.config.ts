@@ -1,59 +1,54 @@
-import { NavSection, UserRole } from '../interfaces/nav.interface';
+import { NavSection } from '../interfaces/nav.interface';
 import { ThemeOption } from '../interfaces/theme.interface';
+import { DataCollection, collectionRoute } from '../enums/data-collection.enum';
+import { USER_ROLE_LABELS, UserRoles } from '../enums/user-role.enum';
 
-export const ROLE_LABELS: Record<UserRole, string> = {
-  platform_admin: 'Platform',
-  owner: 'Owner',
-  manager: 'Manager',
-  finance: 'Finance',
-  vendor: 'Vendor',
-  tenant: 'Tenant',
-};
+export const ROLE_LABELS = USER_ROLE_LABELS;
 
 export const NAV_SECTIONS: NavSection[] = [
   {
     id: 'overview',
     label: 'Overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin'] },
+      { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: UserRoles.all },
     ],
   },
   {
     id: 'portfolio',
     label: 'Portfolio',
     items: [
-      { id: 'properties', label: 'Properties', path: '/properties', icon: 'building', roles: ['owner', 'manager'] },
-      { id: 'units', label: 'Units', path: '/units', icon: 'door', roles: ['owner', 'manager'] },
-      { id: 'tenants', label: 'Tenants', path: '/tenants', icon: 'users', roles: ['owner', 'manager'] },
-      { id: 'leases', label: 'Leases', path: '/leases', icon: 'file', roles: ['owner', 'manager'] },
+      { id: DataCollection.Properties, label: 'Properties', path: collectionRoute(DataCollection.Properties), icon: 'building', roles: UserRoles.portfolio },
+      { id: DataCollection.Units, label: 'Units', path: collectionRoute(DataCollection.Units), icon: 'door', roles: UserRoles.portfolio },
+      { id: DataCollection.Tenants, label: 'Tenants', path: collectionRoute(DataCollection.Tenants), icon: 'users', roles: UserRoles.portfolio },
+      { id: DataCollection.Leases, label: 'Leases', path: collectionRoute(DataCollection.Leases), icon: 'file', roles: UserRoles.portfolio },
     ],
   },
   {
     id: 'finance',
     label: 'Collections',
     items: [
-      { id: 'invoices', label: 'Invoices', path: '/invoices', icon: 'invoice', roles: ['owner', 'manager', 'finance'] },
-      { id: 'payments', label: 'Payments', path: '/payments', icon: 'wallet', roles: ['owner', 'manager', 'finance'] },
-      { id: 'arrears', label: 'Arrears', path: '/arrears', icon: 'alert', roles: ['owner', 'manager', 'finance'] },
+      { id: DataCollection.Invoices, label: 'Invoices', path: collectionRoute(DataCollection.Invoices), icon: 'invoice', roles: UserRoles.collections },
+      { id: DataCollection.Payments, label: 'Payments', path: collectionRoute(DataCollection.Payments), icon: 'wallet', roles: UserRoles.collections },
+      { id: DataCollection.Arrears, label: 'Arrears', path: collectionRoute(DataCollection.Arrears), icon: 'alert', roles: UserRoles.collections },
     ],
   },
   {
     id: 'ops',
     label: 'Operations',
     items: [
-      { id: 'tickets', label: 'Maintenance', path: '/tickets', icon: 'wrench', roles: ['owner', 'manager', 'vendor', 'tenant'] },
-      { id: 'documents', label: 'Documents', path: '/documents', icon: 'folder', roles: ['owner', 'manager', 'finance', 'tenant'] },
-      { id: 'notifications', label: 'Notifications', path: '/notifications', icon: 'bell', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin'], badgeKey: 'notifications' },
+      { id: DataCollection.Tickets, label: 'Maintenance', path: collectionRoute(DataCollection.Tickets), icon: 'wrench', roles: UserRoles.tickets },
+      { id: DataCollection.Documents, label: 'Documents', path: collectionRoute(DataCollection.Documents), icon: 'folder', roles: UserRoles.documents },
+      { id: DataCollection.Notifications, label: 'Notifications', path: collectionRoute(DataCollection.Notifications), icon: 'bell', roles: UserRoles.all, badgeKey: DataCollection.Notifications },
     ],
   },
   {
     id: 'admin',
     label: 'Admin',
     items: [
-      { id: 'organizations', label: 'Companies', path: '/organizations', icon: 'globe', roles: ['platform_admin'] },
-      { id: 'users', label: 'Users', path: '/users', icon: 'users', roles: ['owner', 'manager'] },
-      { id: 'audit', label: 'Audit logs', path: '/audit-logs', icon: 'shield', roles: ['owner'] },
-      { id: 'appearance', label: 'Appearance', path: '/appearance', icon: 'palette', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin'] },
+      { id: DataCollection.Organizations, label: 'Companies', path: collectionRoute(DataCollection.Organizations), icon: 'globe', roles: UserRoles.platform },
+      { id: DataCollection.Users, label: 'Users', path: collectionRoute(DataCollection.Users), icon: 'users', roles: UserRoles.portfolio },
+      { id: DataCollection.AuditLogs, label: 'Audit logs', path: collectionRoute(DataCollection.AuditLogs), icon: 'shield', roles: UserRoles.audit },
+      { id: 'appearance', label: 'Appearance', path: '/appearance', icon: 'palette', roles: UserRoles.all },
     ],
   },
 ];

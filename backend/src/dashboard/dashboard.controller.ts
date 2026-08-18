@@ -32,13 +32,13 @@ export class DashboardController {
   }
 
   @Get('overview')
-  overview(@CurrentUser() user: JwtUser, @OrgId(false) orgId: string) {
+  overview(@CurrentUser() user: JwtUser) {
     if (user.role === 'platform_admin') {
       return this.dashboardService.platformOverview();
     }
-    if (!orgId) {
+    if (!user.orgId) {
       throw new BadRequestException('Organisation required.');
     }
-    return this.dashboardService.overview(orgId);
+    return this.dashboardService.overview(user.orgId);
   }
 }

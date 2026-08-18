@@ -1,5 +1,6 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { DataCollection } from '../../enums/data-collection.enum';
 import { AppNotification } from '../../interfaces/user.interface';
 import { formatRelativeTime } from '../../utils';
 import { AuthService } from '../auth/auth.service';
@@ -11,7 +12,7 @@ import { selectCollectionItems } from '../../../store/collections/collections.se
 export class NotificationService {
   private readonly store = inject(Store);
   private readonly auth = inject(AuthService);
-  private readonly rows = this.store.selectSignal(selectCollectionItems('notifications'));
+  private readonly rows = this.store.selectSignal(selectCollectionItems(DataCollection.Notifications));
   readonly items = computed(() => this.rows().map(toNotification));
   readonly unreadCount = computed(() => this.items().filter((item) => !item.read).length);
   readonly unreadItems = computed(() => this.items().filter((item) => !item.read));
@@ -23,7 +24,7 @@ export class NotificationService {
 
   refresh(): void {
     if (!this.auth.authenticated()) return;
-    this.store.dispatch(CollectionsActions.load({ name: 'notifications' }));
+    this.store.dispatch(CollectionsActions.load({ name: DataCollection.Notifications }));
   }
 
   markRead(id: string): void {

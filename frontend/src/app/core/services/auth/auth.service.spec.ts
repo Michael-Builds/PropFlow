@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { UserRole, UserRoles } from '../../enums/user-role.enum';
 import { AuthService } from './auth.service';
 import { completeOwnerLogin, httpTestProviders } from '../../testing/http';
 
@@ -25,7 +26,7 @@ describe('AuthService', () => {
   it('should authenticate on valid login', () => {
     completeOwnerLogin(http, service);
     expect(service.authenticated()).toBe(true);
-    expect(service.role()).toBe('owner');
+    expect(service.role()).toBe(UserRole.Owner);
   });
 
   it('should reject unknown accounts', () => {
@@ -45,8 +46,8 @@ describe('AuthService', () => {
 
   it('should keep each role on its own navigation', () => {
     completeOwnerLogin(http, service);
-    expect(service.canAccess(['owner', 'manager'])).toBe(true);
-    expect(service.canAccess(['platform_admin'])).toBe(false);
+    expect(service.canAccess(UserRoles.portfolio)).toBe(true);
+    expect(service.canAccess(UserRoles.platform)).toBe(false);
     expect(service.homePath()).toBe('/dashboard');
   });
 
@@ -59,7 +60,7 @@ describe('AuthService', () => {
       expiresIn: 3600,
       user: {
         id: 'usr_004',
-        role: 'vendor',
+        role: UserRole.Vendor,
         orgId: 'org_001',
         email: 'vendor@propflow.app',
         fullName: 'AquaFix Ops',

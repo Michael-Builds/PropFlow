@@ -73,7 +73,7 @@ const collectionsReducer = createReducer(
   on(CollectionsActions.markNotificationRead, CollectionsActions.markNotificationReadSuccess, (state, { id }) =>
     patchSlice(
       state,
-      'notifications',
+      DataCollection.Notifications,
       (slice) => {
         const current = slice.entities[id];
         if (!current) return slice;

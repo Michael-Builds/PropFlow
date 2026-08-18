@@ -200,7 +200,7 @@
           @if (canManagePortfolio() || isPlatformAdmin()) {
             <a
               card-actions
-              [routerLink]="isPlatformAdmin() ? '/organizations' : '/properties'"
+              [routerLink]="isPlatformAdmin() ? companiesPath : propertiesPath"
               class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer"
             >
               Manage

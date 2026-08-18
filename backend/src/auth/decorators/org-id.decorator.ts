@@ -1,19 +1,17 @@
-import { BadRequestException, createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, createParamDecorator, ExecutionContext } from '@nestjs/common';
 import type { JwtUser } from './current-user.decorator';
 
-export const OrgId = createParamDecorator((required: boolean | undefined, ctx: ExecutionContext): string => {
+/**
+ * Resolves the company org for org-scoped routes.
+ * Platform admins are not attached to a company and must not impersonate one.
+ */
+export const OrgId = createParamDecorator((_data: unknown, ctx: ExecutionContext): string => {
   const req = ctx.switchToHttp().getRequest();
   const user = req.user as JwtUser | undefined;
   if (!user) throw new BadRequestException('Authentication required.');
 
   if (user.role === 'platform_admin') {
-    const header = req.headers['x-org-id'];
-    const fromHeader = Array.isArray(header) ? header[0] : header;
-    const orgId = String(fromHeader || req.query?.orgId || '').trim();
-    if (!orgId && required !== false) {
-      throw new BadRequestException('Select an organisation (x-org-id) to manage company data.');
-    }
-    return orgId;
+    throw new ForbiddenException('Platform operators use platform endpoints, not company-scoped data.');
   }
 
   const header = req.headers['x-org-id'];

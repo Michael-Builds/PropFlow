@@ -1,3 +1,48 @@
+import {
+  DocumentStatus,
+  InvoiceStatus,
+  KycStatus,
+  LeaseStatus,
+  RecordStatus,
+  TicketPriority,
+  TicketStatus,
+  UnitStatus,
+} from '../enums/domain.enum';
+import { UserRole } from '../enums/user-role.enum';
+import { BadgeVariant } from '../interfaces/badge.interface';
+
+const SUCCESS_STATUSES = new Set<string>([
+  RecordStatus.Active,
+  InvoiceStatus.Paid,
+  DocumentStatus.Valid,
+  KycStatus.Verified,
+  TicketStatus.Resolved,
+  TicketStatus.Closed,
+  UnitStatus.Occupied,
+]);
+
+const WARNING_STATUSES = new Set<string>([
+  KycStatus.Pending,
+  InvoiceStatus.Partial,
+  TicketStatus.Assigned,
+  DocumentStatus.Expiring,
+  LeaseStatus.Ending,
+  TicketStatus.Open,
+  UnitStatus.Vacant,
+]);
+
+const DANGER_STATUSES = new Set<string>([
+  InvoiceStatus.Overdue,
+  TicketPriority.High,
+  DocumentStatus.Expired,
+  TicketStatus.InProgress,
+  'breached',
+]);
+
+const INFO_STATUSES = new Set<string>([TicketPriority.Medium, UnitStatus.Maintenance, 'info']);
+
+const BRAND_ROLES = new Set<string>([UserRole.Owner, UserRole.Manager, UserRole.Finance]);
+
 export function truncateText(value: string, max = 48): string {
   const text = value.trim();
   if (max <= 0) return '';
@@ -57,23 +102,13 @@ export function formatGhs(value: number): string {
   }).format(value);
 }
 
-export function badgeVariantFor(value: string): 'neutral' | 'brand' | 'success' | 'warning' | 'danger' | 'info' {
+export function badgeVariantFor(value: string): BadgeVariant {
   const key = value.toLowerCase().replace(/[\s-]+/g, '_');
-  if (['active', 'paid', 'valid', 'verified', 'resolved', 'closed', 'occupied'].includes(key)) {
-    return 'success';
-  }
-  if (['pending', 'partial', 'assigned', 'expiring', 'ending', 'open', 'vacant'].includes(key)) {
-    return 'warning';
-  }
-  if (['overdue', 'high', 'breached', 'expired', 'in_progress'].includes(key)) {
-    return 'danger';
-  }
-  if (['medium', 'maintenance', 'info'].includes(key)) {
-    return 'info';
-  }
-  if (['owner', 'manager', 'finance'].includes(key)) {
-    return 'brand';
-  }
+  if (SUCCESS_STATUSES.has(key) || SUCCESS_STATUSES.has(value)) return 'success';
+  if (WARNING_STATUSES.has(key) || WARNING_STATUSES.has(value)) return 'warning';
+  if (DANGER_STATUSES.has(key) || DANGER_STATUSES.has(value)) return 'danger';
+  if (INFO_STATUSES.has(key) || INFO_STATUSES.has(value)) return 'info';
+  if (BRAND_ROLES.has(key) || BRAND_ROLES.has(value)) return 'brand';
   return 'neutral';
 }
 

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { firstValueFrom } from 'rxjs';
+import { DataCollection } from '../../enums/data-collection.enum';
 import { DataService } from './data.service';
 import { httpTestProviders } from '../../testing/http';
 
@@ -23,7 +24,7 @@ describe('DataService', () => {
   });
 
   it('should load a collection from the API', async () => {
-    const pending = firstValueFrom(service.loadCollection<{ id: string }>('tenants'));
+    const pending = firstValueFrom(service.loadCollection<{ id: string }>(DataCollection.Tenants));
     const req = http.expectOne((request) => request.url.includes('/tenants'));
     req.flush({ items: [{ id: 'tnt_001', fullName: 'Ama Boateng' }] });
     const items = await pending;
@@ -39,7 +40,7 @@ describe('DataService', () => {
   });
 
   it('should find a record by id', async () => {
-    const pending = firstValueFrom(service.getById<{ id: string }>('tenants', 'tnt_001'));
+    const pending = firstValueFrom(service.getById<{ id: string }>(DataCollection.Tenants, 'tnt_001'));
     const req = http.expectOne((request) => request.url.includes('/tenants/tnt_001'));
     req.flush({ id: 'tnt_001', fullName: 'Ama Boateng' });
     const found = await pending;
@@ -48,7 +49,7 @@ describe('DataService', () => {
 
   it('should create and update a record', async () => {
     const createdPending = firstValueFrom(
-      service.create('properties', { name: 'Labone Court', location: 'Labone' }),
+      service.create(DataCollection.Properties, { name: 'Labone Court', location: 'Labone' }),
     );
     http.expectOne((request) => request.url.includes('/properties') && request.method === 'POST').flush({
       id: 'prp_100',
@@ -58,7 +59,7 @@ describe('DataService', () => {
     expect(created['id']).toBe('prp_100');
 
     const updatedPending = firstValueFrom(
-      service.update('properties', 'prp_100', { name: 'Labone Court', occupancy: '100%' }),
+      service.update(DataCollection.Properties, 'prp_100', { name: 'Labone Court', occupancy: '100%' }),
     );
     http.expectOne((request) => request.url.includes('/properties/prp_100') && request.method === 'PATCH').flush({
       id: 'prp_100',

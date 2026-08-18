@@ -1,4 +1,5 @@
 import { createFeature, createReducer, on } from '@ngrx/store';
+import { UserRole } from '../../core/enums/user-role.enum';
 import { AuthActions } from './auth.actions';
 import { initialAuthState, toSessionUser } from './auth.models';
 
@@ -16,7 +17,7 @@ const authReducer = createReducer(
       user,
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
-      activeOrgId: user.role === 'platform_admin' ? null : user.orgId,
+      activeOrgId: user.role === UserRole.PlatformAdmin ? null : user.orgId,
       status: 'idle' as const,
       error: null,
     };

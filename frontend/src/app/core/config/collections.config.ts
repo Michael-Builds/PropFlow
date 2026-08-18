@@ -1,12 +1,35 @@
 import { DataTableColumn, DataTableFilter } from '../interfaces/data-table.interface';
+import { CollectionPageConfig, FormField, FormFieldOption, FormFieldOptionsFrom } from '../interfaces/data.interface';
+import { badgeVariantFor } from '../utils';
 import {
-  CollectionPageConfig,
+  ARREARS_BUCKET_LABELS,
+  ArrearsBucket,
+  COMPANY_USER_ROLES,
+  DOCUMENT_TYPE_LABELS,
   DataCollection,
-  FormField,
-  FormFieldOption,
-  FormFieldOptionsFrom,
-} from '../interfaces/data.interface';
-import { badgeVariantFor, prettyLabel } from '../utils';
+  DocumentStatus,
+  EntityType,
+  InvoiceStatus,
+  KycStatus,
+  LeaseStatus,
+  NotificationKind,
+  OrgStatus,
+  PAYMENT_METHOD_LABELS,
+  PaymentMethod,
+  RecordStatus,
+  TICKET_CATEGORY_LABELS,
+  TICKET_STATUS_LABELS,
+  TicketCategory,
+  TicketPriority,
+  TicketStatus,
+  UNIT_TYPE_LABELS,
+  USER_ROLE_LABELS,
+  UnitStatus,
+  UnitType,
+  VAULT_DOCUMENT_TYPES,
+  enumOptions,
+  pickOptions,
+} from '../enums';
 
 const ACTIONS = {
   key: 'actions',
@@ -49,12 +72,8 @@ function badgeCol(key: string, header: string): DataTableColumn {
   };
 }
 
-function selectOpts(values: string[]): FormFieldOption[] {
-  return values.map((value) => ({ label: prettyLabel(value), value }));
-}
-
-function labelledOpts(options: Array<{ label: string; value: string }>): FormFieldOption[] {
-  return options;
+function selectOpts<T extends string>(values: readonly T[], labels?: Partial<Record<T, string>>): FormFieldOption[] {
+  return pickOptions(values, labels);
 }
 
 function from(
@@ -66,9 +85,9 @@ function from(
 }
 
 export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
-  properties: {
-    id: 'properties',
-    path: 'properties',
+  [DataCollection.Properties]: {
+    id: DataCollection.Properties,
+    path: DataCollection.Properties,
     eyebrow: 'Portfolio',
     title: 'Properties',
     description: 'Buildings and blocks. Occupancy is calculated from active units.',
@@ -78,9 +97,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  units: {
-    id: 'units',
-    path: 'units',
+  [DataCollection.Units]: {
+    id: DataCollection.Units,
+    path: DataCollection.Units,
     eyebrow: 'Portfolio',
     title: 'Units',
     description: 'Unit code, type, rent, and occupancy. Overlapping leases are blocked in the API.',
@@ -90,9 +109,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  tenants: {
-    id: 'tenants',
-    path: 'tenants',
+  [DataCollection.Tenants]: {
+    id: DataCollection.Tenants,
+    path: DataCollection.Tenants,
     eyebrow: 'Leasing',
     title: 'Tenants',
     description: 'Profiles, KYC status, and contact details for occupants.',
@@ -102,9 +121,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  leases: {
-    id: 'leases',
-    path: 'leases',
+  [DataCollection.Leases]: {
+    id: DataCollection.Leases,
+    path: DataCollection.Leases,
     eyebrow: 'Leasing',
     title: 'Leases',
     description: 'Create, renew, and terminate. One active lease per unit.',
@@ -114,9 +133,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  invoices: {
-    id: 'invoices',
-    path: 'invoices',
+  [DataCollection.Invoices]: {
+    id: DataCollection.Invoices,
+    path: DataCollection.Invoices,
     eyebrow: 'Collections',
     title: 'Invoices',
     description: 'Scheduled rent invoices with due, partial, and overdue states.',
@@ -126,9 +145,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  payments: {
-    id: 'payments',
-    path: 'payments',
+  [DataCollection.Payments]: {
+    id: DataCollection.Payments,
+    path: DataCollection.Payments,
     eyebrow: 'Collections',
     title: 'Payments',
     description: 'Manual payment posting with method and reference.',
@@ -138,9 +157,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  arrears: {
-    id: 'arrears',
-    path: 'arrears',
+  [DataCollection.Arrears]: {
+    id: DataCollection.Arrears,
+    path: DataCollection.Arrears,
     eyebrow: 'Collections',
     title: 'Arrears console',
     description: 'Aging buckets with reminder actions.',
@@ -150,9 +169,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: false,
     canDelete: false,
   },
-  tickets: {
-    id: 'tickets',
-    path: 'tickets',
+  [DataCollection.Tickets]: {
+    id: DataCollection.Tickets,
+    path: DataCollection.Tickets,
     eyebrow: 'Maintenance',
     title: 'Work orders',
     description: 'Open → Assigned → In progress → Resolved → Closed, with SLA due times.',
@@ -162,9 +181,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  documents: {
-    id: 'documents',
-    path: 'documents',
+  [DataCollection.Documents]: {
+    id: DataCollection.Documents,
+    path: DataCollection.Documents,
     eyebrow: 'Compliance',
     title: 'Document vault',
     description: 'Lease docs, IDs, certificates, and generated agreements. Owners can preview and download forms filled from the tenant file.',
@@ -174,9 +193,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
-  notifications: {
-    id: 'notifications',
-    path: 'notifications',
+  [DataCollection.Notifications]: {
+    id: DataCollection.Notifications,
+    path: DataCollection.Notifications,
     eyebrow: 'Inbox',
     title: 'Notifications',
     description: 'In-app alerts for arrears, expiry, and SLA.',
@@ -186,9 +205,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: false,
     canDelete: true,
   },
-  'audit-logs': {
-    id: 'audit-logs',
-    path: 'audit-logs',
+  [DataCollection.AuditLogs]: {
+    id: DataCollection.AuditLogs,
+    path: DataCollection.AuditLogs,
     eyebrow: 'Admin',
     title: 'Audit logs',
     description: 'Privileged actions with actor, entity, and IP. Owner only.',
@@ -198,9 +217,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: false,
     canDelete: false,
   },
-  users: {
-    id: 'users',
-    path: 'users',
+  [DataCollection.Users]: {
+    id: DataCollection.Users,
+    path: DataCollection.Users,
     eyebrow: 'Admin',
     title: 'Users',
     description: 'Invite owners, managers, finance, vendors, and tenants to this company.',
@@ -210,9 +229,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: false,
   },
-  organizations: {
-    id: 'organizations',
-    path: 'organizations',
+  [DataCollection.Organizations]: {
+    id: DataCollection.Organizations,
+    path: DataCollection.Organizations,
     eyebrow: 'Platform',
     title: 'Companies',
     description: 'Real-estate operators on PropFlow. Open a company to manage its portfolio.',
@@ -337,139 +356,64 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
 };
 
 export const COLLECTION_FILTERS: Record<DataCollection, DataTableFilter[]> = {
-  properties: [{ key: 'status', label: 'Status', options: [{ label: 'Active', value: 'active' }] }],
-  units: [
+  [DataCollection.Properties]: [{ key: 'status', label: 'Status', options: selectOpts([RecordStatus.Active]) }],
+  [DataCollection.Units]: [{ key: 'status', label: 'Status', options: enumOptions(UnitStatus) }],
+  [DataCollection.Tenants]: [{ key: 'kycStatus', label: 'KYC', options: enumOptions(KycStatus) }],
+  [DataCollection.Leases]: [
+    { key: 'status', label: 'Status', options: selectOpts([LeaseStatus.Active, LeaseStatus.Ending]) },
+  ],
+  [DataCollection.Invoices]: [
     {
       key: 'status',
       label: 'Status',
-      options: [
-        { label: 'Occupied', value: 'occupied' },
-        { label: 'Vacant', value: 'vacant' },
-        { label: 'Maintenance', value: 'maintenance' },
-      ],
+      options: selectOpts([InvoiceStatus.Paid, InvoiceStatus.Partial, InvoiceStatus.Overdue]),
     },
   ],
-  tenants: [
-    {
-      key: 'kycStatus',
-      label: 'KYC',
-      options: [
-        { label: 'Verified', value: 'verified' },
-        { label: 'Pending', value: 'pending' },
-      ],
-    },
-  ],
-  leases: [{ key: 'status', label: 'Status', options: [{ label: 'Active', value: 'active' }, { label: 'Ending', value: 'ending' }] }],
-  invoices: [
-    {
-      key: 'status',
-      label: 'Status',
-      options: [
-        { label: 'Paid', value: 'paid' },
-        { label: 'Partial', value: 'partial' },
-        { label: 'Overdue', value: 'overdue' },
-      ],
-    },
-  ],
-  payments: [
+  [DataCollection.Payments]: [
     {
       key: 'method',
       label: 'Method',
-      options: [
-        { label: 'Bank transfer', value: 'bank_transfer' },
-        { label: 'Mobile money', value: 'mobile_money' },
-      ],
+      options: selectOpts([PaymentMethod.BankTransfer, PaymentMethod.MobileMoney], PAYMENT_METHOD_LABELS),
     },
   ],
-  arrears: [
+  [DataCollection.Arrears]: [
     {
       key: 'bucket',
       label: 'Bucket',
-      options: [
-        { label: '1-30 days', value: '1-30 days' },
-        { label: '31-60 days', value: '31-60 days' },
-        { label: '61-90 days', value: '61-90 days' },
-      ],
+      options: selectOpts(
+        [ArrearsBucket.Days1To30, ArrearsBucket.Days31To60, ArrearsBucket.Days61To90],
+        ARREARS_BUCKET_LABELS,
+      ),
     },
   ],
-  tickets: [
+  [DataCollection.Tickets]: [
     {
       key: 'status',
       label: 'Status',
-      options: [
-        { label: 'Open', value: 'open' },
-        { label: 'Assigned', value: 'assigned' },
-        { label: 'In progress', value: 'in_progress' },
-      ],
+      options: selectOpts(
+        [TicketStatus.Open, TicketStatus.Assigned, TicketStatus.InProgress],
+        TICKET_STATUS_LABELS,
+      ),
     },
-    {
-      key: 'priority',
-      label: 'Priority',
-      options: [
-        { label: 'High', value: 'high' },
-        { label: 'Medium', value: 'medium' },
-        { label: 'Low', value: 'low' },
-      ],
-    },
+    { key: 'priority', label: 'Priority', options: enumOptions(TicketPriority) },
   ],
-  documents: [
-    {
-      key: 'type',
-      label: 'Type',
-      options: [
-        { label: 'Lease agreement', value: 'lease_agreement' },
-        { label: 'Lease renewal', value: 'lease_renewal' },
-        { label: 'Occupancy letter', value: 'occupancy_letter' },
-        { label: 'Unit handover', value: 'unit_handover' },
-        { label: 'Tenant form', value: 'tenant_form' },
-        { label: 'Payment instruction', value: 'payment_instruction' },
-        { label: 'National ID', value: 'national_id' },
-        { label: 'Fire certificate', value: 'fire_certificate' },
-        { label: 'Insurance', value: 'insurance' },
-        { label: 'Utility bill', value: 'utility_bill' },
-        { label: 'Contract', value: 'contract' },
-      ],
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      options: [
-        { label: 'Valid', value: 'valid' },
-        { label: 'Expiring', value: 'expiring' },
-        { label: 'Expired', value: 'expired' },
-      ],
-    },
+  [DataCollection.Documents]: [
+    { key: 'type', label: 'Type', options: selectOpts(VAULT_DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS) },
+    { key: 'status', label: 'Status', options: enumOptions(DocumentStatus) },
   ],
-  notifications: [{ key: 'type', label: 'Type', options: [{ label: 'Arrears', value: 'arrears' }, { label: 'Compliance', value: 'compliance' }, { label: 'Maintenance', value: 'maintenance' }] }],
-  'audit-logs': [],
-  users: [
-    {
-      key: 'role',
-      label: 'Role',
-      options: [
-        { label: 'Owner', value: 'owner' },
-        { label: 'Manager', value: 'manager' },
-        { label: 'Finance', value: 'finance' },
-        { label: 'Vendor', value: 'vendor' },
-        { label: 'Tenant', value: 'tenant' },
-      ],
-    },
-  ],
-  organizations: [{ key: 'status', label: 'Status', options: [{ label: 'Active', value: 'active' }, { label: 'Suspended', value: 'suspended' }] }],
+  [DataCollection.Notifications]: [{ key: 'type', label: 'Type', options: enumOptions(NotificationKind) }],
+  [DataCollection.AuditLogs]: [],
+  [DataCollection.Users]: [{ key: 'role', label: 'Role', options: selectOpts(COMPANY_USER_ROLES, USER_ROLE_LABELS) }],
+  [DataCollection.Organizations]: [{ key: 'status', label: 'Status', options: enumOptions(OrgStatus) }],
 };
 
 export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
-  properties: [
+  [DataCollection.Properties]: [
     { key: 'name', label: 'Property name', type: 'text', required: true },
     { key: 'location', label: 'Location', type: 'text', required: true },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: selectOpts(['active', 'inactive']),
-    },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(RecordStatus) },
   ],
-  units: [
+  [DataCollection.Units]: [
     { key: 'unitCode', label: 'Unit code', type: 'text', required: true },
     {
       key: 'propertyId',
@@ -477,52 +421,27 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('properties', 'name', { valueKey: 'id' }),
+      optionsFrom: from(DataCollection.Properties, 'name', { valueKey: 'id' }),
     },
-    {
-      key: 'type',
-      label: 'Unit type',
-      type: 'select',
-      options: labelledOpts([
-        { label: 'Studio', value: 'studio' },
-        { label: '1 bed', value: '1 bed' },
-        { label: '2 bed', value: '2 bed' },
-        { label: '3 bed', value: '3 bed' },
-      ]),
-    },
+    { key: 'type', label: 'Unit type', type: 'select', options: enumOptions(UnitType, UNIT_TYPE_LABELS) },
     { key: 'rentAmount', label: 'Rent (GHS)', type: 'number', required: true, placeholder: '2500' },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: selectOpts(['occupied', 'vacant', 'maintenance']),
-    },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(UnitStatus) },
   ],
-  tenants: [
+  [DataCollection.Tenants]: [
     { key: 'fullName', label: 'Full name', type: 'text', required: true },
     { key: 'email', label: 'Email', type: 'email', required: true },
     { key: 'phone', label: 'Phone', type: 'tel', placeholder: '+233 24 000 0000' },
-    {
-      key: 'kycStatus',
-      label: 'KYC',
-      type: 'select',
-      options: selectOpts(['verified', 'pending']),
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: selectOpts(['active', 'inactive']),
-    },
+    { key: 'kycStatus', label: 'KYC', type: 'select', options: enumOptions(KycStatus) },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(RecordStatus) },
   ],
-  leases: [
+  [DataCollection.Leases]: [
     {
       key: 'tenantId',
       label: 'Tenant',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('tenants', 'fullName', { valueKey: 'id' }),
+      optionsFrom: from(DataCollection.Tenants, 'fullName', { valueKey: 'id' }),
     },
     {
       key: 'unitId',
@@ -530,64 +449,55 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('units', 'unitCode', { valueKey: 'id' }),
+      optionsFrom: from(DataCollection.Units, 'unitCode', { valueKey: 'id' }),
     },
     { key: 'startDate', label: 'Start date', type: 'date', required: true },
     { key: 'endDate', label: 'End date', type: 'date', required: true },
     { key: 'rentAmount', label: 'Rent (GHS)', type: 'number', required: true, placeholder: '2500' },
     { key: 'dueDay', label: 'Due day', type: 'number', required: true, placeholder: '5' },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: selectOpts(['active', 'ending', 'terminated']),
-    },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(LeaseStatus) },
   ],
-  invoices: [
+  [DataCollection.Invoices]: [
     {
       key: 'leaseId',
       label: 'Lease',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('leases', 'id', { valueKey: 'id' }),
+      optionsFrom: from(DataCollection.Leases, 'id', { valueKey: 'id' }),
     },
     { key: 'periodStart', label: 'Period start', type: 'date', required: true },
     { key: 'periodEnd', label: 'Period end', type: 'date', required: true },
     { key: 'dueDate', label: 'Due date', type: 'date', required: true },
     { key: 'amount', label: 'Amount (GHS)', type: 'number', required: true, placeholder: '2500' },
   ],
-  payments: [
+  [DataCollection.Payments]: [
     {
       key: 'invoiceId',
       label: 'Invoice',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('invoices', 'id'),
+      optionsFrom: from(DataCollection.Invoices, 'id'),
     },
     { key: 'amount', label: 'Amount (GHS)', type: 'number', required: true, placeholder: '2500' },
     {
       key: 'method',
       label: 'Method',
       type: 'select',
-      options: labelledOpts([
-        { label: 'Bank transfer', value: 'bank_transfer' },
-        { label: 'Mobile money', value: 'mobile_money' },
-        { label: 'Cash', value: 'cash' },
-      ]),
+      options: enumOptions(PaymentMethod, PAYMENT_METHOD_LABELS),
     },
     { key: 'reference', label: 'Reference', type: 'text', placeholder: 'MM-10422' },
     { key: 'paidAt', label: 'Paid at', type: 'date', required: true },
   ],
-  arrears: [
+  [DataCollection.Arrears]: [
     {
       key: 'tenant',
       label: 'Tenant',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('tenants', 'fullName'),
+      optionsFrom: from(DataCollection.Tenants, 'fullName'),
     },
     {
       key: 'lease',
@@ -595,67 +505,31 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('leases', 'id'),
+      optionsFrom: from(DataCollection.Leases, 'id'),
     },
-    {
-      key: 'bucket',
-      label: 'Bucket',
-      type: 'select',
-      options: labelledOpts([
-        { label: '1-30 days', value: '1-30 days' },
-        { label: '31-60 days', value: '31-60 days' },
-        { label: '61-90 days', value: '61-90 days' },
-        { label: '90+ days', value: '90+ days' },
-      ]),
-    },
+    { key: 'bucket', label: 'Bucket', type: 'select', options: enumOptions(ArrearsBucket, ARREARS_BUCKET_LABELS) },
     { key: 'balance', label: 'Balance', type: 'text', required: true, placeholder: 'GHS 1,500' },
     { key: 'lastReminder', label: 'Last reminder', type: 'date' },
   ],
-  tickets: [
+  [DataCollection.Tickets]: [
     {
       key: 'propertyId',
       label: 'Property',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('properties', 'name', { valueKey: 'id' }),
+      optionsFrom: from(DataCollection.Properties, 'name', { valueKey: 'id' }),
     },
     {
       key: 'unitId',
       label: 'Unit',
       type: 'select',
       searchable: true,
-      optionsFrom: from('units', 'unitCode', { valueKey: 'id' }),
+      optionsFrom: from(DataCollection.Units, 'unitCode', { valueKey: 'id' }),
     },
-    {
-      key: 'category',
-      label: 'Category',
-      type: 'select',
-      options: labelledOpts([
-        { label: 'Plumbing', value: 'plumbing' },
-        { label: 'Electrical', value: 'electrical' },
-        { label: 'HVAC', value: 'hvac' },
-        { label: 'Other', value: 'other' },
-      ]),
-    },
-    {
-      key: 'priority',
-      label: 'Priority',
-      type: 'select',
-      options: selectOpts(['high', 'medium', 'low']),
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: labelledOpts([
-        { label: 'Open', value: 'open' },
-        { label: 'Assigned', value: 'assigned' },
-        { label: 'In progress', value: 'in_progress' },
-        { label: 'Resolved', value: 'resolved' },
-        { label: 'Closed', value: 'closed' },
-      ]),
-    },
+    { key: 'category', label: 'Category', type: 'select', options: enumOptions(TicketCategory, TICKET_CATEGORY_LABELS) },
+    { key: 'priority', label: 'Priority', type: 'select', options: enumOptions(TicketPriority) },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(TicketStatus, TICKET_STATUS_LABELS) },
     {
       key: 'notes',
       label: 'Notes',
@@ -664,14 +538,8 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       placeholder: 'Describe the issue, access notes, or completion comments.',
     },
   ],
-  documents: [
-    {
-      key: 'entityType',
-      label: 'Entity type',
-      type: 'select',
-      required: true,
-      options: selectOpts(['property', 'unit', 'tenant', 'lease']),
-    },
+  [DataCollection.Documents]: [
+    { key: 'entityType', label: 'Entity type', type: 'select', required: true, options: enumOptions(EntityType) },
     {
       key: 'entityId',
       label: 'Entity',
@@ -679,10 +547,10 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       required: true,
       searchable: true,
       optionsFrom: [
-        from('properties', 'name', { valueKey: 'id', hint: 'Property' }),
-        from('tenants', 'fullName', { valueKey: 'id', hint: 'Tenant' }),
-        from('units', 'unitCode', { valueKey: 'id', hint: 'Unit' }),
-        from('leases', 'id', { valueKey: 'id', hint: 'Lease' }),
+        from(DataCollection.Properties, 'name', { valueKey: 'id', hint: 'Property' }),
+        from(DataCollection.Tenants, 'fullName', { valueKey: 'id', hint: 'Tenant' }),
+        from(DataCollection.Units, 'unitCode', { valueKey: 'id', hint: 'Unit' }),
+        from(DataCollection.Leases, 'id', { valueKey: 'id', hint: 'Lease' }),
       ],
     },
     {
@@ -690,32 +558,15 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       label: 'Document type',
       type: 'select',
       required: true,
-      options: labelledOpts([
-        { label: 'Lease agreement', value: 'lease_agreement' },
-        { label: 'Lease renewal', value: 'lease_renewal' },
-        { label: 'Occupancy letter', value: 'occupancy_letter' },
-        { label: 'Unit handover', value: 'unit_handover' },
-        { label: 'Tenant form', value: 'tenant_form' },
-        { label: 'Payment instruction', value: 'payment_instruction' },
-        { label: 'National ID', value: 'national_id' },
-        { label: 'Fire certificate', value: 'fire_certificate' },
-        { label: 'Insurance', value: 'insurance' },
-        { label: 'Utility bill', value: 'utility_bill' },
-        { label: 'Contract', value: 'contract' },
-      ]),
+      options: selectOpts(VAULT_DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS),
     },
     { key: 'expiresAt', label: 'Expires', type: 'date' },
     { key: 'fileUrl', label: 'File URL', type: 'text', placeholder: 'https://…' },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: selectOpts(['valid', 'expiring', 'expired']),
-    },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(DocumentStatus) },
   ],
-  notifications: [],
-  'audit-logs': [],
-  users: [
+  [DataCollection.Notifications]: [],
+  [DataCollection.AuditLogs]: [],
+  [DataCollection.Users]: [
     { key: 'fullName', label: 'Full name', type: 'text', required: true },
     { key: 'email', label: 'Email', type: 'email', required: true },
     {
@@ -723,17 +574,11 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       label: 'Role',
       type: 'select',
       required: true,
-      options: labelledOpts([
-        { label: 'Owner', value: 'owner' },
-        { label: 'Manager', value: 'manager' },
-        { label: 'Finance', value: 'finance' },
-        { label: 'Vendor', value: 'vendor' },
-        { label: 'Tenant', value: 'tenant' },
-      ]),
+      options: selectOpts(COMPANY_USER_ROLES, USER_ROLE_LABELS),
     },
     { key: 'password', label: 'Temporary password', type: 'text', placeholder: 'Leave blank to generate' },
   ],
-  organizations: [
+  [DataCollection.Organizations]: [
     { key: 'name', label: 'Company name', type: 'text', required: true },
     { key: 'ownerEmail', label: 'Owner email', type: 'email', required: true },
     { key: 'ownerFullName', label: 'Owner name', type: 'text', required: true },

@@ -1,4 +1,7 @@
-export type { NavIconName, NavItem, NavSection, UserRole } from './nav.interface';
+export type { NavIconName, NavItem, NavSection } from './nav.interface';
+export { UserRole } from '../enums/user-role.enum';
+export { DataCollection, DATA_COLLECTIONS } from '../enums/data-collection.enum';
+export { AgreementTemplateId } from '../enums/domain.enum';
 export type { SessionUser, AppNotification } from './user.interface';
 export type { ThemeId, ThemeOption } from './theme.interface';
 export type { ToastVariant, ToastOptions, Toast } from './toast.interface';
@@ -36,7 +39,6 @@ export type {
   DashboardData,
 } from './dashboard.interface';
 export type {
-  DataCollection,
   FormFieldType,
   FormFieldOption,
   FormFieldOptionsFrom,

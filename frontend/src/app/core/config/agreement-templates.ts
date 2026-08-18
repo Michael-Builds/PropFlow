@@ -1,11 +1,12 @@
 import { AgreementTemplate, AgreementTemplateId } from '../interfaces/agreement.interface';
+import { DocumentType } from '../enums/domain.enum';
 
 export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
   {
-    id: 'lease_agreement',
+    id: AgreementTemplateId.LeaseAgreement,
     title: 'Residential tenancy agreement',
     description: 'Standard lease filled from the tenant, unit, rent, and term on file.',
-    documentType: 'lease_agreement',
+    documentType: DocumentType.LeaseAgreement,
     requiresLease: true,
     signatureRoles: ['Landlord / owner', 'Tenant'],
     sections: [
@@ -49,10 +50,10 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
     ],
   },
   {
-    id: 'lease_renewal',
+    id: AgreementTemplateId.LeaseRenewal,
     title: 'Lease renewal addendum',
     description: 'Extends an existing tenancy using the current rent and unit on file.',
-    documentType: 'lease_renewal',
+    documentType: DocumentType.LeaseRenewal,
     requiresLease: true,
     signatureRoles: ['Landlord / owner', 'Tenant'],
     sections: [
@@ -73,10 +74,10 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
     ],
   },
   {
-    id: 'occupancy_confirmation',
+    id: AgreementTemplateId.OccupancyConfirmation,
     title: 'Occupancy confirmation letter',
     description: 'Letter confirming the named tenant occupies the unit for the recorded term.',
-    documentType: 'occupancy_letter',
+    documentType: DocumentType.OccupancyLetter,
     requiresLease: true,
     signatureRoles: ['Authorised signatory'],
     sections: [
@@ -92,10 +93,10 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
     ],
   },
   {
-    id: 'unit_handover',
+    id: AgreementTemplateId.UnitHandover,
     title: 'Unit handover and inventory',
     description: 'Condition and keys checklist at move-in or move-out, prefilled from the unit record.',
-    documentType: 'unit_handover',
+    documentType: DocumentType.UnitHandover,
     requiresLease: true,
     signatureRoles: ['Landlord / manager', 'Tenant'],
     sections: [
@@ -117,10 +118,10 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
     ],
   },
   {
-    id: 'tenant_information',
+    id: AgreementTemplateId.TenantInformation,
     title: 'Tenant information form',
     description: 'KYC-style form prefilled from the tenant profile for signature and file.',
-    documentType: 'tenant_form',
+    documentType: DocumentType.TenantForm,
     requiresLease: false,
     signatureRoles: ['Tenant', 'Received by'],
     sections: [
@@ -142,10 +143,10 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
     ],
   },
   {
-    id: 'rent_payment_instruction',
+    id: AgreementTemplateId.RentPaymentInstruction,
     title: 'Rent payment instruction',
     description: 'How the tenant should pay invoices issued for this lease, including gateway fees.',
-    documentType: 'payment_instruction',
+    documentType: DocumentType.PaymentInstruction,
     requiresLease: true,
     signatureRoles: ['Issued by'],
     sections: [
@@ -162,13 +163,13 @@ export const AGREEMENT_TEMPLATES: AgreementTemplate[] = [
   },
 ];
 
-export const AGREEMENT_DOCUMENT_TYPE_TO_TEMPLATE: Record<string, AgreementTemplateId> = {
-  lease_agreement: 'lease_agreement',
-  lease_renewal: 'lease_renewal',
-  occupancy_letter: 'occupancy_confirmation',
-  unit_handover: 'unit_handover',
-  tenant_form: 'tenant_information',
-  payment_instruction: 'rent_payment_instruction',
+export const AGREEMENT_DOCUMENT_TYPE_TO_TEMPLATE: Partial<Record<DocumentType, AgreementTemplateId>> = {
+  [DocumentType.LeaseAgreement]: AgreementTemplateId.LeaseAgreement,
+  [DocumentType.LeaseRenewal]: AgreementTemplateId.LeaseRenewal,
+  [DocumentType.OccupancyLetter]: AgreementTemplateId.OccupancyConfirmation,
+  [DocumentType.UnitHandover]: AgreementTemplateId.UnitHandover,
+  [DocumentType.TenantForm]: AgreementTemplateId.TenantInformation,
+  [DocumentType.PaymentInstruction]: AgreementTemplateId.RentPaymentInstruction,
 };
 
 export function agreementTemplateById(id: string | null | undefined): AgreementTemplate | null {
@@ -178,7 +179,7 @@ export function agreementTemplateById(id: string | null | undefined): AgreementT
 
 export function agreementTemplateFromQuery(value: string | null | undefined): AgreementTemplate | null {
   if (!value || value === '1') return null;
-  return agreementTemplateById(value) ?? agreementTemplateById(AGREEMENT_DOCUMENT_TYPE_TO_TEMPLATE[value]);
+  return agreementTemplateById(value) ?? agreementTemplateById(AGREEMENT_DOCUMENT_TYPE_TO_TEMPLATE[value as DocumentType]);
 }
 
 export const AGREEMENT_TEMPLATE_IDS: AgreementTemplateId[] = AGREEMENT_TEMPLATES.map(

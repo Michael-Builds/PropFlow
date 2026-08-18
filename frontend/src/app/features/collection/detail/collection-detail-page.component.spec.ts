@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { of } from 'rxjs';
+import { DataCollection } from '../../../core/enums/data-collection.enum';
 import { APP_ICONS } from '../../../core/icons/app-icons';
 import { CollectionDetailPageComponent } from './collection-detail-page.component';
 import { httpTestProviders } from '../../../core/testing/http';
@@ -17,7 +18,7 @@ describe('CollectionDetailPageComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            data: of({ collection: 'properties' }),
+            data: of({ collection: DataCollection.Properties }),
             paramMap: of(convertToParamMap({ id: 'prp_001' })),
           },
         },

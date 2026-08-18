@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, forkJoin, map, of } from 'rxjs';
-import { DataCollection } from '../interfaces/data.interface';
+import { DataCollection } from '../enums/data-collection.enum';
+import { UserStatus } from '../enums/domain.enum';
 import { DashboardData } from '../interfaces/dashboard.interface';
 import { API_BASE, collectionPath, fromApi, toApi, unwrapItems, type RecordRow } from '../services/data/api-map';
 
@@ -26,10 +27,10 @@ export class DataApiService {
 
   create(name: DataCollection, payload: RecordRow): Observable<RecordRow> {
     const body = toApi(name, payload);
-    const url = name === 'invoices' ? `${API_BASE}/invoices/generate` : collectionPath(name);
+    const url = name === DataCollection.Invoices ? `${API_BASE}/invoices/generate` : collectionPath(name);
     return this.http.post<RecordRow>(url, body).pipe(
       map((row) =>
-        name === 'organizations' && row['organization']
+        name === DataCollection.Organizations && row['organization']
           ? fromApi(name, row['organization'] as RecordRow)
           : fromApi(name, row),
       ),
@@ -44,11 +45,11 @@ export class DataApiService {
 
   remove(name: DataCollection, ids: string[]): Observable<void> {
     const requests = ids.map((id) => {
-      if (name === 'documents') {
+      if (name === DataCollection.Documents) {
         return this.http.delete(`${collectionPath(name)}/${id}`);
       }
-      if (name === 'users') {
-        return this.http.patch(`${collectionPath(name)}/${id}`, { status: 'disabled' });
+      if (name === DataCollection.Users) {
+        return this.http.patch(`${collectionPath(name)}/${id}`, { status: UserStatus.Disabled });
       }
       return of(null);
     });

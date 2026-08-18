@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { Observable, catchError, filter, map, of, switchMap, take, throwError } from 'rxjs';
+import { LOOKUP_COLLECTIONS } from '../../enums/data-collection.enum';
+import { UserRole } from '../../enums/user-role.enum';
 import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
 import { DashboardData } from '../../interfaces/dashboard.interface';
 import { RecordRow } from './api-map';
@@ -14,7 +16,7 @@ import { dashboardFeature } from '../../../store/dashboard/dashboard.reducer';
 
 export type { RecordRow };
 
-const LOOKUPS: DataCollection[] = ['properties', 'units', 'tenants', 'leases', 'invoices', 'users'];
+const LOOKUPS: readonly DataCollection[] = LOOKUP_COLLECTIONS;
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -128,8 +130,8 @@ export class DataService {
   }
 
   prefetchLookups(): void {
-    if (this.sessionUser()?.role === 'platform_admin') return;
-    this.store.dispatch(CollectionsActions.prefetchLookups({ names: LOOKUPS }));
+    if (this.sessionUser()?.role === UserRole.PlatformAdmin) return;
+    this.store.dispatch(CollectionsActions.prefetchLookups({ names: [...LOOKUPS] }));
   }
 
   listOptions(sources: FormFieldOptionsFrom | FormFieldOptionsFrom[]): FormFieldOption[] {

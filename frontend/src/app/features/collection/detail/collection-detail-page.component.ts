@@ -4,7 +4,7 @@ import { combineLatest, forkJoin, of, switchMap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { COLLECTION_PAGES } from '../../../core/config/collections.config';
 import { buildCollectionDetail, CollectionDetailModel } from '../../../core/config/detail.config';
-import { DataCollection } from '../../../core/interfaces/data.interface';
+import { DataCollection } from '../../../core/enums/data-collection.enum';
 import { badgeVariantFor } from '../../../core/utils';
 import { DataService, RecordRow } from '../../../core/services/data/data.service';
 import { LoaderService } from '../../../core/services/loader/loader.service';
@@ -49,7 +49,7 @@ export class CollectionDetailPageComponent {
   private readonly loader = inject(LoaderService);
   private readonly toast = inject(ToastService);
 
-  readonly collection = signal<DataCollection>('properties');
+  readonly collection = signal<DataCollection>(DataCollection.Properties);
   readonly record = signal<RecordRow | null>(null);
   readonly view = signal<CollectionDetailModel | null>(null);
 
@@ -61,7 +61,7 @@ export class CollectionDetailPageComponent {
     combineLatest([this.route.paramMap, this.route.data])
       .pipe(
         switchMap(([params, data]) => {
-          const collection = (data['collection'] as DataCollection) ?? 'properties';
+          const collection = (data['collection'] as DataCollection) ?? DataCollection.Properties;
           this.collection.set(collection);
           const id = params.get('id');
           const listPath = `/${collection}`;
@@ -80,9 +80,9 @@ export class CollectionDetailPageComponent {
               }
               return forkJoin({
                 record: of(record),
-                units: this.data.related('units', (row) => row['propertyId'] === record['id'] || row['id'] === record['unitId']),
+                units: this.data.related(DataCollection.Units, (row) => row['propertyId'] === record['id'] || row['id'] === record['unitId']),
                 leases: this.data.related(
-                  'leases',
+                  DataCollection.Leases,
                   (row) =>
                     row['unitId'] === record['id'] ||
                     row['tenantId'] === record['id'] ||
@@ -90,19 +90,19 @@ export class CollectionDetailPageComponent {
                     row['id'] === record['leaseId'],
                 ),
                 invoices: this.data.related(
-                  'invoices',
+                  DataCollection.Invoices,
                   (row) => row['tenantId'] === record['id'] || row['leaseId'] === record['id'] || row['id'] === record['invoiceId'],
                 ),
                 payments: this.data.related(
-                  'payments',
+                  DataCollection.Payments,
                   (row) => row['invoiceId'] === record['id'] || row['tenantId'] === record['id'],
                 ),
                 tickets: this.data.related(
-                  'tickets',
+                  DataCollection.Tickets,
                   (row) => row['unitId'] === record['id'] || row['propertyId'] === record['id'],
                 ),
                 documents: this.data.related(
-                  'documents',
+                  DataCollection.Documents,
                   (row) => row['entityId'] === record['id'] || row['id'] === record['id'],
                 ),
               });

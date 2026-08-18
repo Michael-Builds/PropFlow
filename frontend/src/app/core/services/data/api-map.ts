@@ -1,4 +1,5 @@
 import { environment } from '../../../../environments/environment';
+import { BillingCycle, Currency, DataCollection, RecordStatus, TicketPriority, UnitStatus } from '../../enums';
 
 export const API_BASE = environment.apiBaseUrl;
 
@@ -34,13 +35,13 @@ export function isoDate(value: unknown): string {
 
 export function fromApi(collection: string, row: RecordRow): RecordRow {
   switch (collection) {
-    case 'units':
+    case DataCollection.Units:
       return {
         ...row,
         rent: ghs(row['rentAmount'] ?? row['rent']),
         rentAmount: parseMoney(row['rentAmount'] ?? row['rent']) ?? row['rentAmount'],
       };
-    case 'leases':
+    case DataCollection.Leases:
       return {
         ...row,
         rent: ghs(row['rentAmount'] ?? row['rent']),
@@ -48,7 +49,7 @@ export function fromApi(collection: string, row: RecordRow): RecordRow {
         startDate: isoDate(row['startDate']),
         endDate: isoDate(row['endDate']),
       };
-    case 'invoices':
+    case DataCollection.Invoices:
       return {
         ...row,
         amount: ghs(row['amountDue'] ?? row['amount']),
@@ -58,13 +59,13 @@ export function fromApi(collection: string, row: RecordRow): RecordRow {
         leaseId: row['leaseId'],
         tenantId: row['tenantId'],
       };
-    case 'payments':
+    case DataCollection.Payments:
       return {
         ...row,
         amount: typeof row['amount'] === 'number' ? ghs(row['amount']) : row['amount'],
         paidAt: isoDate(row['paidAt']),
       };
-    case 'arrears':
+    case DataCollection.Arrears:
       return {
         ...row,
         lease: row['lease'] ?? row['leaseId'],
@@ -72,23 +73,23 @@ export function fromApi(collection: string, row: RecordRow): RecordRow {
         balance: ghs(row['balance']),
         bucket: row['bucket'] ?? 'current',
       };
-    case 'tickets':
+    case DataCollection.Tickets:
       return {
         ...row,
         slaDue: row['slaDue'] ?? row['slaDueAt'],
         assignee: row['assignee'] ?? row['vendorId'] ?? row['assigneeUserId'] ?? 'Unassigned',
         unit: row['unit'] ?? row['unitId'],
       };
-    case 'documents':
+    case DataCollection.Documents:
       return {
         ...row,
         type: row['type'] ?? row['docType'],
         entity: row['entity'] ?? row['entityId'],
         expiresAt: isoDate(row['expiresAt']),
       };
-    case 'users':
+    case DataCollection.Users:
       return { ...row, fullName: row['fullName'] ?? row['email'] };
-    case 'organizations':
+    case DataCollection.Organizations:
       return {
         ...row,
         users: row['users'] ?? 0,
@@ -101,34 +102,34 @@ export function fromApi(collection: string, row: RecordRow): RecordRow {
 
 export function toApi(collection: string, payload: RecordRow): RecordRow {
   switch (collection) {
-    case 'properties':
+    case DataCollection.Properties:
       return {
         name: payload['name'],
         location: payload['location'],
         type: payload['type'],
-        status: payload['status'] || 'active',
+        status: payload['status'] || RecordStatus.Active,
         manager: payload['manager'],
         yearBuilt: payload['yearBuilt'] ? Number(payload['yearBuilt']) : undefined,
       };
-    case 'units':
+    case DataCollection.Units:
       return {
         propertyId: payload['propertyId'] ?? payload['property'],
         blockId: payload['blockId'] || undefined,
         unitCode: payload['unitCode'],
         type: payload['type'],
         rentAmount: parseMoney(payload['rentAmount'] ?? payload['rent']),
-        currency: 'GHS',
-        status: payload['status'] || 'vacant',
+        currency: Currency.Ghs,
+        status: payload['status'] || UnitStatus.Vacant,
       };
-    case 'tenants':
+    case DataCollection.Tenants:
       return {
         fullName: payload['fullName'],
         email: payload['email'],
         phone: payload['phone'],
         kycStatus: payload['kycStatus'],
-        status: payload['status'] || 'active',
+        status: payload['status'] || RecordStatus.Active,
       };
-    case 'leases':
+    case DataCollection.Leases:
       return {
         tenantId: payload['tenantId'] ?? payload['tenant'],
         unitId: payload['unitId'] ?? payload['unit'],
@@ -136,10 +137,10 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
         endDate: payload['endDate'],
         rentAmount: parseMoney(payload['rentAmount'] ?? payload['rent']),
         dueDay: Number(payload['dueDay'] ?? 5),
-        billingCycle: payload['billingCycle'] || 'monthly',
+        billingCycle: payload['billingCycle'] || BillingCycle.Monthly,
         status: payload['status'],
       };
-    case 'invoices':
+    case DataCollection.Invoices:
       return {
         leaseId: payload['leaseId'] ?? payload['lease'],
         periodStart: payload['periodStart'],
@@ -148,7 +149,7 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
         amount: parseMoney(payload['amount'] ?? payload['amountDue']),
         notes: payload['notes'],
       };
-    case 'payments':
+    case DataCollection.Payments:
       return {
         invoiceId: payload['invoiceId'],
         amount: parseMoney(payload['amount']),
@@ -156,15 +157,15 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
         reference: payload['reference'],
         paidAt: payload['paidAt'],
       };
-    case 'tickets':
+    case DataCollection.Tickets:
       return {
         propertyId: payload['propertyId'],
         unitId: payload['unitId'] ?? payload['unit'],
         category: payload['category'],
-        priority: payload['priority'] || 'medium',
+        priority: payload['priority'] || TicketPriority.Medium,
         notes: payload['notes'],
       };
-    case 'documents':
+    case DataCollection.Documents:
       return {
         entityType: payload['entityType'],
         entityId: payload['entityId'] ?? payload['entity'],
@@ -172,7 +173,7 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
         fileUrl: payload['fileUrl'] || 'pending://upload',
         expiresAt: payload['expiresAt'] || undefined,
       };
-    case 'users':
+    case DataCollection.Users:
       return {
         email: payload['email'],
         fullName: payload['fullName'],
@@ -182,7 +183,7 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
         vendorId: payload['vendorId'] || undefined,
         status: payload['status'],
       };
-    case 'organizations':
+    case DataCollection.Organizations:
       return {
         name: payload['name'],
         ownerEmail: payload['ownerEmail'],
@@ -195,8 +196,8 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
 }
 
 export function collectionPath(name: string): string {
-  if (name === 'organizations') return `${API_BASE}/platform/organizations`;
-  if (name === 'audit-logs') return `${API_BASE}/audit-logs`;
-  if (name === 'arrears') return `${API_BASE}/arrears`;
+  if (name === DataCollection.Organizations) return `${API_BASE}/platform/organizations`;
+  if (name === DataCollection.AuditLogs) return `${API_BASE}/audit-logs`;
+  if (name === DataCollection.Arrears) return `${API_BASE}/arrears`;
   return `${API_BASE}/${name}`;
 }

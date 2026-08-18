@@ -7,7 +7,8 @@ import {
   COLLECTION_FILTERS,
   COLLECTION_PAGES,
 } from '../../core/config/collections.config';
-import { DataCollection, FormField, FormFieldOption } from '../../core/interfaces/data.interface';
+import { AGREEMENT_SOURCE_COLLECTIONS, AgreementTemplateId, DataCollection, UserRoles } from '../../core/enums';
+import { FormField, FormFieldOption } from '../../core/interfaces/data.interface';
 import { DataTableColumn, DataTableRowActionEvent } from '../../core/interfaces/data-table.interface';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { DataService, RecordRow } from '../../core/services/data/data.service';
@@ -23,7 +24,7 @@ import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.com
 import { SelectComponent } from '../../shared/ui/select/select.component';
 import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
 
-const GENERATE_COLLECTIONS: DataCollection[] = ['documents', 'leases', 'tenants', 'units'];
+const GENERATE_COLLECTIONS: readonly DataCollection[] = AGREEMENT_SOURCE_COLLECTIONS;
 
 @Component({
   selector: 'app-collection-page',
@@ -52,11 +53,11 @@ export class CollectionPageComponent {
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
-  collection: DataCollection = 'properties';
-  config = COLLECTION_PAGES.properties;
-  columns: DataTableColumn[] = COLLECTION_COLUMNS.properties;
-  filters = COLLECTION_FILTERS.properties;
-  fields: FormField[] = COLLECTION_FIELDS.properties;
+  collection: DataCollection = DataCollection.Properties;
+  config = COLLECTION_PAGES[DataCollection.Properties];
+  columns: DataTableColumn[] = COLLECTION_COLUMNS[DataCollection.Properties];
+  filters = COLLECTION_FILTERS[DataCollection.Properties];
+  fields: FormField[] = COLLECTION_FIELDS[DataCollection.Properties];
   form: FormGroup = this.fb.group({});
 
   readonly rows = signal<RecordRow[]>([]);
@@ -72,18 +73,22 @@ export class CollectionPageComponent {
 
   constructor() {
     this.route.data.subscribe((data) => {
-      this.apply((data['collection'] as DataCollection) ?? 'properties');
+      this.apply((data['collection'] as DataCollection) ?? DataCollection.Properties);
       this.maybeOpenGenerate(this.route.snapshot.queryParamMap);
     });
     this.route.queryParamMap.subscribe((query) => this.maybeOpenGenerate(query));
   }
 
   canGenerate(): boolean {
-    return this.auth.canAccess(['owner', 'manager', 'finance']) && GENERATE_COLLECTIONS.includes(this.collection);
+    return this.auth.canAccess(UserRoles.collections) && GENERATE_COLLECTIONS.includes(this.collection);
   }
 
   openGenerate(): void {
-    this.generateTemplateId.set(this.collection === 'tenants' ? 'tenant_information' : 'lease_agreement');
+    this.generateTemplateId.set(
+      this.collection === DataCollection.Tenants
+        ? AgreementTemplateId.TenantInformation
+        : AgreementTemplateId.LeaseAgreement,
+    );
     this.generateLeaseId.set(null);
     this.generateTenantId.set(null);
     this.generateUnitId.set(null);
@@ -108,7 +113,7 @@ export class CollectionPageComponent {
   }
 
   onAgreementSaved(): void {
-    if (this.collection === 'documents') this.refresh();
+    if (this.collection === DataCollection.Documents) this.refresh();
   }
 
   refresh(): void {

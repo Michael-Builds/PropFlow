@@ -10,6 +10,7 @@ import {
   GenerateAgreementInput,
   GeneratedAgreement,
 } from '../../interfaces/agreement.interface';
+import { DataCollection, DocumentStatus, EntityType, LeaseStatus, UserRole } from '../../enums';
 import { formatDisplayDate, prettyLabel } from '../../utils';
 import { AuthService } from '../auth/auth.service';
 import { DataService, RecordRow } from '../data/data.service';
@@ -18,10 +19,10 @@ import { downloadAgreementPdf } from './agreement-pdf';
 type MergeValues = Record<string, string>;
 
 const LEASE_STATUS_RANK: Record<string, number> = {
-  active: 0,
-  ending: 1,
+  [LeaseStatus.Active]: 0,
+  [LeaseStatus.Ending]: 1,
   pending: 2,
-  terminated: 3,
+  [LeaseStatus.Terminated]: 3,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -35,7 +36,7 @@ export class AgreementService {
 
   leaseOptions(): { label: string; value: string }[] {
     return this.data
-      .listSync('leases')
+      .listSync(DataCollection.Leases)
       .map((lease) => ({
         value: String(lease['id'] ?? ''),
         label: [
@@ -55,9 +56,9 @@ export class AgreementService {
     tenantId?: string | null,
     unitId?: string | null,
   ): RecordRow | null {
-    if (leaseId) return this.data.findSync('leases', leaseId);
+    if (leaseId) return this.data.findSync(DataCollection.Leases, leaseId);
     if (!tenantId && !unitId) return null;
-    const matches = this.data.listSync('leases').filter((lease) => {
+    const matches = this.data.listSync(DataCollection.Leases).filter((lease) => {
       const tenantOk = !tenantId || lease['tenantId'] === tenantId;
       const unitOk = !unitId || lease['unitId'] === unitId;
       return tenantOk && unitOk;
@@ -83,10 +84,10 @@ export class AgreementService {
     }
 
     const tenantId = String(lease?.['tenantId'] ?? input.tenantId ?? '');
-    const tenant = tenantId ? this.data.findSync('tenants', tenantId) : null;
-    const unit = lease?.['unitId'] ? this.data.findSync('units', String(lease['unitId'])) : null;
+    const tenant = tenantId ? this.data.findSync(DataCollection.Tenants, tenantId) : null;
+    const unit = lease?.['unitId'] ? this.data.findSync(DataCollection.Units, String(lease['unitId'])) : null;
     const propertyId = String(lease?.['propertyId'] ?? unit?.['propertyId'] ?? '');
-    const property = propertyId ? this.data.findSync('properties', propertyId) : null;
+    const property = propertyId ? this.data.findSync(DataCollection.Properties, propertyId) : null;
     const values = this.mergeValues(lease, tenant, unit, property, input.extraTerms);
     const extraTerms = input.extraTerms?.trim() || null;
     const sections = template.sections.map((section) => ({
@@ -137,13 +138,13 @@ export class AgreementService {
 
   saveToVault(agreement: GeneratedAgreement) {
     const today = agreement.issuedAt.slice(0, 10);
-    return this.data.create('documents', {
+    return this.data.create(DataCollection.Documents, {
       entityId: agreement.leaseId ?? agreement.tenantId ?? '',
-      entityType: agreement.leaseId ? 'lease' : 'tenant',
+      entityType: agreement.leaseId ? EntityType.Lease : EntityType.Tenant,
       entity: agreement.entityLabel,
       type: agreement.documentType,
       expiresAt: agreement.expiresAt ?? '',
-      status: 'valid',
+      status: DocumentStatus.Valid,
       uploadedAt: today,
       generated: true,
       templateId: agreement.templateId,
@@ -157,7 +158,7 @@ export class AgreementService {
   }
 
   resolveTemplateId(value: string | null | undefined): AgreementTemplateId {
-    return agreementTemplateFromQuery(value)?.id ?? 'lease_agreement';
+    return agreementTemplateFromQuery(value)?.id ?? AgreementTemplateId.LeaseAgreement;
   }
 
   private parties(values: MergeValues, lease: RecordRow | null): GeneratedAgreement['parties'] {
@@ -186,7 +187,7 @@ export class AgreementService {
   ): MergeValues {
     const user = this.auth.user();
     const landlordName =
-      user?.role === 'owner'
+      user?.role === UserRole.Owner
         ? user.fullName
         : user
           ? `${user.fullName}, manager acting for the owner`

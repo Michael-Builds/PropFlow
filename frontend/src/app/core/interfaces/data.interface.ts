@@ -1,33 +1,6 @@
-export type DataCollection =
-  | 'properties'
-  | 'units'
-  | 'tenants'
-  | 'leases'
-  | 'invoices'
-  | 'payments'
-  | 'arrears'
-  | 'tickets'
-  | 'documents'
-  | 'notifications'
-  | 'audit-logs'
-  | 'users'
-  | 'organizations';
+import { DATA_COLLECTIONS, DataCollection } from '../enums/data-collection.enum';
 
-export const DATA_COLLECTIONS: readonly DataCollection[] = [
-  'properties',
-  'units',
-  'tenants',
-  'leases',
-  'invoices',
-  'payments',
-  'arrears',
-  'tickets',
-  'documents',
-  'notifications',
-  'audit-logs',
-  'users',
-  'organizations',
-] as const;
+export { DATA_COLLECTIONS, DataCollection };
 
 export type FormFieldType = 'text' | 'email' | 'tel' | 'select' | 'date' | 'textarea' | 'number';
 

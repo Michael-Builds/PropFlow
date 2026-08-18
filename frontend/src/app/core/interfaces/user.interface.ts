@@ -1,4 +1,4 @@
-import { UserRole } from './nav.interface';
+import { UserRole } from '../enums/user-role.enum';
 
 export interface SessionUser {
   id: string;

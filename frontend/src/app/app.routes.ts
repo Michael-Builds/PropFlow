@@ -1,25 +1,9 @@
 import { Routes } from '@angular/router';
-import { DataCollection } from './core/interfaces/data.interface';
+import { DATA_COLLECTIONS } from './core/enums/data-collection.enum';
 import { authGuard } from './core/guards/auth/auth.guard';
 import { guestGuard } from './core/guards/guest/guest.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
-
-const collections: DataCollection[] = [
-  'properties',
-  'units',
-  'tenants',
-  'leases',
-  'invoices',
-  'payments',
-  'arrears',
-  'tickets',
-  'documents',
-  'notifications',
-  'audit-logs',
-  'users',
-  'organizations',
-];
 
 export const routes: Routes = [
   {
@@ -65,7 +49,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/appearance/appearance-page.component').then((m) => m.AppearancePageComponent),
       },
-      ...collections.map((collection) => ({
+      ...DATA_COLLECTIONS.map((collection) => ({
         path: collection,
         children: [
           {

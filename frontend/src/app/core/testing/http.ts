@@ -3,13 +3,15 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { AuthService } from '../services/auth/auth.service';
 import { provideAppStore } from '../../store';
 
+import { UserRole } from '../enums/user-role.enum';
+
 export const OWNER_AUTH = {
   accessToken: 'access-token',
   refreshToken: 'refresh-token',
   expiresIn: 3600,
   user: {
     id: 'usr_001',
-    role: 'owner' as const,
+    role: UserRole.Owner,
     orgId: 'org_001',
     email: 'owner@propflow.app',
     fullName: 'Ama Owusu',

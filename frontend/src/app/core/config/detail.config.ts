@@ -1,4 +1,12 @@
-import { DataCollection } from '../interfaces/data.interface';
+import {
+  AGREEMENT_DOC_TYPES,
+  AgreementTemplateId,
+  DataCollection,
+  DocumentStatus,
+  EntityType,
+  UnitStatus,
+  collectionRoute,
+} from '../enums';
 import {
   DetailDocument,
   DetailField,
@@ -12,14 +20,7 @@ import { badgeVariantFor, prettyLabel } from '../utils';
 import { RecordRow } from '../services/data/data.service';
 import { COLLECTION_PAGES } from './collections.config';
 
-const AGREEMENT_DOC_TYPES = new Set([
-  'lease_agreement',
-  'lease_renewal',
-  'occupancy_letter',
-  'unit_handover',
-  'tenant_form',
-  'payment_instruction',
-]);
+const AGREEMENT_TYPE_SET = new Set<string>(AGREEMENT_DOC_TYPES);
 
 export interface CollectionDetailModel {
   title: string;
@@ -73,10 +74,10 @@ function docsFrom(rows: RecordRow[]): DetailDocument[] {
 }
 
 function entityPath(entityType: string, entityId: string): { path: string; icon: DetailQuickAction['icon'] } {
-  if (entityType === 'property') return { path: `/properties/${entityId}`, icon: 'building' };
-  if (entityType === 'unit') return { path: `/units/${entityId}`, icon: 'door' };
-  if (entityType === 'lease') return { path: `/leases/${entityId}`, icon: 'file' };
-  return { path: `/tenants/${entityId}`, icon: 'users' };
+  if (entityType === EntityType.Property) return { path: collectionRoute(DataCollection.Properties, entityId), icon: 'building' };
+  if (entityType === EntityType.Unit) return { path: collectionRoute(DataCollection.Units, entityId), icon: 'door' };
+  if (entityType === EntityType.Lease) return { path: collectionRoute(DataCollection.Leases, entityId), icon: 'file' };
+  return { path: collectionRoute(DataCollection.Tenants, entityId), icon: 'users' };
 }
 
 function documentActions(record: RecordRow): DetailQuickAction[] {
@@ -94,24 +95,24 @@ function documentActions(record: RecordRow): DetailQuickAction[] {
   ];
 
   const generateParams: Record<string, string> = {
-    generate: AGREEMENT_DOC_TYPES.has(type) ? type : 'lease_agreement',
+    generate: AGREEMENT_TYPE_SET.has(type) ? type : AgreementTemplateId.LeaseAgreement,
   };
   const leaseId = text(record, 'leaseId', '');
-  if (entityType === 'lease' || leaseId) {
+  if (entityType === EntityType.Lease || leaseId) {
     generateParams['leaseId'] = leaseId || entityId;
-  } else if (entityType === 'tenant') {
+  } else if (entityType === EntityType.Tenant) {
     generateParams['tenantId'] = entityId;
-  } else if (entityType === 'unit') {
+  } else if (entityType === EntityType.Unit) {
     generateParams['unitId'] = entityId;
   }
 
   if (
-    (record['generated'] === true || AGREEMENT_DOC_TYPES.has(type)) &&
+    (record['generated'] === true || AGREEMENT_TYPE_SET.has(type)) &&
     (generateParams['leaseId'] || generateParams['tenantId'] || generateParams['unitId'])
   ) {
     actions.unshift({
       label: 'Preview / download',
-      path: '/documents',
+      path: collectionRoute(DataCollection.Documents),
       queryParams: generateParams,
       icon: 'download',
       variant: 'soft',
@@ -140,9 +141,9 @@ export function buildCollectionDetail(
   ];
 
   switch (collection) {
-    case 'properties': {
+    case DataCollection.Properties: {
       const units = related.units ?? [];
-      const occupied = units.filter((row) => row['status'] === 'occupied').length;
+      const occupied = units.filter((row) => row['status'] === UnitStatus.Occupied).length;
       return {
         title: text(record, 'name'),
         description: text(record, 'location'),
@@ -165,7 +166,7 @@ export function buildCollectionDetail(
             title: 'Units',
             subtitle: 'Occupancy and rent on this property',
             empty: 'No units linked yet.',
-            items: items(units, 'unitCode', ['type', 'rent', 'status'], '/units'),
+            items: items(units, 'unitCode', ['type', 'rent', 'status'], collectionRoute(DataCollection.Units)),
           },
         ],
         documents: docsFrom(related.documents ?? []),
@@ -175,13 +176,13 @@ export function buildCollectionDetail(
         ],
         notes: baseNotes,
         actions: [
-          { label: 'View units', path: '/units', icon: 'door', variant: 'soft' },
-          { label: 'Documents', path: '/documents', icon: 'folder', variant: 'secondary' },
-          { label: 'Maintenance', path: '/tickets', icon: 'wrench', variant: 'secondary' },
+          { label: 'View units', path: collectionRoute(DataCollection.Units), icon: 'door', variant: 'soft' },
+          { label: 'Documents', path: collectionRoute(DataCollection.Documents), icon: 'folder', variant: 'secondary' },
+          { label: 'Maintenance', path: collectionRoute(DataCollection.Tickets), icon: 'wrench', variant: 'secondary' },
         ],
       };
     }
-    case 'units':
+    case DataCollection.Units:
       return {
         title: text(record, 'unitCode'),
         description: `${text(record, 'property')} · ${text(record, 'type')}`,
@@ -203,34 +204,34 @@ export function buildCollectionDetail(
             title: 'Leases',
             subtitle: 'Occupancy history for this unit',
             empty: 'No leases on this unit.',
-            items: items(related.leases ?? [], 'tenant', ['startDate', 'endDate', 'status'], '/leases'),
+            items: items(related.leases ?? [], 'tenant', ['startDate', 'endDate', 'status'], collectionRoute(DataCollection.Leases)),
           },
           {
             title: 'Tickets',
             subtitle: 'Maintenance against this unit',
             empty: 'No open or historical tickets.',
-            items: items(related.tickets ?? [], 'id', ['category', 'priority', 'status'], '/tickets'),
+            items: items(related.tickets ?? [], 'id', ['category', 'priority', 'status'], collectionRoute(DataCollection.Tickets)),
           },
         ],
         documents: [],
         timeline: [
           { id: 't1', title: 'Unit registered', at: '2025-03-12T10:00:00.000Z', tone: 'info' },
-          { id: 't2', title: `Marked ${status}`, at: '2026-06-01T09:00:00.000Z', tone: status === 'occupied' ? 'success' : 'warning' },
+          { id: 't2', title: `Marked ${status}`, at: '2026-06-01T09:00:00.000Z', tone: status === UnitStatus.Occupied ? 'success' : 'warning' },
         ],
         notes: baseNotes,
         actions: [
           { label: 'Property', path: `/properties/${text(record, 'propertyId')}`, icon: 'building', variant: 'soft' },
           {
             label: 'Generate agreement',
-            path: '/documents',
+            path: collectionRoute(DataCollection.Documents),
             queryParams: { generate: 'lease_agreement', unitId: id },
             icon: 'file',
             variant: 'secondary',
           },
-          { label: 'Leases', path: '/leases', icon: 'file', variant: 'secondary' },
+          { label: 'Leases', path: collectionRoute(DataCollection.Leases), icon: 'file', variant: 'secondary' },
         ],
       };
-    case 'tenants':
+    case DataCollection.Tenants:
       return {
         title: text(record, 'fullName'),
         description: text(record, 'email'),
@@ -253,13 +254,13 @@ export function buildCollectionDetail(
             title: 'Leases',
             subtitle: 'Current and past occupancy',
             empty: 'No leases for this tenant.',
-            items: items(related.leases ?? [], 'unit', ['rent', 'status'], '/leases'),
+            items: items(related.leases ?? [], 'unit', ['rent', 'status'], collectionRoute(DataCollection.Leases)),
           },
           {
             title: 'Invoices',
             subtitle: 'Rent bills',
             empty: 'No invoices yet.',
-            items: items(related.invoices ?? [], 'period', ['amount', 'status'], '/invoices'),
+            items: items(related.invoices ?? [], 'period', ['amount', 'status'], collectionRoute(DataCollection.Invoices)),
           },
         ],
         documents: docsFrom(related.documents ?? []),
@@ -271,16 +272,16 @@ export function buildCollectionDetail(
         actions: [
           {
             label: 'Generate agreement',
-            path: '/documents',
+            path: collectionRoute(DataCollection.Documents),
             queryParams: { generate: '1', tenantId: id },
             icon: 'file',
             variant: 'soft',
           },
-          { label: 'Payments', path: '/payments', icon: 'wallet', variant: 'secondary' },
-          { label: 'Arrears', path: '/arrears', icon: 'alert', variant: 'secondary' },
+          { label: 'Payments', path: collectionRoute(DataCollection.Payments), icon: 'wallet', variant: 'secondary' },
+          { label: 'Arrears', path: collectionRoute(DataCollection.Arrears), icon: 'alert', variant: 'secondary' },
         ],
       };
-    case 'leases':
+    case DataCollection.Leases:
       return {
         title: id,
         description: `${text(record, 'tenant')} · ${text(record, 'unit')}`,
@@ -302,7 +303,7 @@ export function buildCollectionDetail(
             title: 'Invoices',
             subtitle: 'Billed against this lease',
             empty: 'No invoices generated.',
-            items: items(related.invoices ?? [], 'period', ['amount', 'balance', 'status'], '/invoices'),
+            items: items(related.invoices ?? [], 'period', ['amount', 'balance', 'status'], collectionRoute(DataCollection.Invoices)),
           },
         ],
         documents: docsFrom(related.documents ?? []),
@@ -314,7 +315,7 @@ export function buildCollectionDetail(
         actions: [
           {
             label: 'Generate agreement',
-            path: '/documents',
+            path: collectionRoute(DataCollection.Documents),
             queryParams: { generate: 'lease_agreement', leaseId: id },
             icon: 'file',
             variant: 'soft',
@@ -323,7 +324,7 @@ export function buildCollectionDetail(
           { label: 'Unit', path: `/units/${text(record, 'unitId')}`, icon: 'door', variant: 'secondary' },
         ],
       };
-    case 'invoices':
+    case DataCollection.Invoices:
       return {
         title: id,
         description: `${text(record, 'tenant')} · ${text(record, 'period')}`,
@@ -345,7 +346,7 @@ export function buildCollectionDetail(
             title: 'Payments',
             subtitle: 'Receipts applied to this invoice',
             empty: 'No payments posted yet.',
-            items: items(related.payments ?? [], 'amount', ['method', 'reference', 'paidAt'], '/payments'),
+            items: items(related.payments ?? [], 'amount', ['method', 'reference', 'paidAt'], collectionRoute(DataCollection.Payments)),
           },
         ],
         documents: [],
@@ -355,11 +356,11 @@ export function buildCollectionDetail(
         ],
         notes: baseNotes,
         actions: [
-          { label: 'Post payment', path: '/payments', icon: 'wallet', variant: 'soft' },
-          { label: 'Arrears', path: '/arrears', icon: 'alert', variant: 'secondary' },
+          { label: 'Post payment', path: collectionRoute(DataCollection.Payments), icon: 'wallet', variant: 'soft' },
+          { label: 'Arrears', path: collectionRoute(DataCollection.Arrears), icon: 'alert', variant: 'secondary' },
         ],
       };
-    case 'payments':
+    case DataCollection.Payments:
       return {
         title: id,
         description: `${text(record, 'tenant')} · ${text(record, 'amount')}`,
@@ -385,7 +386,7 @@ export function buildCollectionDetail(
           { label: 'Tenant', path: `/tenants/${text(record, 'tenantId')}`, icon: 'users', variant: 'secondary' },
         ],
       };
-    case 'arrears':
+    case DataCollection.Arrears:
       return {
         title: text(record, 'tenant'),
         description: `${text(record, 'bucket')} · ${text(record, 'balance')}`,
@@ -418,10 +419,10 @@ export function buildCollectionDetail(
         ],
         actions: [
           { label: 'Tenant', path: `/tenants/${text(record, 'tenantId')}`, icon: 'users', variant: 'soft' },
-          { label: 'Invoices', path: '/invoices', icon: 'invoice', variant: 'secondary' },
+          { label: 'Invoices', path: collectionRoute(DataCollection.Invoices), icon: 'invoice', variant: 'secondary' },
         ],
       };
-    case 'tickets':
+    case DataCollection.Tickets:
       return {
         title: id,
         description: `${prettyLabel(text(record, 'category'))} · ${text(record, 'unit')}`,
@@ -448,10 +449,10 @@ export function buildCollectionDetail(
         notes: baseNotes,
         actions: [
           { label: 'Unit', path: `/units/${text(record, 'unitId')}`, icon: 'door', variant: 'soft' },
-          { label: 'All tickets', path: '/tickets', icon: 'wrench', variant: 'secondary' },
+          { label: 'All tickets', path: collectionRoute(DataCollection.Tickets), icon: 'wrench', variant: 'secondary' },
         ],
       };
-    case 'documents':
+    case DataCollection.Documents:
       return {
         title: id,
         description: `${prettyLabel(text(record, 'type'))} · ${text(record, 'entity')}`,
@@ -472,12 +473,12 @@ export function buildCollectionDetail(
         documents: docsFrom([record]),
         timeline: [
           { id: 't1', title: 'Uploaded', at: text(record, 'uploadedAt'), tone: 'success' },
-          { id: 't2', title: 'Expiry', at: text(record, 'expiresAt'), tone: status === 'valid' ? 'info' : 'warning' },
+          { id: 't2', title: 'Expiry', at: text(record, 'expiresAt'), tone: status === DocumentStatus.Valid ? 'info' : 'warning' },
         ],
         notes: baseNotes,
         actions: documentActions(record),
       };
-    case 'notifications':
+    case DataCollection.Notifications:
       return {
         title: text(record, 'title'),
         description: text(record, 'message'),
@@ -498,8 +499,8 @@ export function buildCollectionDetail(
         timeline: [{ id: 't1', title: 'Notification raised', at: text(record, 'createdAt'), tone: 'info' }],
         notes: [],
         actions: [
-          { label: 'Inbox', path: '/notifications', icon: 'bell', variant: 'soft' },
-          { label: 'Audit logs', path: '/audit-logs', icon: 'shield', variant: 'secondary' },
+          { label: 'Inbox', path: collectionRoute(DataCollection.Notifications), icon: 'bell', variant: 'soft' },
+          { label: 'Audit logs', path: collectionRoute(DataCollection.AuditLogs), icon: 'shield', variant: 'secondary' },
         ],
       };
     default:
@@ -523,7 +524,7 @@ export function buildCollectionDetail(
         documents: [],
         timeline: [{ id: 't1', title: text(record, 'action'), description: text(record, 'entity'), at: text(record, 'createdAt'), tone: 'info' }],
         notes: [],
-        actions: [{ label: 'All audit logs', path: '/audit-logs', icon: 'shield', variant: 'soft' }],
+        actions: [{ label: 'All audit logs', path: collectionRoute(DataCollection.AuditLogs), icon: 'shield', variant: 'soft' }],
       };
   }
 }

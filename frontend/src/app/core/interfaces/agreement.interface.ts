@@ -1,10 +1,6 @@
-export type AgreementTemplateId =
-  | 'lease_agreement'
-  | 'lease_renewal'
-  | 'occupancy_confirmation'
-  | 'unit_handover'
-  | 'tenant_information'
-  | 'rent_payment_instruction';
+import { AgreementTemplateId } from '../enums/domain.enum';
+
+export { AgreementTemplateId };
 
 export interface AgreementSection {
   heading: string;

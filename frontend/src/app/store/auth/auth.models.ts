@@ -1,5 +1,6 @@
 import { SessionUser } from '../../core/interfaces/user.interface';
 import { AuthResponse } from '../../core/api/auth-api.service';
+import { UserRole } from '../../core/enums/user-role.enum';
 import { initialsFromName } from '../../core/utils';
 
 export const AUTH_STORAGE_KEY = 'propflow.session';
@@ -70,7 +71,7 @@ function loadAuthState(): AuthState {
       user: parsed.user,
       accessToken: parsed.accessToken,
       refreshToken: parsed.refreshToken,
-      activeOrgId: parsed.user.role === 'platform_admin' ? null : (parsed.activeOrgId ?? parsed.user.orgId ?? null),
+      activeOrgId: parsed.user.role === UserRole.PlatformAdmin ? null : (parsed.activeOrgId ?? parsed.user.orgId ?? null),
       status: 'idle',
       error: null,
     };
