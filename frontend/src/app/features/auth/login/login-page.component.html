@@ -13,4 +13,7 @@
   </div>
 
   <app-button type="submit" class="flex! w-full" label="Sign in" [loading]="submitting()" [disabled]="form.invalid" />
+  <p class="text-center text-sm text-text-secondary">
+    <a routerLink="/auth/forgot" class="text-brand hover:underline">Forgot password</a>
+  </p>
 </form>

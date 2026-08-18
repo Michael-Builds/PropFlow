@@ -17,6 +17,8 @@ const collections: DataCollection[] = [
   'documents',
   'notifications',
   'audit-logs',
+  'users',
+  'organizations',
 ];
 
 export const routes: Routes = [
@@ -30,6 +32,20 @@ export const routes: Routes = [
         path: 'login',
         loadComponent: () =>
           import('./features/auth/login/login-page.component').then((m) => m.LoginPageComponent),
+      },
+      {
+        path: 'forgot',
+        loadComponent: () =>
+          import('./features/auth/forgot-password/forgot-password-page.component').then(
+            (m) => m.ForgotPasswordPageComponent,
+          ),
+      },
+      {
+        path: 'reset',
+        loadComponent: () =>
+          import('./features/auth/reset-password/reset-password-page.component').then(
+            (m) => m.ResetPasswordPageComponent,
+          ),
       },
     ],
   },

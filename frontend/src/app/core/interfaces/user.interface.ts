@@ -2,7 +2,7 @@ import { UserRole } from './nav.interface';
 
 export interface SessionUser {
   id: string;
-  orgId: string;
+  orgId: string | null;
   fullName: string;
   email: string;
   role: UserRole;

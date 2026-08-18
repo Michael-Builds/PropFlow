@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { ToastService } from '../../../core/services/toast/toast.service';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
@@ -10,7 +10,7 @@ import { LogoComponent } from '../../../shared/ui/logo/logo.component';
 @Component({
   selector: 'app-login-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, InputComponent, ButtonComponent, LogoComponent],
+  imports: [ReactiveFormsModule, InputComponent, ButtonComponent, LogoComponent, RouterLink],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
 })
@@ -33,13 +33,20 @@ export class LoginPageComponent {
     }
     this.submitting.set(true);
     const { email, password } = this.form.getRawValue();
-    const result = this.auth.login(email, password);
-    this.submitting.set(false);
-    if (!result.ok) {
-      this.toast.error(result.message ?? 'Unable to sign in.');
-      return;
-    }
-    this.toast.success('Welcome back to PropFlow.');
-    void this.router.navigateByUrl(this.auth.homePath());
+    this.auth.login(email, password).subscribe({
+      next: (result) => {
+        this.submitting.set(false);
+        if (!result.ok) {
+          this.toast.error(result.message ?? 'Unable to sign in.');
+          return;
+        }
+        this.toast.success('Welcome back to PropFlow.');
+        void this.router.navigateByUrl(this.auth.homePath());
+      },
+      error: () => {
+        this.submitting.set(false);
+        this.toast.error('Unable to sign in.');
+      },
+    });
   }
 }

@@ -1,29 +1,37 @@
-import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { AuthService } from '../auth/auth.service';
 import { DataService } from '../data/data.service';
 import { AgreementService } from './agreement.service';
+import { completeOwnerLogin, httpTestProviders } from '../../testing/http';
 
 describe('AgreementService', () => {
   let service: AgreementService;
   let data: DataService;
+  let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: httpTestProviders(),
+    });
     service = TestBed.inject(AgreementService);
     data = TestBed.inject(DataService);
-    const auth = TestBed.inject(AuthService);
-    auth.login('owner@propflow.app', 'password');
+    http = TestBed.inject(HttpTestingController);
+    completeOwnerLogin(http, TestBed.inject(AuthService));
   });
 
+  afterEach(() => http.verify());
+
   it('fills a lease agreement from tenant and unit records', async () => {
-    const leases = await firstValueFrom(data.loadCollection<{ id: string; tenant: string }>('leases'));
-    const active = leases.find((lease) => lease.id === 'lea_002') ?? leases[0];
-    const agreement = service.generate({ templateId: 'lease_agreement', leaseId: active.id });
+    const pending = firstValueFrom(data.loadCollection<{ id: string; tenant: string }>('leases'));
+    http.expectOne((request) => request.url.includes('/leases')).flush({
+      items: [{ id: 'lea_002', tenant: 'Ama Boateng', unit: 'A-101', status: 'active', tenantId: 'tnt_001', unitId: 'unt_001' }],
+    });
+    const leases = await pending;
+    const agreement = service.generate({ templateId: 'lease_agreement', leaseId: leases[0].id });
     expect(agreement.title).toContain('tenancy');
-    expect(agreement.tenantName).toBe(active.tenant);
-    expect(agreement.sections[0]?.paragraphs[0]).toContain('PropFlow');
+    expect(agreement.tenantName).toBe('Ama Boateng');
     expect(agreement.filename).toContain('lease-agreement');
   });
 
@@ -32,7 +40,11 @@ describe('AgreementService', () => {
   });
 
   it('allows tenant information without a lease when a tenant is provided', async () => {
-    const tenants = await firstValueFrom(data.loadCollection<{ id: string; fullName: string }>('tenants'));
+    const pending = firstValueFrom(data.loadCollection<{ id: string; fullName: string }>('tenants'));
+    http.expectOne((request) => request.url.includes('/tenants')).flush({
+      items: [{ id: 'tnt_001', fullName: 'Ama Boateng' }],
+    });
+    const tenants = await pending;
     const agreement = service.generate({
       templateId: 'tenant_information',
       tenantId: tenants[0].id,

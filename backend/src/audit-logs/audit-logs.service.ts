@@ -12,7 +12,18 @@ export class AuditLogsService {
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
-    });
+    }).then((rows) =>
+      rows.map((row) => ({
+        id: row.id,
+        actor: row.actorUserId ?? 'system',
+        action: row.action,
+        entity: `${row.entityType}${row.entityId ? ` · ${row.entityId}` : ''}`,
+        entityType: row.entityType,
+        entityId: row.entityId,
+        ip: row.ip,
+        createdAt: row.createdAt,
+      })),
+    );
   }
 
   create(params: {

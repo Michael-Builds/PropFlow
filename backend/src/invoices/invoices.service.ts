@@ -3,9 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLogger } from '../common/logger/app-logger.service';
 import { invoiceStatus, toNumber } from '../common/money';
+import { arrearsBucket } from '../common/aging';
 import { GenerateInvoiceDto } from './dto/generate-invoice.dto';
 import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
+import { PromiseToPayDto } from './dto/promise-to-pay.dto';
+import { EscalateArrearsDto } from './dto/escalate-arrears.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
@@ -147,6 +150,7 @@ export class InvoicesService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
+        include: { tenant: { select: { fullName: true } } },
       }),
       this.prisma.invoice.count({ where }),
     ]);
@@ -162,6 +166,7 @@ export class InvoicesService {
   async getById(orgId: string, id: string, tenantId?: string | null) {
     const invoice = await this.prisma.invoice.findFirst({
       where: { id, orgId, ...(tenantId ? { tenantId } : {}) },
+      include: { tenant: { select: { fullName: true } } },
     });
     if (!invoice) throw new NotFoundException('Invoice not found.');
     return this.present(invoice);
@@ -169,21 +174,86 @@ export class InvoicesService {
 
   async arrears(orgId: string) {
     const rows = await this.prisma.invoice.findMany({
-      where: {
-        orgId,
-        balance: { gt: 0 },
-      },
+      where: { orgId, balance: { gt: 0 } },
       orderBy: { dueDate: 'asc' },
+      include: { tenant: { select: { fullName: true } } },
     });
 
-    const items = rows.map((row) => this.present(row));
+    const items = rows.map((row) => this.presentArrears(row));
     const outstanding = items.reduce((sum, row) => sum + row.balance, 0);
+    const buckets = items.reduce<Record<string, number>>((acc, item) => {
+      acc[item.bucket] = (acc[item.bucket] ?? 0) + item.balance;
+      return acc;
+    }, {});
+
     return {
       currency: 'GHS',
       count: items.length,
       outstanding,
+      buckets,
       items,
     };
+  }
+
+  async promiseToPay(orgId: string, invoiceId: string, dto: PromiseToPayDto) {
+    const invoice = await this.prisma.invoice.findFirst({ where: { id: invoiceId, orgId } });
+    if (!invoice) throw new NotFoundException('Invoice not found.');
+    const updated = await this.prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        promiseToPayAt: new Date(dto.promiseToPayAt),
+        promisedAmount: dto.promisedAmount ?? invoice.balance,
+      },
+      include: { tenant: { select: { fullName: true } } },
+    });
+    return this.presentArrears(updated);
+  }
+
+  async escalate(orgId: string, invoiceId: string, dto: EscalateArrearsDto) {
+    const invoice = await this.prisma.invoice.findFirst({ where: { id: invoiceId, orgId } });
+    if (!invoice) throw new NotFoundException('Invoice not found.');
+    const level = dto.level ?? 'manager';
+    const updated = await this.prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        escalationLevel: level,
+        escalatedAt: new Date(),
+        notes: dto.notes ?? invoice.notes,
+      },
+      include: { tenant: { select: { fullName: true } } },
+    });
+    const operators = await this.prisma.user.findMany({
+      where: { orgId, status: 'active', role: { in: ['owner', 'manager', 'finance'] } },
+      select: { id: true },
+    });
+    for (const operator of operators) {
+      await this.notifications.queueEmail(orgId, operator.id, 'arrears_escalation', {
+        invoiceId,
+        level,
+        balance: toNumber(updated.balance),
+      });
+    }
+    return this.presentArrears(updated);
+  }
+
+  async snapshotArrears(orgId: string) {
+    const rows = await this.prisma.invoice.findMany({
+      where: { orgId, balance: { gt: 0 } },
+      include: { tenant: { select: { fullName: true } } },
+    });
+    const snapshotDate = new Date();
+    await this.prisma.arrearsSnapshot.createMany({
+      data: rows.map((row) => ({
+        orgId,
+        tenantId: row.tenantId,
+        leaseId: row.leaseId,
+        invoiceId: row.id,
+        bucket: arrearsBucket(row.dueDate, snapshotDate),
+        balance: row.balance,
+        snapshotDate,
+      })),
+    });
+    return { captured: rows.length, snapshotDate };
   }
 
   present(invoice: {
@@ -202,22 +272,27 @@ export class InvoicesService {
     checkoutToken: string;
     notes: string | null;
     createdAt: Date;
+    tenant?: { fullName: string };
   }) {
     const amountDue = toNumber(invoice.amountDue);
     const amountPaid = toNumber(invoice.amountPaid);
     const balance = toNumber(invoice.balance);
     const status = invoiceStatus(balance, amountPaid, invoice.dueDate);
     const frontend = this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
+    const period = `${invoice.periodStart.toISOString().slice(0, 10)} – ${invoice.periodEnd.toISOString().slice(0, 10)}`;
     return {
       id: invoice.id,
       orgId: invoice.orgId,
       leaseId: invoice.leaseId,
       tenantId: invoice.tenantId,
+      tenant: invoice.tenant?.fullName ?? invoice.tenantId,
+      period,
       periodStart: invoice.periodStart,
       periodEnd: invoice.periodEnd,
       dueDate: invoice.dueDate,
       amountDue,
       amountPaid,
+      amount: amountDue,
       balance,
       currency: invoice.currency,
       status,
@@ -225,6 +300,37 @@ export class InvoicesService {
       checkoutToken: invoice.checkoutToken,
       payUrl: `${frontend}/pay/${invoice.checkoutToken}`,
       createdAt: invoice.createdAt,
+    };
+  }
+
+  presentArrears(invoice: {
+    id: string;
+    leaseId: string;
+    tenantId: string;
+    dueDate: Date;
+    balance: { toString(): string };
+    lastReminderAt: Date | null;
+    promiseToPayAt?: Date | null;
+    promisedAmount?: { toString(): string } | null;
+    escalationLevel?: string | null;
+    tenant?: { fullName: string };
+  }) {
+    const balance = toNumber(invoice.balance);
+    return {
+      id: invoice.id,
+      invoiceId: invoice.id,
+      lease: invoice.leaseId,
+      leaseId: invoice.leaseId,
+      tenant: invoice.tenant?.fullName ?? invoice.tenantId,
+      tenantId: invoice.tenantId,
+      bucket: arrearsBucket(invoice.dueDate),
+      balance,
+      dueDate: invoice.dueDate,
+      lastReminder: invoice.lastReminderAt,
+      lastReminderAt: invoice.lastReminderAt,
+      promiseToPayAt: invoice.promiseToPayAt ?? null,
+      promisedAmount: invoice.promisedAmount == null ? null : toNumber(invoice.promisedAmount),
+      escalationLevel: invoice.escalationLevel ?? null,
     };
   }
 }

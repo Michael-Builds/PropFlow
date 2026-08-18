@@ -6,6 +6,7 @@ import { pageArgs, pageResult } from '../common/pagination';
 import { ticketSlaDue } from '../common/document-status';
 import { toNumber } from '../common/money';
 import type { JwtUser } from '../auth/decorators/current-user.decorator';
+import type { OrgScopedUser } from '../auth/decorators/org-id.decorator';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { ListTicketsQueryDto } from './dto/list-tickets-query.dto';
@@ -19,7 +20,7 @@ export class TicketsService {
     private readonly logger: AppLogger,
   ) {}
 
-  async list(user: JwtUser, query: ListTicketsQueryDto) {
+  async list(user: OrgScopedUser, query: ListTicketsQueryDto) {
     const { page, pageSize, skip, take } = pageArgs(query.page, query.pageSize);
     const where: Prisma.TicketWhereInput = {
       orgId: user.orgId,
@@ -43,7 +44,7 @@ export class TicketsService {
     return pageResult(page, pageSize, total, rows.map((row) => this.present(row)));
   }
 
-  async getById(user: JwtUser, id: string) {
+  async getById(user: OrgScopedUser, id: string) {
     const row = await this.prisma.ticket.findFirst({
       where: { id, orgId: user.orgId },
       include: { events: { orderBy: { createdAt: 'asc' } } },
@@ -53,7 +54,7 @@ export class TicketsService {
     return this.present(row);
   }
 
-  async create(user: JwtUser, dto: CreateTicketDto) {
+  async create(user: OrgScopedUser, dto: CreateTicketDto) {
     const property = await this.prisma.property.findFirst({
       where: { id: dto.propertyId, orgId: user.orgId },
     });
@@ -85,7 +86,7 @@ export class TicketsService {
     return this.present(row);
   }
 
-  async update(user: JwtUser, id: string, dto: UpdateTicketDto) {
+  async update(user: OrgScopedUser, id: string, dto: UpdateTicketDto) {
     const current = await this.requireTicket(user.orgId, id);
     const slaDueAt =
       dto.priority && dto.priority !== current.priority
@@ -113,7 +114,7 @@ export class TicketsService {
     return this.present(row);
   }
 
-  async assign(user: JwtUser, id: string, dto: AssignTicketDto) {
+  async assign(user: OrgScopedUser, id: string, dto: AssignTicketDto) {
     if (!dto.assigneeUserId && !dto.vendorId) {
       throw new BadRequestException('Provide assigneeUserId or vendorId.');
     }
@@ -139,7 +140,7 @@ export class TicketsService {
     return this.present(row);
   }
 
-  async resolve(user: JwtUser, id: string, dto: ResolveTicketDto) {
+  async resolve(user: OrgScopedUser, id: string, dto: ResolveTicketDto) {
     await this.requireTicket(user.orgId, id);
     const row = await this.prisma.ticket.update({
       where: { id },
@@ -162,7 +163,7 @@ export class TicketsService {
     return this.present(row);
   }
 
-  async close(user: JwtUser, id: string) {
+  async close(user: OrgScopedUser, id: string) {
     await this.requireTicket(user.orgId, id);
     const row = await this.prisma.ticket.update({
       where: { id },

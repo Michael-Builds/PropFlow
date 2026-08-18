@@ -3,8 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { JwtUser } from '../auth/decorators/current-user.decorator';
+import { OrgId } from '../auth/decorators/org-id.decorator';
 import { DashboardService } from './dashboard.service';
 
 @ApiTags('dashboard')
@@ -16,17 +15,22 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('summary')
-  summary(@CurrentUser() user: JwtUser) {
-    return this.dashboardService.summary(user.orgId);
+  summary(@OrgId() orgId: string) {
+    return this.dashboardService.summary(orgId);
   }
 
   @Get('collections')
-  collections(@CurrentUser() user: JwtUser) {
-    return this.dashboardService.collections(user.orgId);
+  collections(@OrgId() orgId: string) {
+    return this.dashboardService.collections(orgId);
   }
 
   @Get('maintenance')
-  maintenance(@CurrentUser() user: JwtUser) {
-    return this.dashboardService.maintenance(user.orgId);
+  maintenance(@OrgId() orgId: string) {
+    return this.dashboardService.maintenance(orgId);
+  }
+
+  @Get('overview')
+  overview(@OrgId() orgId: string) {
+    return this.dashboardService.overview(orgId);
   }
 }

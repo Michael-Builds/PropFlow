@@ -11,5 +11,10 @@ export class ListUnitsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  blockId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   status?: string;
 }

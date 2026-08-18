@@ -20,6 +20,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { JwtUser } from '../auth/decorators/current-user.decorator';
+import { OrgId } from '../auth/decorators/org-id.decorator';
 import { THROTTLE_SKIP_ALL } from '../common/throttler/throttle.constants';
 import { PaymentsService } from './payments.service';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
@@ -42,24 +43,32 @@ export class PaymentsController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner', 'manager', 'finance')
-  post(@CurrentUser() user: JwtUser, @Body() dto: CreatePaymentDto) {
-    return this.paymentsService.postManual(user.orgId, user.sub, dto);
+  post(@OrgId() orgId: string, @CurrentUser() user: JwtUser, @Body() dto: CreatePaymentDto) {
+    return this.paymentsService.postManual(orgId, user.sub, dto);
   }
 
   @Get()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner', 'manager', 'finance')
-  list(@CurrentUser() user: JwtUser, @Query() query: ListPaymentsQueryDto) {
-    return this.paymentsService.list(user.orgId, query);
+  list(@OrgId() orgId: string, @Query() query: ListPaymentsQueryDto) {
+    return this.paymentsService.list(orgId, query);
   }
 
   @Get('ledger')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('owner', 'manager', 'finance')
-  ledger(@CurrentUser() user: JwtUser) {
-    return this.paymentsService.ledger(user.orgId);
+  ledger(@OrgId() orgId: string) {
+    return this.paymentsService.ledger(orgId);
+  }
+
+  @Get(':id/receipt')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner', 'manager', 'finance', 'tenant')
+  receipt(@OrgId() orgId: string, @Param('id') id: string) {
+    return this.paymentsService.receipt(orgId, id);
   }
 
   @Get('verify/:reference')

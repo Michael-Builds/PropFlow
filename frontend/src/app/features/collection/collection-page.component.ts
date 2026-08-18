@@ -137,6 +137,12 @@ export class CollectionPageComponent {
   openDetail(row: RecordRow): void {
     const id = row['id'];
     if (!id) return;
+    if (this.collection === 'organizations') {
+      this.auth.setActiveOrg(String(id));
+      this.toast.success(`Working in ${String(row['name'] ?? 'this company')}.`);
+      void this.router.navigateByUrl('/dashboard');
+      return;
+    }
     void this.router.navigate(['/', this.collection, id]);
   }
 
@@ -173,16 +179,21 @@ export class CollectionPageComponent {
     this.saving.set(true);
     const payload = this.form.getRawValue() as RecordRow;
     const current = this.editing();
-    if (current?.['id']) {
-      this.data.update(this.collection, String(current['id']), payload);
-      this.toast.success('Record updated.');
-    } else {
-      this.data.create(this.collection, payload);
-      this.toast.success('Record created.');
-    }
-    this.saving.set(false);
-    this.closeDialog();
-    this.refresh();
+    const request = current?.['id']
+      ? this.data.update(this.collection, String(current['id']), payload)
+      : this.data.create(this.collection, payload);
+    request.subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success(current ? 'Record updated.' : 'Record created.');
+        this.closeDialog();
+        this.refresh();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('Could not save this record.');
+      },
+    });
   }
 
   async onRowAction(event: DataTableRowActionEvent<RecordRow>): Promise<void> {
@@ -212,6 +223,7 @@ export class CollectionPageComponent {
     this.closeDialog();
     this.generateOpen.set(false);
     this.buildForm();
+    this.data.prefetchLookups();
     this.refresh();
   }
 
@@ -238,9 +250,13 @@ export class CollectionPageComponent {
     this.data.remove(
       this.collection,
       rows.map((row) => String(row['id'])),
-    );
-    this.toast.success('Records removed.');
-    this.refresh();
+    ).subscribe({
+      next: () => {
+        this.toast.success('Records removed.');
+        this.refresh();
+      },
+      error: () => this.toast.error('Could not remove those records.'),
+    });
   }
 
   private buildForm(): void {

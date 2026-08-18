@@ -1,17 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from '../users/users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLogger } from '../common/logger/app-logger.service';
+import { MailService } from '../common/mail/mail.service';
 import type { UserRole } from '../generated/prisma/client';
 
 type TokenClaims = {
   sub: string;
-  orgId: string;
+  orgId: string | null;
   role: UserRole;
   email: string;
   tenantId: string | null;
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly logger: AppLogger,
+    private readonly mail: MailService,
   ) {}
 
   async login(payload: LoginDto) {
@@ -36,6 +38,9 @@ export class AuthService {
         AuthService.name,
       );
       throw new UnauthorizedException('Invalid credentials');
+    }
+    if (user.role !== 'platform_admin' && user.organization?.status === 'suspended') {
+      throw new UnauthorizedException('This organisation is suspended.');
     }
 
     const isValid = await bcrypt.compare(payload.password, user.passwordHash);
@@ -101,11 +106,57 @@ export class AuthService {
     return { ok: true };
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findByEmail(email.trim().toLowerCase());
+    if (user && user.status === 'active') {
+      const token = randomBytes(32).toString('hex');
+      await this.prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: hashToken(token),
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+        },
+      });
+      const frontend = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
+      await this.mail.send(
+        user.email,
+        'Reset your PropFlow password',
+        `Use this link within one hour:\n${frontend}/auth/reset?token=${token}`,
+      );
+    }
+    return { ok: true };
+  }
+
+  async resetPassword(token: string, password: string) {
+    const stored = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash: hashToken(token) },
+    });
+    if (!stored || stored.usedAt || stored.expiresAt.getTime() < Date.now()) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: stored.userId },
+        data: { passwordHash: await bcrypt.hash(password, 10) },
+      }),
+      this.prisma.passwordResetToken.update({
+        where: { id: stored.id },
+        data: { usedAt: new Date() },
+      }),
+      this.prisma.refreshToken.updateMany({
+        where: { userId: stored.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+    return { ok: true };
+  }
+
   private async issueSession(user: {
     id: string;
-    orgId: string;
+    orgId: string | null;
     role: UserRole;
     email: string;
+    fullName?: string | null;
     tenantId: string | null;
     vendorId: string | null;
   }) {
@@ -146,6 +197,8 @@ export class AuthService {
         id: user.id,
         role: user.role,
         orgId: user.orgId,
+        email: user.email,
+        fullName: user.fullName ?? null,
         tenantId: user.tenantId,
         vendorId: user.vendorId,
       },

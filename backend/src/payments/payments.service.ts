@@ -35,7 +35,7 @@ export class PaymentsService {
     const invoice = dto.token
       ? await this.prisma.invoice.findUnique({ where: { checkoutToken: dto.token } })
       : await this.prisma.invoice.findFirst({
-          where: { id: dto.invoiceId, ...(user ? { orgId: user.orgId } : {}) },
+          where: { id: dto.invoiceId, ...(user?.orgId ? { orgId: user.orgId } : {}) },
         });
 
     if (!invoice) throw new NotFoundException('Invoice not found.');
@@ -372,6 +372,33 @@ export class PaymentsService {
 
   private newReference(): string {
     return `pf_${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  async receipt(orgId: string, id: string) {
+    const payment = await this.prisma.payment.findFirst({
+      where: { id, orgId, status: 'success' },
+      include: { invoice: { include: { tenant: { select: { fullName: true, email: true } } } } },
+    });
+    if (!payment) throw new NotFoundException('Payment receipt not found.');
+    const amount = toNumber(payment.amount);
+    const lines = [
+      'PropFlow payment receipt',
+      '------------------------',
+      `Receipt: ${payment.reference}`,
+      `Invoice: ${payment.invoiceId}`,
+      `Tenant: ${payment.invoice.tenant.fullName}`,
+      `Amount: GHS ${amount.toFixed(2)}`,
+      `Method: ${payment.method}`,
+      `Paid at: ${payment.paidAt?.toISOString() ?? payment.createdAt.toISOString()}`,
+      '',
+      'This is an operational receipt, not a tax invoice.',
+    ];
+    return {
+      id: payment.id,
+      reference: payment.reference,
+      contentType: 'text/plain',
+      body: lines.join('\n'),
+    };
   }
 
   present(payment: {

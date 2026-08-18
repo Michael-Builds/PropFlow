@@ -76,6 +76,43 @@ export class DocumentsService {
     return { ok: true };
   }
 
+  async runExpiryAlerts(orgId: string) {
+    const docs = await this.prisma.document.findMany({
+      where: { orgId, expiresAt: { not: null } },
+    });
+    const operators = await this.prisma.user.findMany({
+      where: { orgId, status: 'active', role: { in: ['owner', 'manager', 'finance'] } },
+      select: { id: true },
+    });
+    let alerted = 0;
+    const now = Date.now();
+    for (const doc of docs) {
+      if (!doc.expiresAt) continue;
+      const days = Math.ceil((doc.expiresAt.getTime() - now) / 86_400_000);
+      if (![30, 14, 7].includes(days)) continue;
+      for (const operator of operators) {
+        await this.prisma.notification.create({
+          data: {
+            orgId,
+            userId: operator.id,
+            channel: 'in_app',
+            type: 'document_expiry',
+            payloadJson: {
+              documentId: doc.id,
+              docType: doc.docType,
+              expiresAt: doc.expiresAt,
+              daysRemaining: days,
+            },
+            status: 'sent',
+            sentAt: new Date(),
+          },
+        });
+      }
+      alerted += 1;
+    }
+    return { alerted };
+  }
+
   present(row: {
     id: string;
     orgId: string;
@@ -94,6 +131,7 @@ export class DocumentsService {
       orgId: row.orgId,
       entityType: row.entityType,
       entityId: row.entityId,
+      entity: `${row.entityType} · ${row.entityId}`,
       type: row.docType,
       docType: row.docType,
       fileUrl: row.fileUrl,

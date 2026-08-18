@@ -4,6 +4,7 @@ import { provideIcons } from '@ng-icons/core';
 import { of } from 'rxjs';
 import { APP_ICONS } from '../../../core/icons/app-icons';
 import { CollectionDetailPageComponent } from './collection-detail-page.component';
+import { httpTestProviders } from '../../../core/testing/http';
 
 describe('CollectionDetailPageComponent', () => {
   it('should create', async () => {
@@ -12,6 +13,7 @@ describe('CollectionDetailPageComponent', () => {
       providers: [
         provideIcons(APP_ICONS),
         provideRouter([]),
+        ...httpTestProviders(),
         {
           provide: ActivatedRoute,
           useValue: {

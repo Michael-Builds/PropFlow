@@ -9,6 +9,7 @@ datasource db {
 }
 
 enum UserRole {
+  platform_admin
   owner
   manager
   finance
@@ -35,8 +36,9 @@ model Organization {
 
 model User {
   id           String    @id @default(cuid())
-  orgId        String
+  orgId        String?
   email        String    @unique
+  fullName     String?
   role         UserRole
   passwordHash String
   status       String    @default("active")
@@ -45,10 +47,24 @@ model User {
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
 
-  organization  Organization   @relation(fields: [orgId], references: [id])
-  refreshTokens RefreshToken[]
+  organization        Organization?        @relation(fields: [orgId], references: [id])
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([orgId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model RefreshToken {
@@ -78,6 +94,7 @@ model Property {
   createdAt   DateTime @default(now())
 
   organization Organization @relation(fields: [orgId], references: [id])
+  blocks       Block[]
   units        Unit[]
   leases       Lease[]
   tickets      Ticket[]
@@ -85,10 +102,26 @@ model Property {
   @@index([orgId, status])
 }
 
-model Unit {
-  id         String  @id @default(cuid())
+model Block {
+  id         String   @id @default(cuid())
   orgId      String
   propertyId String
+  name       String
+  status     String   @default("active")
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  units    Unit[]
+
+  @@unique([propertyId, name])
+  @@index([orgId, propertyId])
+}
+
+model Unit {
+  id         String   @id @default(cuid())
+  orgId      String
+  propertyId String
+  blockId    String?
   unitCode   String
   type       String?
   floor      Int?
@@ -99,6 +132,7 @@ model Unit {
   createdAt  DateTime @default(now())
 
   property Property @relation(fields: [propertyId], references: [id])
+  block    Block?   @relation(fields: [blockId], references: [id])
   leases   Lease[]
   tickets  Ticket[]
 
@@ -165,9 +199,13 @@ model Invoice {
   currency       String    @default("GHS")
   status         String    @default("due")
   checkoutToken  String    @unique @default(cuid())
-  notes          String?
-  lastReminderAt DateTime?
-  createdAt      DateTime  @default(now())
+  notes           String?
+  lastReminderAt  DateTime?
+  promiseToPayAt  DateTime?
+  promisedAmount  Decimal?  @db.Decimal(12, 2)
+  escalationLevel String?
+  escalatedAt     DateTime?
+  createdAt       DateTime  @default(now())
 
   lease    Lease     @relation(fields: [leaseId], references: [id])
   tenant   Tenant    @relation(fields: [tenantId], references: [id])
@@ -175,6 +213,20 @@ model Invoice {
 
   @@index([orgId, status])
   @@index([leaseId])
+  @@index([tenantId])
+}
+
+model ArrearsSnapshot {
+  id           String   @id @default(cuid())
+  orgId        String
+  tenantId     String
+  leaseId      String
+  invoiceId    String?
+  bucket       String
+  balance      Decimal  @db.Decimal(12, 2)
+  snapshotDate DateTime @default(now())
+
+  @@index([orgId, snapshotDate])
   @@index([tenantId])
 }
 

@@ -3,8 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { JwtUser } from '../auth/decorators/current-user.decorator';
+import { OrgId } from '../auth/decorators/org-id.decorator';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { VendorsService } from './vendors.service';
 import { CreateVendorDto } from './dto/create-vendor.dto';
@@ -19,22 +18,22 @@ export class VendorsController {
   constructor(private readonly vendorsService: VendorsService) {}
 
   @Get()
-  list(@CurrentUser() user: JwtUser, @Query() query: PaginationQueryDto) {
-    return this.vendorsService.list(user.orgId, query);
+  list(@OrgId() orgId: string, @Query() query: PaginationQueryDto) {
+    return this.vendorsService.list(orgId, query);
   }
 
   @Post()
-  create(@CurrentUser() user: JwtUser, @Body() dto: CreateVendorDto) {
-    return this.vendorsService.create(user.orgId, dto);
+  create(@OrgId() orgId: string, @Body() dto: CreateVendorDto) {
+    return this.vendorsService.create(orgId, dto);
   }
 
   @Get(':id')
-  get(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    return this.vendorsService.getById(user.orgId, id);
+  get(@OrgId() orgId: string, @Param('id') id: string) {
+    return this.vendorsService.getById(orgId, id);
   }
 
   @Patch(':id')
-  update(@CurrentUser() user: JwtUser, @Param('id') id: string, @Body() dto: UpdateVendorDto) {
-    return this.vendorsService.update(user.orgId, id, dto);
+  update(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: UpdateVendorDto) {
+    return this.vendorsService.update(orgId, id, dto);
   }
 }

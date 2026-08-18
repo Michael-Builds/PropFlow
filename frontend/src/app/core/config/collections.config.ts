@@ -146,9 +146,9 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     description: 'Aging buckets with reminder actions.',
     createLabel: 'Add arrears record',
     exportFileName: 'propflow-arrears',
-    canCreate: true,
-    canEdit: true,
-    canDelete: true,
+    canCreate: false,
+    canEdit: false,
+    canDelete: false,
   },
   tickets: {
     id: 'tickets',
@@ -196,6 +196,30 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     exportFileName: 'propflow-audit-logs',
     canCreate: false,
     canEdit: false,
+    canDelete: false,
+  },
+  users: {
+    id: 'users',
+    path: 'users',
+    eyebrow: 'Admin',
+    title: 'Users',
+    description: 'Invite owners, managers, finance, vendors, and tenants to this company.',
+    createLabel: 'Add user',
+    exportFileName: 'propflow-users',
+    canCreate: true,
+    canEdit: true,
+    canDelete: false,
+  },
+  organizations: {
+    id: 'organizations',
+    path: 'organizations',
+    eyebrow: 'Platform',
+    title: 'Companies',
+    description: 'Real-estate operators on PropFlow. Open a company to manage its portfolio.',
+    createLabel: 'Add company',
+    exportFileName: 'propflow-organizations',
+    canCreate: true,
+    canEdit: true,
     canDelete: false,
   },
 };
@@ -295,6 +319,20 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     { key: 'ip', header: 'IP' },
     { key: 'createdAt', header: 'When', sortable: true },
     VIEW_ONLY,
+  ],
+  users: [
+    { key: 'fullName', header: 'Name', sortable: true },
+    { key: 'email', header: 'Email' },
+    badgeCol('role', 'Role'),
+    badgeCol('status', 'Status'),
+    ACTIONS,
+  ],
+  organizations: [
+    { key: 'name', header: 'Company', sortable: true },
+    { key: 'users', header: 'Users', align: 'right' },
+    { key: 'properties', header: 'Properties', align: 'right' },
+    badgeCol('status', 'Status'),
+    ACTIONS,
   ],
 };
 
@@ -404,23 +442,26 @@ export const COLLECTION_FILTERS: Record<DataCollection, DataTableFilter[]> = {
   ],
   notifications: [{ key: 'type', label: 'Type', options: [{ label: 'Arrears', value: 'arrears' }, { label: 'Compliance', value: 'compliance' }, { label: 'Maintenance', value: 'maintenance' }] }],
   'audit-logs': [],
+  users: [
+    {
+      key: 'role',
+      label: 'Role',
+      options: [
+        { label: 'Owner', value: 'owner' },
+        { label: 'Manager', value: 'manager' },
+        { label: 'Finance', value: 'finance' },
+        { label: 'Vendor', value: 'vendor' },
+        { label: 'Tenant', value: 'tenant' },
+      ],
+    },
+  ],
+  organizations: [{ key: 'status', label: 'Status', options: [{ label: 'Active', value: 'active' }, { label: 'Suspended', value: 'suspended' }] }],
 };
 
 export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
   properties: [
     { key: 'name', label: 'Property name', type: 'text', required: true },
     { key: 'location', label: 'Location', type: 'text', required: true },
-    {
-      key: 'type',
-      label: 'Property type',
-      type: 'select',
-      options: labelledOpts([
-        { label: 'Apartment', value: 'Apartment' },
-        { label: 'Townhouse', value: 'Townhouse' },
-        { label: 'Mixed use', value: 'Mixed use' },
-      ]),
-    },
-    { key: 'units', label: 'Units', type: 'number', required: true },
     {
       key: 'status',
       label: 'Status',
@@ -431,12 +472,12 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
   units: [
     { key: 'unitCode', label: 'Unit code', type: 'text', required: true },
     {
-      key: 'property',
+      key: 'propertyId',
       label: 'Property',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('properties', 'name'),
+      optionsFrom: from('properties', 'name', { valueKey: 'id' }),
     },
     {
       key: 'type',
@@ -449,7 +490,7 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
         { label: '3 bed', value: '3 bed' },
       ]),
     },
-    { key: 'rent', label: 'Rent', type: 'text', required: true, placeholder: 'GHS 2,500' },
+    { key: 'rentAmount', label: 'Rent (GHS)', type: 'number', required: true, placeholder: '2500' },
     {
       key: 'status',
       label: 'Status',
@@ -476,24 +517,25 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
   ],
   leases: [
     {
-      key: 'tenant',
+      key: 'tenantId',
       label: 'Tenant',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('tenants', 'fullName'),
+      optionsFrom: from('tenants', 'fullName', { valueKey: 'id' }),
     },
     {
-      key: 'unit',
+      key: 'unitId',
       label: 'Unit',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('units', 'unitCode'),
+      optionsFrom: from('units', 'unitCode', { valueKey: 'id' }),
     },
     { key: 'startDate', label: 'Start date', type: 'date', required: true },
     { key: 'endDate', label: 'End date', type: 'date', required: true },
-    { key: 'rent', label: 'Rent', type: 'text', required: true, placeholder: 'GHS 2,500' },
+    { key: 'rentAmount', label: 'Rent (GHS)', type: 'number', required: true, placeholder: '2500' },
+    { key: 'dueDay', label: 'Due day', type: 'number', required: true, placeholder: '5' },
     {
       key: 'status',
       label: 'Status',
@@ -503,23 +545,17 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
   ],
   invoices: [
     {
-      key: 'tenant',
-      label: 'Tenant',
+      key: 'leaseId',
+      label: 'Lease',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('tenants', 'fullName'),
+      optionsFrom: from('leases', 'id', { valueKey: 'id' }),
     },
-    { key: 'period', label: 'Period', type: 'text', required: true, placeholder: 'Apr 2026' },
+    { key: 'periodStart', label: 'Period start', type: 'date', required: true },
+    { key: 'periodEnd', label: 'Period end', type: 'date', required: true },
     { key: 'dueDate', label: 'Due date', type: 'date', required: true },
-    { key: 'amount', label: 'Amount', type: 'text', required: true, placeholder: 'GHS 2,500' },
-    { key: 'balance', label: 'Balance', type: 'text', required: true, placeholder: 'GHS 0' },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      options: selectOpts(['paid', 'partial', 'overdue']),
-    },
+    { key: 'amount', label: 'Amount (GHS)', type: 'number', required: true, placeholder: '2500' },
   ],
   payments: [
     {
@@ -530,15 +566,7 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       searchable: true,
       optionsFrom: from('invoices', 'id'),
     },
-    {
-      key: 'tenant',
-      label: 'Tenant',
-      type: 'select',
-      required: true,
-      searchable: true,
-      optionsFrom: from('tenants', 'fullName'),
-    },
-    { key: 'amount', label: 'Amount', type: 'text', required: true, placeholder: 'GHS 2,500' },
+    { key: 'amount', label: 'Amount (GHS)', type: 'number', required: true, placeholder: '2500' },
     {
       key: 'method',
       label: 'Method',
@@ -585,12 +613,19 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
   ],
   tickets: [
     {
-      key: 'unit',
-      label: 'Unit',
+      key: 'propertyId',
+      label: 'Property',
       type: 'select',
       required: true,
       searchable: true,
-      optionsFrom: from('units', 'unitCode'),
+      optionsFrom: from('properties', 'name', { valueKey: 'id' }),
+    },
+    {
+      key: 'unitId',
+      label: 'Unit',
+      type: 'select',
+      searchable: true,
+      optionsFrom: from('units', 'unitCode', { valueKey: 'id' }),
     },
     {
       key: 'category',
@@ -610,18 +645,6 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       options: selectOpts(['high', 'medium', 'low']),
     },
     {
-      key: 'assignee',
-      label: 'Assignee',
-      type: 'select',
-      options: labelledOpts([
-        { label: 'Unassigned', value: 'Unassigned' },
-        { label: 'AquaFix Ltd', value: 'AquaFix Ltd' },
-        { label: 'CoolAir', value: 'CoolAir' },
-        { label: 'VoltWorks', value: 'VoltWorks' },
-        { label: 'BuildRight', value: 'BuildRight' },
-      ]),
-    },
-    {
       key: 'status',
       label: 'Status',
       type: 'select',
@@ -633,7 +656,6 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
         { label: 'Closed', value: 'closed' },
       ]),
     },
-    { key: 'slaDue', label: 'SLA due', type: 'text', placeholder: '2026-08-18 09:00' },
     {
       key: 'notes',
       label: 'Notes',
@@ -651,16 +673,16 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       options: selectOpts(['property', 'unit', 'tenant', 'lease']),
     },
     {
-      key: 'entity',
+      key: 'entityId',
       label: 'Entity',
       type: 'select',
       required: true,
       searchable: true,
       optionsFrom: [
-        from('properties', 'name', { hint: 'Property' }),
-        from('tenants', 'fullName', { hint: 'Tenant' }),
-        from('units', 'unitCode', { hint: 'Unit' }),
-        from('leases', 'id', { hint: 'Lease' }),
+        from('properties', 'name', { valueKey: 'id', hint: 'Property' }),
+        from('tenants', 'fullName', { valueKey: 'id', hint: 'Tenant' }),
+        from('units', 'unitCode', { valueKey: 'id', hint: 'Unit' }),
+        from('leases', 'id', { valueKey: 'id', hint: 'Lease' }),
       ],
     },
     {
@@ -683,6 +705,7 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       ]),
     },
     { key: 'expiresAt', label: 'Expires', type: 'date' },
+    { key: 'fileUrl', label: 'File URL', type: 'text', placeholder: 'https://…' },
     {
       key: 'status',
       label: 'Status',
@@ -692,4 +715,28 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
   ],
   notifications: [],
   'audit-logs': [],
+  users: [
+    { key: 'fullName', label: 'Full name', type: 'text', required: true },
+    { key: 'email', label: 'Email', type: 'email', required: true },
+    {
+      key: 'role',
+      label: 'Role',
+      type: 'select',
+      required: true,
+      options: labelledOpts([
+        { label: 'Owner', value: 'owner' },
+        { label: 'Manager', value: 'manager' },
+        { label: 'Finance', value: 'finance' },
+        { label: 'Vendor', value: 'vendor' },
+        { label: 'Tenant', value: 'tenant' },
+      ]),
+    },
+    { key: 'password', label: 'Temporary password', type: 'text', placeholder: 'Leave blank to generate' },
+  ],
+  organizations: [
+    { key: 'name', label: 'Company name', type: 'text', required: true },
+    { key: 'ownerEmail', label: 'Owner email', type: 'email', required: true },
+    { key: 'ownerFullName', label: 'Owner name', type: 'text', required: true },
+    { key: 'ownerPassword', label: 'Owner password', type: 'text', placeholder: 'Leave blank to generate' },
+  ],
 };

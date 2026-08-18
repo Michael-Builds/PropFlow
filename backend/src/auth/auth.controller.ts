@@ -5,6 +5,8 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { LogoutDto } from './dto/logout.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AUTH_THROTTLE } from '../common/throttler/throttle.constants';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -32,5 +34,17 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   logout(@CurrentUser() user: JwtUser, @Body() payload: LogoutDto) {
     return this.authService.logout(user.sub, payload.refreshToken);
+  }
+
+  @Post('forgot-password')
+  @Throttle(AUTH_THROTTLE)
+  forgotPassword(@Body() payload: ForgotPasswordDto) {
+    return this.authService.forgotPassword(payload.email);
+  }
+
+  @Post('reset-password')
+  @Throttle(AUTH_THROTTLE)
+  resetPassword(@Body() payload: ResetPasswordDto) {
+    return this.authService.resetPassword(payload.token, payload.password);
   }
 }

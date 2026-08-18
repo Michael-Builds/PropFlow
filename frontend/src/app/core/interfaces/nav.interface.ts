@@ -55,4 +55,4 @@ export interface NavSection {
   items: NavItem[];
 }
 
-export type UserRole = 'owner' | 'manager' | 'finance' | 'vendor' | 'tenant';
+export type UserRole = 'platform_admin' | 'owner' | 'manager' | 'finance' | 'vendor' | 'tenant';

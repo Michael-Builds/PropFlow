@@ -1,106 +1,114 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
 import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
-import properties from '../../mock/properties.json';
-import units from '../../mock/units.json';
-import tenants from '../../mock/tenants.json';
-import leases from '../../mock/leases.json';
-import invoices from '../../mock/invoices.json';
-import payments from '../../mock/payments.json';
-import arrears from '../../mock/arrears.json';
-import tickets from '../../mock/tickets.json';
-import documents from '../../mock/documents.json';
-import notifications from '../../mock/notifications.json';
-import auditLogs from '../../mock/audit-logs.json';
-import dashboard from '../../mock/dashboard.json';
+import { DashboardData } from '../../interfaces/dashboard.interface';
+import { API_BASE, collectionPath, fromApi, toApi, unwrapItems, type RecordRow } from './api-map';
 
-export type RecordRow = Record<string, unknown>;
+export type { RecordRow };
 
-const STORE: Record<DataCollection, RecordRow[]> = {
-  properties: structuredClone(properties) as RecordRow[],
-  units: structuredClone(units) as RecordRow[],
-  tenants: structuredClone(tenants) as RecordRow[],
-  leases: structuredClone(leases) as RecordRow[],
-  invoices: structuredClone(invoices) as RecordRow[],
-  payments: structuredClone(payments) as RecordRow[],
-  arrears: structuredClone(arrears) as RecordRow[],
-  tickets: structuredClone(tickets) as RecordRow[],
-  documents: structuredClone(documents) as RecordRow[],
-  notifications: structuredClone(notifications) as RecordRow[],
-  'audit-logs': structuredClone(auditLogs) as RecordRow[],
-};
-
-const PREFIX: Record<DataCollection, string> = {
-  properties: 'prp',
-  units: 'unt',
-  tenants: 'tnt',
-  leases: 'lea',
-  invoices: 'inv',
-  payments: 'pay',
-  arrears: 'arr',
-  tickets: 'tck',
-  documents: 'doc',
-  notifications: 'ntf',
-  'audit-logs': 'aud',
-};
+const LOOKUPS: DataCollection[] = ['properties', 'units', 'tenants', 'leases', 'invoices', 'users'];
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
+  private readonly http = inject(HttpClient);
   readonly version = signal(0);
+  private readonly cache: Record<DataCollection, RecordRow[]> = emptyCache();
 
   loadCollection<T = RecordRow>(name: DataCollection): Observable<T[]> {
-    this.version();
-    return of(structuredClone(STORE[name]) as T[]).pipe(delay(160));
+    const params = new HttpParams().set('page', '1').set('pageSize', '100');
+    return this.http.get<unknown>(collectionPath(name), { params }).pipe(
+      map((payload) => unwrapItems(payload).map((row) => fromApi(name, row))),
+      tap((rows) => {
+        this.cache[name] = rows;
+        this.version.update((n) => n + 1);
+      }),
+      map((rows) => rows as T[]),
+    );
   }
 
-  dashboard<T = typeof dashboard>(): Observable<T> {
-    return of(structuredClone(dashboard) as T).pipe(delay(160));
+  dashboard<T = DashboardData>(): Observable<T> {
+    return this.http.get<T>(`${API_BASE}/dashboard/overview`);
   }
 
-  loadDashboard<T = typeof dashboard>(): Observable<T> {
+  loadDashboard<T = DashboardData>(): Observable<T> {
     return this.dashboard<T>();
   }
 
   related(name: DataCollection, predicate: (row: RecordRow) => boolean): Observable<RecordRow[]> {
-    return of(STORE[name].filter(predicate).map((row) => structuredClone(row))).pipe(delay(80));
+    const cached = this.cache[name];
+    if (cached.length) {
+      return of(cached.filter(predicate).map((row) => ({ ...row })));
+    }
+    return this.loadCollection(name).pipe(map((rows) => rows.filter(predicate)));
   }
 
   getById<T = RecordRow>(name: DataCollection, id: string): Observable<T | null> {
-    const row = this.findSync<T>(name, id);
-    return of(row).pipe(delay(80));
+    return this.http.get<RecordRow>(`${collectionPath(name)}/${id}`).pipe(
+      map((row) => fromApi(name, row) as T),
+      catchError(() => of(null)),
+    );
   }
 
   listSync<T = RecordRow>(name: DataCollection): T[] {
     this.version();
-    return STORE[name] as T[];
+    return this.cache[name] as T[];
   }
 
   findSync<T = RecordRow>(name: DataCollection, id: string): T | null {
-    const row = STORE[name].find((item) => item['id'] === id) ?? null;
-    return (row ? structuredClone(row) : null) as T | null;
+    const row = this.cache[name].find((item) => item['id'] === id) ?? null;
+    return (row ? { ...row } : null) as T | null;
   }
 
-  create(name: DataCollection, payload: RecordRow): RecordRow {
-    const id = `${PREFIX[name]}_${String(STORE[name].length + 1).padStart(3, '0')}_${Date.now().toString().slice(-4)}`;
-    const row = { ...payload, id };
-    STORE[name] = [row, ...STORE[name]];
-    this.version.update((n) => n + 1);
-    return row;
+  create(name: DataCollection, payload: RecordRow): Observable<RecordRow> {
+    const body = toApi(name, payload);
+    const url = name === 'invoices' ? `${API_BASE}/invoices/generate` : collectionPath(name);
+    return this.http.post<RecordRow>(url, body).pipe(
+      map((row) => {
+        const record = name === 'organizations' && row['organization']
+          ? fromApi(name, row['organization'] as RecordRow)
+          : fromApi(name, row);
+        this.cache[name] = [record, ...this.cache[name]];
+        this.version.update((n) => n + 1);
+        return record;
+      }),
+    );
   }
 
-  update(name: DataCollection, id: string, payload: RecordRow): RecordRow | null {
-    const index = STORE[name].findIndex((row) => row['id'] === id);
-    if (index < 0) return null;
-    const row = { ...STORE[name][index], ...payload, id };
-    STORE[name] = STORE[name].map((item, i) => (i === index ? row : item));
-    this.version.update((n) => n + 1);
-    return row;
+  update(name: DataCollection, id: string, payload: RecordRow): Observable<RecordRow | null> {
+    return this.http.patch<RecordRow>(`${collectionPath(name)}/${id}`, toApi(name, payload)).pipe(
+      map((row) => {
+        const record = fromApi(name, row);
+        this.cache[name] = this.cache[name].map((item) => (item['id'] === id ? record : item));
+        this.version.update((n) => n + 1);
+        return record;
+      }),
+    );
   }
 
-  remove(name: DataCollection, ids: string[]): void {
-    STORE[name] = STORE[name].filter((row) => !ids.includes(String(row['id'])));
-    this.version.update((n) => n + 1);
+  remove(name: DataCollection, ids: string[]): Observable<void> {
+    const requests = ids.map((id) => {
+      if (name === 'documents') {
+        return this.http.delete(`${collectionPath(name)}/${id}`);
+      }
+      if (name === 'users') {
+        return this.http.patch(`${collectionPath(name)}/${id}`, { status: 'disabled' });
+      }
+      return of(null);
+    });
+    return forkJoin(requests).pipe(
+      tap(() => {
+        this.cache[name] = this.cache[name].filter((row) => !ids.includes(String(row['id'])));
+        this.version.update((n) => n + 1);
+      }),
+      map(() => undefined),
+    );
+  }
+
+  prefetchLookups(): void {
+    for (const name of LOOKUPS) {
+      this.loadCollection(name).subscribe({ error: () => undefined });
+    }
   }
 
   listOptions(sources: FormFieldOptionsFrom | FormFieldOptionsFrom[]): FormFieldOption[] {
@@ -109,7 +117,7 @@ export class DataService {
     const options: FormFieldOption[] = [];
     const seen = new Set<string>();
     for (const source of list) {
-      for (const row of STORE[source.collection]) {
+      for (const row of this.cache[source.collection]) {
         const value = String(row[source.valueKey ?? source.labelKey] ?? '').trim();
         const base = String(row[source.labelKey] ?? value).trim();
         if (!value || seen.has(value)) continue;
@@ -122,4 +130,22 @@ export class DataService {
     }
     return options.sort((a, b) => a.label.localeCompare(b.label));
   }
+}
+
+function emptyCache(): Record<DataCollection, RecordRow[]> {
+  return {
+    properties: [],
+    units: [],
+    tenants: [],
+    leases: [],
+    invoices: [],
+    payments: [],
+    arrears: [],
+    tickets: [],
+    documents: [],
+    notifications: [],
+    'audit-logs': [],
+    users: [],
+    organizations: [],
+  };
 }

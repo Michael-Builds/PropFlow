@@ -1,20 +1,20 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { Router, provideRouter } from '@angular/router';
 import { authGuard } from './auth.guard';
 import { AuthService } from '../../services/auth/auth.service';
+import { completeOwnerLogin, httpTestProviders } from '../../testing/http';
 
 describe('authGuard', () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), ...httpTestProviders()],
     });
   });
 
   it('should allow authenticated users', () => {
-    const auth = TestBed.inject(AuthService);
-    auth.login('owner@propflow.app', 'password');
-
+    completeOwnerLogin(TestBed.inject(HttpTestingController), TestBed.inject(AuthService));
     const result = TestBed.runInInjectionContext(() =>
       authGuard({} as never, { url: '/dashboard' } as never),
     );

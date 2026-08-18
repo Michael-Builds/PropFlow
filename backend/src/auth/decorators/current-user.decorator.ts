@@ -3,7 +3,7 @@ import { UserRole } from '../../generated/prisma/client';
 
 export type JwtUser = {
   sub: string;
-  orgId: string;
+  orgId: string | null;
   role: UserRole;
   email: string;
   tenantId?: string | null;

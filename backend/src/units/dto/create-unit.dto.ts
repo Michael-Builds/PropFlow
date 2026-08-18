@@ -7,6 +7,11 @@ export class CreateUnitDto {
   @IsString()
   propertyId: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  blockId?: string;
+
   @ApiProperty()
   @IsString()
   unitCode: string;

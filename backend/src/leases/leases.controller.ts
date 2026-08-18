@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { OrgId } from '../auth/decorators/org-id.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import { LeasesService } from './leases.service';
@@ -21,38 +22,38 @@ export class LeasesController {
 
   @Get()
   @Roles('owner', 'manager', 'finance', 'tenant')
-  list(@CurrentUser() user: JwtUser, @Query() query: ListLeasesQueryDto) {
+  list(@OrgId() orgId: string, @CurrentUser() user: JwtUser, @Query() query: ListLeasesQueryDto) {
     const tenantId = user.role === 'tenant' ? user.tenantId ?? undefined : query.tenantId;
-    return this.leasesService.list(user.orgId, { ...query, tenantId });
+    return this.leasesService.list(orgId, { ...query, tenantId });
   }
 
   @Post()
   @Roles('owner', 'manager')
-  create(@CurrentUser() user: JwtUser, @Body() dto: CreateLeaseDto) {
-    return this.leasesService.create(user.orgId, dto);
+  create(@OrgId() orgId: string, @Body() dto: CreateLeaseDto) {
+    return this.leasesService.create(orgId, dto);
   }
 
   @Get(':id')
   @Roles('owner', 'manager', 'finance', 'tenant')
-  get(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    return this.leasesService.getById(user.orgId, id);
+  get(@OrgId() orgId: string, @Param('id') id: string) {
+    return this.leasesService.getById(orgId, id);
   }
 
   @Patch(':id')
   @Roles('owner', 'manager')
-  update(@CurrentUser() user: JwtUser, @Param('id') id: string, @Body() dto: UpdateLeaseDto) {
-    return this.leasesService.update(user.orgId, id, dto);
+  update(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: UpdateLeaseDto) {
+    return this.leasesService.update(orgId, id, dto);
   }
 
   @Post(':id/renew')
   @Roles('owner', 'manager')
-  renew(@CurrentUser() user: JwtUser, @Param('id') id: string, @Body() dto: RenewLeaseDto) {
-    return this.leasesService.renew(user.orgId, id, dto);
+  renew(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: RenewLeaseDto) {
+    return this.leasesService.renew(orgId, id, dto);
   }
 
   @Post(':id/terminate')
   @Roles('owner', 'manager')
-  terminate(@CurrentUser() user: JwtUser, @Param('id') id: string, @Body() dto: TerminateLeaseDto) {
-    return this.leasesService.terminate(user.orgId, id, dto);
+  terminate(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: TerminateLeaseDto) {
+    return this.leasesService.terminate(orgId, id, dto);
   }
 }

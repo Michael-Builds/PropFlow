@@ -42,4 +42,12 @@ export const envSchema = Joi.object({
   PAYSTACK_FEE_CAP: Joi.number().min(0).empty('').allow(null).optional(),
   PAYSTACK_CALLBACK_URL: Joi.string().uri().allow('').optional(),
   PAYSTACK_CHANNELS: Joi.string().default('card,mobile_money,bank_transfer'),
+  PII_ENCRYPTION_KEY: Joi.string().allow('').optional(),
+  MAIL_FROM: Joi.string().default('PropFlow <noreply@propflow.app>'),
+  SMTP_HOST: Joi.string().allow('').optional(),
+  SMTP_PORT: Joi.number().port().default(587),
+  SMTP_SECURE: Joi.boolean().truthy('true').falsy('false').default(false),
+  SMTP_USER: Joi.string().allow('').optional(),
+  SMTP_PASS: Joi.string().allow('').optional(),
+  PLATFORM_ADMIN_EMAIL: Joi.string().email().default('platform@propflow.app'),
 });

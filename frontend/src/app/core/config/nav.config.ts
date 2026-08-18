@@ -2,6 +2,7 @@ import { NavSection, UserRole } from '../interfaces/nav.interface';
 import { ThemeOption } from '../interfaces/theme.interface';
 
 export const ROLE_LABELS: Record<UserRole, string> = {
+  platform_admin: 'Platform',
   owner: 'Owner',
   manager: 'Manager',
   finance: 'Finance',
@@ -14,43 +15,45 @@ export const NAV_SECTIONS: NavSection[] = [
     id: 'overview',
     label: 'Overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['owner', 'manager', 'finance'] },
+      { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['owner', 'manager', 'finance', 'platform_admin'] },
     ],
   },
   {
     id: 'portfolio',
     label: 'Portfolio',
     items: [
-      { id: 'properties', label: 'Properties', path: '/properties', icon: 'building', roles: ['owner', 'manager'] },
-      { id: 'units', label: 'Units', path: '/units', icon: 'door', roles: ['owner', 'manager'] },
-      { id: 'tenants', label: 'Tenants', path: '/tenants', icon: 'users', roles: ['owner', 'manager'] },
-      { id: 'leases', label: 'Leases', path: '/leases', icon: 'file', roles: ['owner', 'manager'] },
+      { id: 'properties', label: 'Properties', path: '/properties', icon: 'building', roles: ['owner', 'manager', 'platform_admin'] },
+      { id: 'units', label: 'Units', path: '/units', icon: 'door', roles: ['owner', 'manager', 'platform_admin'] },
+      { id: 'tenants', label: 'Tenants', path: '/tenants', icon: 'users', roles: ['owner', 'manager', 'platform_admin'] },
+      { id: 'leases', label: 'Leases', path: '/leases', icon: 'file', roles: ['owner', 'manager', 'platform_admin'] },
     ],
   },
   {
     id: 'finance',
     label: 'Collections',
     items: [
-      { id: 'invoices', label: 'Invoices', path: '/invoices', icon: 'invoice', roles: ['owner', 'manager', 'finance'] },
-      { id: 'payments', label: 'Payments', path: '/payments', icon: 'wallet', roles: ['owner', 'manager', 'finance'] },
-      { id: 'arrears', label: 'Arrears', path: '/arrears', icon: 'alert', roles: ['owner', 'manager', 'finance'] },
+      { id: 'invoices', label: 'Invoices', path: '/invoices', icon: 'invoice', roles: ['owner', 'manager', 'finance', 'platform_admin'] },
+      { id: 'payments', label: 'Payments', path: '/payments', icon: 'wallet', roles: ['owner', 'manager', 'finance', 'platform_admin'] },
+      { id: 'arrears', label: 'Arrears', path: '/arrears', icon: 'alert', roles: ['owner', 'manager', 'finance', 'platform_admin'] },
     ],
   },
   {
     id: 'ops',
     label: 'Operations',
     items: [
-      { id: 'tickets', label: 'Maintenance', path: '/tickets', icon: 'wrench', roles: ['owner', 'manager', 'vendor', 'tenant'] },
-      { id: 'documents', label: 'Documents', path: '/documents', icon: 'folder', roles: ['owner', 'manager', 'finance', 'tenant'] },
-      { id: 'notifications', label: 'Notifications', path: '/notifications', icon: 'bell', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant'], badgeKey: 'notifications' },
+      { id: 'tickets', label: 'Maintenance', path: '/tickets', icon: 'wrench', roles: ['owner', 'manager', 'vendor', 'tenant', 'platform_admin'] },
+      { id: 'documents', label: 'Documents', path: '/documents', icon: 'folder', roles: ['owner', 'manager', 'finance', 'tenant', 'platform_admin'] },
+      { id: 'notifications', label: 'Notifications', path: '/notifications', icon: 'bell', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin'], badgeKey: 'notifications' },
     ],
   },
   {
     id: 'admin',
     label: 'Admin',
     items: [
-      { id: 'audit', label: 'Audit logs', path: '/audit-logs', icon: 'shield', roles: ['owner'] },
-      { id: 'appearance', label: 'Appearance', path: '/appearance', icon: 'palette', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant'] },
+      { id: 'organizations', label: 'Companies', path: '/organizations', icon: 'globe', roles: ['platform_admin'] },
+      { id: 'users', label: 'Users', path: '/users', icon: 'users', roles: ['owner', 'manager', 'platform_admin'] },
+      { id: 'audit', label: 'Audit logs', path: '/audit-logs', icon: 'shield', roles: ['owner', 'platform_admin'] },
+      { id: 'appearance', label: 'Appearance', path: '/appearance', icon: 'palette', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin'] },
     ],
   },
 ];

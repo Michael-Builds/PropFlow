@@ -5,8 +5,7 @@ import { AuditLogsService } from './audit-logs.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { JwtUser } from '../auth/decorators/current-user.decorator';
+import { OrgId } from '../auth/decorators/org-id.decorator';
 
 @ApiTags('audit-logs')
 @ApiBearerAuth()
@@ -17,7 +16,7 @@ export class AuditLogsController {
   constructor(private readonly auditLogsService: AuditLogsService) {}
 
   @Get()
-  findAll(@CurrentUser() user: JwtUser, @Query() query: PaginationQueryDto) {
-    return this.auditLogsService.list(user.orgId, query.page, query.pageSize);
+  findAll(@OrgId() orgId: string, @Query() query: PaginationQueryDto) {
+    return this.auditLogsService.list(orgId, query.page, query.pageSize);
   }
 }

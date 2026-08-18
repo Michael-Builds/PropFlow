@@ -9,7 +9,9 @@ export type DataCollection =
   | 'tickets'
   | 'documents'
   | 'notifications'
-  | 'audit-logs';
+  | 'audit-logs'
+  | 'users'
+  | 'organizations';
 
 export type FormFieldType = 'text' | 'email' | 'tel' | 'select' | 'date' | 'textarea' | 'number';
 

@@ -14,9 +14,12 @@ export class NotificationsService {
     private readonly logger: AppLogger,
   ) {}
 
-  async list(orgId: string, userId: string, query: PaginationQueryDto) {
+  async list(orgId: string | null, userId: string, query: PaginationQueryDto) {
     const { page, pageSize, skip, take } = pageArgs(query.page, query.pageSize);
-    const where: Prisma.NotificationWhereInput = { orgId, userId };
+    const where: Prisma.NotificationWhereInput = {
+      userId,
+      ...(orgId ? { orgId } : {}),
+    };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.notification.findMany({
         where,
@@ -26,16 +29,19 @@ export class NotificationsService {
       }),
       this.prisma.notification.count({ where }),
     ]);
-    return pageResult(page, pageSize, total, rows);
+    return pageResult(page, pageSize, total, rows.map((row) => this.present(row)));
   }
 
-  async markRead(orgId: string, userId: string, id: string) {
-    const row = await this.prisma.notification.findFirst({ where: { id, orgId, userId } });
+  async markRead(orgId: string | null, userId: string, id: string) {
+    const row = await this.prisma.notification.findFirst({
+      where: { id, userId, ...(orgId ? { orgId } : {}) },
+    });
     if (!row) throw new NotFoundException('Notification not found.');
-    return this.prisma.notification.update({
+    const updated = await this.prisma.notification.update({
       where: { id },
       data: { readAt: row.readAt ?? new Date() },
     });
+    return this.present(updated);
   }
 
   async queueEmail(orgId: string, userId: string | null, type: string, payload: unknown) {
@@ -67,4 +73,31 @@ export class NotificationsService {
       data: { status: 'sent', sentAt: new Date() },
     });
   }
+
+  present(row: {
+    id: string;
+    orgId: string;
+    userId: string | null;
+    channel: string;
+    type: string;
+    payloadJson: unknown;
+    status: string;
+    readAt: Date | null;
+    sentAt: Date | null;
+    createdAt: Date;
+  }) {
+    const payload = (row.payloadJson ?? {}) as Record<string, unknown>;
+    return {
+      id: row.id,
+      title: prettyTitle(row.type),
+      message: String(payload.message ?? payload.docType ?? row.type),
+      type: row.type,
+      read: !!row.readAt,
+      createdAt: row.createdAt.toISOString(),
+    };
+  }
+}
+
+function prettyTitle(type: string): string {
+  return type.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }

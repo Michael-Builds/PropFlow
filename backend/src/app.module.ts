@@ -25,9 +25,14 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { JobsModule } from './jobs/jobs.module';
 import { StorageModule } from './storage/storage.module';
+import { PlatformModule } from './platform/platform.module';
+import { BlocksModule } from './blocks/blocks.module';
+import { ExportsModule } from './exports/exports.module';
+import { ScheduledJobsModule } from './jobs/scheduled-jobs.module';
 import { envSchema } from './config/env.schema';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { HttpLoggingInterceptor } from './common/interceptors/http-logging.interceptor';
+import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { AppThrottlerGuard } from './common/throttler/app-throttler.guard';
 import { RedisService } from './common/redis/redis.service';
@@ -90,6 +95,10 @@ import { createRedisOptions } from './common/redis/redis-options';
     NotificationsModule,
     JobsModule,
     StorageModule,
+    PlatformModule,
+    BlocksModule,
+    ExportsModule,
+    ScheduledJobsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -109,6 +118,10 @@ import { createRedisOptions } from './common/redis/redis-options';
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLogInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: IdempotencyInterceptor,
     },
   ],
 })

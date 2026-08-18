@@ -3,8 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { JwtUser } from '../auth/decorators/current-user.decorator';
+import { OrgId } from '../auth/decorators/org-id.decorator';
 import { DocumentsService } from './documents.service';
 import { StorageService } from '../storage/storage.service';
 import { CreateUploadUrlDto } from '../storage/dto/create-upload-url.dto';
@@ -24,8 +23,9 @@ export class DocumentsController {
   ) {}
 
   @Get()
-  list(@CurrentUser() user: JwtUser, @Query() query: ListDocumentsQueryDto) {
-    return this.documentsService.list(user.orgId, query);
+  @Roles('owner', 'manager', 'finance', 'tenant')
+  list(@OrgId() orgId: string, @Query() query: ListDocumentsQueryDto) {
+    return this.documentsService.list(orgId, query);
   }
 
   @Post('upload-url')
@@ -36,24 +36,24 @@ export class DocumentsController {
 
   @Post()
   @Roles('owner', 'manager', 'finance')
-  create(@CurrentUser() user: JwtUser, @Body() dto: CreateDocumentDto) {
-    return this.documentsService.create(user.orgId, dto);
+  create(@OrgId() orgId: string, @Body() dto: CreateDocumentDto) {
+    return this.documentsService.create(orgId, dto);
   }
 
   @Get(':id')
-  get(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    return this.documentsService.getById(user.orgId, id);
+  get(@OrgId() orgId: string, @Param('id') id: string) {
+    return this.documentsService.getById(orgId, id);
   }
 
   @Patch(':id')
   @Roles('owner', 'manager', 'finance')
-  update(@CurrentUser() user: JwtUser, @Param('id') id: string, @Body() dto: UpdateDocumentDto) {
-    return this.documentsService.update(user.orgId, id, dto);
+  update(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: UpdateDocumentDto) {
+    return this.documentsService.update(orgId, id, dto);
   }
 
   @Delete(':id')
   @Roles('owner', 'manager')
-  remove(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    return this.documentsService.remove(user.orgId, id);
+  remove(@OrgId() orgId: string, @Param('id') id: string) {
+    return this.documentsService.remove(orgId, id);
   }
 }

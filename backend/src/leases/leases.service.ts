@@ -258,6 +258,7 @@ export class LeasesService {
       startDate: row.startDate,
       endDate: row.endDate,
       rentAmount: toNumber(row.rentAmount),
+      rent: toNumber(row.rentAmount),
       dueDay: row.dueDay,
       billingCycle: row.billingCycle,
       status: row.status,
