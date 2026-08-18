@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { Observable, catchError, filter, map, of, switchMap, take, throwError } from 'rxjs';
 import { LOOKUP_COLLECTIONS } from '../../enums/data-collection.enum';
 import { UserRole } from '../../enums/user-role.enum';
+import { canReadCollection } from '../../config/access';
 import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
 import { DashboardData } from '../../interfaces/dashboard.interface';
 import { RecordRow } from './api-map';
@@ -130,8 +131,11 @@ export class DataService {
   }
 
   prefetchLookups(): void {
-    if (this.sessionUser()?.role === UserRole.PlatformAdmin) return;
-    this.store.dispatch(CollectionsActions.prefetchLookups({ names: [...LOOKUPS] }));
+    const role = this.sessionUser()?.role;
+    if (!role || role === UserRole.PlatformAdmin) return;
+    const names = LOOKUPS.filter((name) => canReadCollection(role, name));
+    if (!names.length) return;
+    this.store.dispatch(CollectionsActions.prefetchLookups({ names: [...names] }));
   }
 
   listOptions(sources: FormFieldOptionsFrom | FormFieldOptionsFrom[]): FormFieldOption[] {

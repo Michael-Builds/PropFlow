@@ -14,6 +14,7 @@ export const AuthActions = createActionGroup({
     'Reset Password Failure': props<{ message: string }>(),
     Logout: props<{ refreshToken: string | null; accessToken: string | null }>(),
     'Logout Success': emptyProps(),
+    'Refresh Success': props<{ response: AuthResponse }>(),
     'Set Active Org': props<{ orgId: string }>(),
   },
 });

@@ -20,12 +20,20 @@ export class AuthService {
     const role = this.user()?.role;
     return role ? ROLE_LABELS[role] : '';
   });
+  readonly orgCaption = computed(() => {
+    if (this.role() === UserRole.PlatformAdmin) return 'All companies';
+    return this.activeOrgId() || this.user()?.orgId || 'No organisation';
+  });
   readonly activeOrgId = this.store.selectSignal(authFeature.selectActiveOrgId);
   private readonly accessTokenSignal = this.store.selectSignal(authFeature.selectAccessToken);
   private readonly refreshTokenSignal = this.store.selectSignal(authFeature.selectRefreshToken);
 
   accessToken(): string | null {
     return this.accessTokenSignal();
+  }
+
+  refreshToken(): string | null {
+    return this.refreshTokenSignal();
   }
 
   login(email: string, password: string): Observable<{ ok: boolean; message?: string }> {

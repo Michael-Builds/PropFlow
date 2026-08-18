@@ -3,9 +3,11 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { combineLatest, forkJoin, of, switchMap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { COLLECTION_PAGES } from '../../../core/config/collections.config';
+import { canReadCollection } from '../../../core/config/access';
 import { buildCollectionDetail, CollectionDetailModel } from '../../../core/config/detail.config';
 import { DataCollection } from '../../../core/enums/data-collection.enum';
 import { badgeVariantFor } from '../../../core/utils';
+import { AuthService } from '../../../core/services/auth/auth.service';
 import { DataService, RecordRow } from '../../../core/services/data/data.service';
 import { LoaderService } from '../../../core/services/loader/loader.service';
 import { ToastService } from '../../../core/services/toast/toast.service';
@@ -46,6 +48,7 @@ export class CollectionDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly data = inject(DataService);
+  private readonly auth = inject(AuthService);
   private readonly loader = inject(LoaderService);
   private readonly toast = inject(ToastService);
 
@@ -80,8 +83,8 @@ export class CollectionDetailPageComponent {
               }
               return forkJoin({
                 record: of(record),
-                units: this.data.related(DataCollection.Units, (row) => row['propertyId'] === record['id'] || row['id'] === record['unitId']),
-                leases: this.data.related(
+                units: this.related(DataCollection.Units, (row) => row['propertyId'] === record['id'] || row['id'] === record['unitId']),
+                leases: this.related(
                   DataCollection.Leases,
                   (row) =>
                     row['unitId'] === record['id'] ||
@@ -89,19 +92,19 @@ export class CollectionDetailPageComponent {
                     row['id'] === record['lease'] ||
                     row['id'] === record['leaseId'],
                 ),
-                invoices: this.data.related(
+                invoices: this.related(
                   DataCollection.Invoices,
                   (row) => row['tenantId'] === record['id'] || row['leaseId'] === record['id'] || row['id'] === record['invoiceId'],
                 ),
-                payments: this.data.related(
+                payments: this.related(
                   DataCollection.Payments,
                   (row) => row['invoiceId'] === record['id'] || row['tenantId'] === record['id'],
                 ),
-                tickets: this.data.related(
+                tickets: this.related(
                   DataCollection.Tickets,
                   (row) => row['unitId'] === record['id'] || row['propertyId'] === record['id'],
                 ),
-                documents: this.data.related(
+                documents: this.related(
                   DataCollection.Documents,
                   (row) => row['entityId'] === record['id'] || row['id'] === record['id'],
                 ),
@@ -110,19 +113,27 @@ export class CollectionDetailPageComponent {
           );
         }),
       )
-      .subscribe((bundle) => {
-        if (!bundle) return;
-        this.record.set(bundle.record);
-        this.view.set(
-          buildCollectionDetail(this.collection(), bundle.record, {
-            units: bundle.units,
-            leases: bundle.leases,
-            invoices: bundle.invoices,
-            payments: bundle.payments,
-            tickets: bundle.tickets,
-            documents: bundle.documents,
-          }),
-        );
+      .subscribe({
+        next: (bundle) => {
+          if (!bundle) return;
+          this.record.set(bundle.record);
+          this.view.set(
+            buildCollectionDetail(this.collection(), bundle.record, {
+              units: bundle.units,
+              leases: bundle.leases,
+              invoices: bundle.invoices,
+              payments: bundle.payments,
+              tickets: bundle.tickets,
+              documents: bundle.documents,
+            }),
+          );
+        },
+        error: () => this.toast.error('Could not load this record.'),
       });
+  }
+
+  private related(name: DataCollection, predicate: (row: RecordRow) => boolean) {
+    if (!canReadCollection(this.auth.role(), name)) return of([] as RecordRow[]);
+    return this.data.related(name, predicate);
   }
 }

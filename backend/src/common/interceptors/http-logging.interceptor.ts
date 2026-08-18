@@ -24,8 +24,16 @@ export class HttpLoggingInterceptor implements NestInterceptor {
       tap(() => this.write(method, path, res.statusCode, startedAt)),
       catchError((error: unknown) => {
         const status =
-          error instanceof HttpException ? error.getStatus() : res.statusCode || 500;
-        this.write(method, path, status, startedAt);
+          error instanceof HttpException
+            ? error.getStatus()
+            : res.statusCode || 500;
+        const detail =
+          error instanceof HttpException
+            ? JSON.stringify(error.getResponse())
+            : error instanceof Error
+              ? error.message
+              : '';
+        this.write(method, path, status, startedAt, detail);
         return throwError(() => error);
       }),
     );
@@ -36,8 +44,9 @@ export class HttpLoggingInterceptor implements NestInterceptor {
     path: string,
     status: number,
     startedAt: number,
+    detail = '',
   ): void {
-    const message = `${method} ${path} ${status} ${Date.now() - startedAt}ms`;
+    const message = `${method} ${path} ${status} ${Date.now() - startedAt}ms${detail ? ` ${detail}` : ''}`;
 
     if (status >= 500) {
       this.logger.error(message, HttpLoggingInterceptor.name);

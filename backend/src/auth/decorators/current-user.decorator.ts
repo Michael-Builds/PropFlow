@@ -10,8 +10,8 @@ export type JwtUser = {
   vendorId?: string | null;
 };
 
-export function jwtUserFromRequest(req: { user?: JwtUser | null }): JwtUser {
-  const user = req.user;
+export function jwtUserFromRequest(req: { user?: JwtUser | null; req?: { user?: JwtUser | null } } | null | undefined): JwtUser {
+  const user = req?.user ?? req?.req?.user;
   if (!user?.sub) {
     throw new UnauthorizedException('Authentication required.');
   }

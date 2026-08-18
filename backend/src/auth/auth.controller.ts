@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -8,8 +8,7 @@ import { LogoutDto } from './dto/logout.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AUTH_THROTTLE } from '../common/throttler/throttle.constants';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
+import { OptionalJwtAuthGuard } from './optional-jwt-auth.guard';
 import type { JwtUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
@@ -31,9 +30,9 @@ export class AuthController {
 
   @Post('logout')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  logout(@CurrentUser() user: JwtUser, @Body() payload: LogoutDto) {
-    return this.authService.logout(user.sub, payload.refreshToken);
+  @UseGuards(OptionalJwtAuthGuard)
+  logout(@Req() req: { user?: JwtUser }, @Body() payload: LogoutDto) {
+    return this.authService.logoutSession(req.user, payload?.refreshToken);
   }
 
   @Post('forgot-password')

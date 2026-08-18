@@ -51,6 +51,27 @@ describe('AuthService', () => {
     expect(service.homePath()).toBe('/dashboard');
   });
 
+  it('should keep platform admins off company navigation', () => {
+    service.login('platform@propflow.app', 'password').subscribe();
+    const req = http.expectOne((request) => request.url.includes('/auth/login'));
+    req.flush({
+      accessToken: 'a',
+      refreshToken: 'r',
+      expiresIn: 3600,
+      user: {
+        id: 'usr_pa',
+        role: UserRole.PlatformAdmin,
+        orgId: null,
+        email: 'platform@propflow.app',
+        fullName: 'PropFlow Admin',
+      },
+    });
+    expect(service.canAccess(UserRoles.platform)).toBe(true);
+    expect(service.canAccess(UserRoles.portfolio)).toBe(false);
+    expect(service.activeOrgId()).toBeNull();
+    expect(service.orgCaption()).toBe('All companies');
+  });
+
   it('should send vendors to the dashboard', () => {
     service.login('vendor@propflow.app', 'password').subscribe();
     const req = http.expectOne((request) => request.url.includes('/auth/login'));

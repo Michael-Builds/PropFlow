@@ -14,9 +14,7 @@ export const OrgId = createParamDecorator((_data: unknown, ctx: ExecutionContext
     throw new ForbiddenException('Platform operators use platform endpoints, not company-scoped data.');
   }
 
-  const header = req.headers['x-org-id'];
-  const fromHeader = Array.isArray(header) ? header[0] : header;
-  const orgId = user.orgId || String(fromHeader || '').trim();
+  const orgId = user.orgId?.trim();
   if (!orgId) {
     throw new BadRequestException('User is not attached to an organisation.');
   }

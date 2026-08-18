@@ -10,7 +10,7 @@ const authReducer = createReducer(
     status: 'authenticating' as const,
     error: null,
   })),
-  on(AuthActions.loginSuccess, (state, { response }) => {
+  on(AuthActions.loginSuccess, AuthActions.refreshSuccess, (state, { response }) => {
     const user = toSessionUser(response.user);
     return {
       ...state,
@@ -37,7 +37,7 @@ const authReducer = createReducer(
   })),
   on(AuthActions.setActiveOrg, (state, { orgId }) => ({
     ...state,
-    activeOrgId: orgId,
+    activeOrgId: state.user?.role === UserRole.PlatformAdmin ? null : orgId,
   })),
   on(AuthActions.resetPasswordFailure, (state, { message }) => ({
     ...state,

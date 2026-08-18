@@ -85,8 +85,24 @@ export class AuthService {
     if (!user || user.status !== 'active') {
       throw new UnauthorizedException('Invalid refresh token');
     }
+    if (user.role !== 'platform_admin' && user.organization?.status === 'suspended') {
+      throw new UnauthorizedException('This organisation is suspended.');
+    }
 
     return this.issueSession(user);
+  }
+
+  async logoutSession(user: { sub?: string } | undefined, refreshToken?: string) {
+    try {
+      if (user?.sub) {
+        return await this.logout(user.sub, refreshToken);
+      }
+      if (!refreshToken) return { ok: true };
+      const claims = await this.verifyRefresh(refreshToken);
+      return await this.logout(claims.sub, refreshToken);
+    } catch {
+      return { ok: true };
+    }
   }
 
   async logout(userId: string, refreshToken?: string) {

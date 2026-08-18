@@ -42,4 +42,8 @@ export class AuthApiService {
       accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : {},
     );
   }
+
+  refresh(refreshToken: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${API_BASE}/auth/refresh`, { refreshToken });
+  }
 }

@@ -1,4 +1,5 @@
-import { Controller, Get, Req, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, Inject, UseGuards } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -14,7 +15,10 @@ import { DashboardService } from './dashboard.service';
 @Roles('owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin')
 @Controller('dashboard')
 export class DashboardController {
-  constructor(private readonly dashboardService: DashboardService) {}
+  constructor(
+    private readonly dashboardService: DashboardService,
+    @Inject(REQUEST) private readonly request: { user?: JwtUser },
+  ) {}
 
   @Get('summary')
   @Roles('owner', 'manager', 'finance', 'vendor', 'tenant')
@@ -41,14 +45,13 @@ export class DashboardController {
   }
 
   @Get('overview')
-  @Roles('owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin')
-  overview(@Req() req: { user?: JwtUser }) {
-    const user = jwtUserFromRequest(req);
+  overview() {
+    const user = jwtUserFromRequest(this.request);
     if (isPlatformAdmin(user)) {
       return this.dashboardService.platformOverview();
     }
     if (!user.orgId) {
-      throw new BadRequestException('Organisation required.');
+      throw new ForbiddenException('Organisation required.');
     }
     return this.dashboardService.overview(user.orgId);
   }
