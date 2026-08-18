@@ -38,6 +38,7 @@ export type DetailDocument = {
 export type DetailQuickAction = {
   label: string;
   path: string;
+  queryParams?: Record<string, string>;
   icon: NavIconName;
   variant: ButtonVariant;
 };

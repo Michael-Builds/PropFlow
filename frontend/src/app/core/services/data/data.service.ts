@@ -67,8 +67,18 @@ export class DataService {
   }
 
   getById<T = RecordRow>(name: DataCollection, id: string): Observable<T | null> {
+    const row = this.findSync<T>(name, id);
+    return of(row).pipe(delay(80));
+  }
+
+  listSync<T = RecordRow>(name: DataCollection): T[] {
+    this.version();
+    return STORE[name] as T[];
+  }
+
+  findSync<T = RecordRow>(name: DataCollection, id: string): T | null {
     const row = STORE[name].find((item) => item['id'] === id) ?? null;
-    return of(structuredClone(row) as T | null).pipe(delay(80));
+    return (row ? structuredClone(row) : null) as T | null;
   }
 
   create(name: DataCollection, payload: RecordRow): RecordRow {

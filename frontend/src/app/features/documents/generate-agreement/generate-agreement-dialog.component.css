@@ -1,0 +1,25 @@
+:host {
+  display: flex;
+  animation: dialog-fade 160ms ease-out;
+}
+
+.sheet-compose {
+  max-height: min(92dvh, 40rem);
+}
+
+.sheet-preview {
+  max-height: min(94dvh, 56rem);
+}
+
+.agreement-sheet {
+  box-shadow: 0 1px 2px rgb(15 16 53 / 0.06);
+}
+
+@keyframes dialog-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

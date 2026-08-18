@@ -2,6 +2,7 @@
   @for (action of actions(); track action.path + action.label) {
     <a
       [routerLink]="action.path"
+      [queryParams]="action.queryParams ?? {}"
       class="flex items-center gap-2.5 rounded-md border border-border-light px-3 py-2 text-sm font-medium text-text-primary transition hover:border-brand/35 hover:bg-brand-muted md:cursor-pointer"
     >
       <span class="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-soft text-brand">

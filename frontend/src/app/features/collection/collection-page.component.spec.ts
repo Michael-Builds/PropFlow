@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { of } from 'rxjs';
 import { APP_ICONS } from '../../core/icons/app-icons';
@@ -12,7 +12,14 @@ describe('CollectionPageComponent', () => {
       providers: [
         provideIcons(APP_ICONS),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { data: of({ collection: 'properties' }) } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            data: of({ collection: 'properties' }),
+            queryParamMap: of(convertToParamMap({})),
+            snapshot: { queryParamMap: convertToParamMap({}) },
+          },
+        },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(CollectionPageComponent);

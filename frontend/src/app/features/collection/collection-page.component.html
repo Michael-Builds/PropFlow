@@ -1,5 +1,8 @@
 <app-page-header [eyebrow]="config.eyebrow" [title]="config.title" [description]="config.description">
   <app-button variant="secondary" icon="refresh" label="Refresh" (pressed)="refresh()" />
+  @if (canGenerate()) {
+    <app-button variant="secondary" icon="file" label="Generate agreement" (pressed)="openGenerate()" />
+  }
   @if (config.canCreate) {
     <app-button icon="plus" [label]="config.createLabel" (pressed)="openCreate()" />
   }
@@ -55,4 +58,15 @@
       }
     </form>
   </app-form-dialog>
+}
+
+@if (generateOpen()) {
+  <app-generate-agreement-dialog
+    [prefillTemplateId]="generateTemplateId()"
+    [prefillLeaseId]="generateLeaseId()"
+    [prefillTenantId]="generateTenantId()"
+    [prefillUnitId]="generateUnitId()"
+    (closed)="closeGenerate()"
+    (saved)="onAgreementSaved()"
+  />
 }

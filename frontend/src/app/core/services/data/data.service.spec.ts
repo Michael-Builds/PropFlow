@@ -28,7 +28,7 @@ describe('DataService', () => {
 
   it('should find a record by id', async () => {
     const tenants = await firstValueFrom(service.loadCollection<{ id: string }>('tenants'));
-    const found = await firstValueFrom(service.getById('tenants', tenants[0].id));
+    const found = await firstValueFrom(service.getById<{ id: string }>('tenants', tenants[0].id));
     expect(found?.id).toBe(tenants[0].id);
   });
 

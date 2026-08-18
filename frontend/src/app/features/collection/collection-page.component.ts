@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import {
   COLLECTION_COLUMNS,
   COLLECTION_FIELDS,
@@ -9,10 +9,12 @@ import {
 } from '../../core/config/collections.config';
 import { DataCollection, FormField, FormFieldOption } from '../../core/interfaces/data.interface';
 import { DataTableColumn, DataTableRowActionEvent } from '../../core/interfaces/data-table.interface';
+import { AuthService } from '../../core/services/auth/auth.service';
 import { DataService, RecordRow } from '../../core/services/data/data.service';
 import { LoaderService } from '../../core/services/loader/loader.service';
 import { ModalService } from '../../core/services/modal/modal.service';
 import { ToastService } from '../../core/services/toast/toast.service';
+import { GenerateAgreementDialogComponent } from '../documents/generate-agreement/generate-agreement-dialog.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
 import { DataTableComponent } from '../../shared/ui/data-table/data-table.component';
 import { FormDialogComponent } from '../../shared/ui/form-dialog/form-dialog.component';
@@ -20,6 +22,8 @@ import { InputComponent } from '../../shared/ui/input/input.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 import { SelectComponent } from '../../shared/ui/select/select.component';
 import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
+
+const GENERATE_COLLECTIONS: DataCollection[] = ['documents', 'leases', 'tenants', 'units'];
 
 @Component({
   selector: 'app-collection-page',
@@ -30,6 +34,7 @@ import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
     ButtonComponent,
     DataTableComponent,
     FormDialogComponent,
+    GenerateAgreementDialogComponent,
     InputComponent,
     SelectComponent,
     TextareaComponent,
@@ -44,6 +49,7 @@ export class CollectionPageComponent {
   private readonly loader = inject(LoaderService);
   private readonly toast = inject(ToastService);
   private readonly modal = inject(ModalService);
+  private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
   collection: DataCollection = 'properties';
@@ -58,11 +64,51 @@ export class CollectionPageComponent {
   readonly dialogOpen = signal(false);
   readonly saving = signal(false);
   readonly editing = signal<RecordRow | null>(null);
+  readonly generateOpen = signal(false);
+  readonly generateTemplateId = signal<string | null>(null);
+  readonly generateLeaseId = signal<string | null>(null);
+  readonly generateTenantId = signal<string | null>(null);
+  readonly generateUnitId = signal<string | null>(null);
 
   constructor() {
     this.route.data.subscribe((data) => {
       this.apply((data['collection'] as DataCollection) ?? 'properties');
+      this.maybeOpenGenerate(this.route.snapshot.queryParamMap);
     });
+    this.route.queryParamMap.subscribe((query) => this.maybeOpenGenerate(query));
+  }
+
+  canGenerate(): boolean {
+    return this.auth.canAccess(['owner', 'manager', 'finance']) && GENERATE_COLLECTIONS.includes(this.collection);
+  }
+
+  openGenerate(): void {
+    this.generateTemplateId.set(this.collection === 'tenants' ? 'tenant_information' : 'lease_agreement');
+    this.generateLeaseId.set(null);
+    this.generateTenantId.set(null);
+    this.generateUnitId.set(null);
+    this.generateOpen.set(true);
+  }
+
+  closeGenerate(): void {
+    this.generateOpen.set(false);
+    this.generateTemplateId.set(null);
+    this.generateLeaseId.set(null);
+    this.generateTenantId.set(null);
+    this.generateUnitId.set(null);
+    const query = this.route.snapshot.queryParamMap;
+    if (query.get('generate') || query.get('leaseId') || query.get('tenantId') || query.get('unitId')) {
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { generate: null, leaseId: null, tenantId: null, unitId: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    }
+  }
+
+  onAgreementSaved(): void {
+    if (this.collection === 'documents') this.refresh();
   }
 
   refresh(): void {
@@ -164,8 +210,20 @@ export class CollectionPageComponent {
     this.filters = COLLECTION_FILTERS[collection];
     this.fields = COLLECTION_FIELDS[collection];
     this.closeDialog();
+    this.generateOpen.set(false);
     this.buildForm();
     this.refresh();
+  }
+
+  private maybeOpenGenerate(query: ParamMap): void {
+    if (!this.canGenerate()) return;
+    const generate = query.get('generate');
+    if (!generate) return;
+    this.generateTemplateId.set(generate === '1' ? null : generate);
+    this.generateLeaseId.set(query.get('leaseId'));
+    this.generateTenantId.set(query.get('tenantId'));
+    this.generateUnitId.set(query.get('unitId'));
+    this.generateOpen.set(true);
   }
 
   private async deleteRows(rows: RecordRow[]): Promise<void> {

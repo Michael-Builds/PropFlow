@@ -12,6 +12,15 @@ import { badgeVariantFor, prettyLabel } from '../utils';
 import { RecordRow } from '../services/data/data.service';
 import { COLLECTION_PAGES } from './collections.config';
 
+const AGREEMENT_DOC_TYPES = new Set([
+  'lease_agreement',
+  'lease_renewal',
+  'occupancy_letter',
+  'unit_handover',
+  'tenant_form',
+  'payment_instruction',
+]);
+
 export interface CollectionDetailModel {
   title: string;
   description: string;
@@ -61,6 +70,55 @@ function docsFrom(rows: RecordRow[]): DetailDocument[] {
     status: text(row, 'status'),
     uploadedAt: text(row, 'uploadedAt', text(row, 'expiresAt')),
   }));
+}
+
+function entityPath(entityType: string, entityId: string): { path: string; icon: DetailQuickAction['icon'] } {
+  if (entityType === 'property') return { path: `/properties/${entityId}`, icon: 'building' };
+  if (entityType === 'unit') return { path: `/units/${entityId}`, icon: 'door' };
+  if (entityType === 'lease') return { path: `/leases/${entityId}`, icon: 'file' };
+  return { path: `/tenants/${entityId}`, icon: 'users' };
+}
+
+function documentActions(record: RecordRow): DetailQuickAction[] {
+  const entityType = text(record, 'entityType');
+  const entityId = text(record, 'entityId');
+  const type = text(record, 'type');
+  const related = entityPath(entityType, entityId);
+  const actions: DetailQuickAction[] = [
+    {
+      label: prettyLabel(entityType || 'Record'),
+      path: related.path,
+      icon: related.icon,
+      variant: 'soft',
+    },
+  ];
+
+  const generateParams: Record<string, string> = {
+    generate: AGREEMENT_DOC_TYPES.has(type) ? type : 'lease_agreement',
+  };
+  const leaseId = text(record, 'leaseId', '');
+  if (entityType === 'lease' || leaseId) {
+    generateParams['leaseId'] = leaseId || entityId;
+  } else if (entityType === 'tenant') {
+    generateParams['tenantId'] = entityId;
+  } else if (entityType === 'unit') {
+    generateParams['unitId'] = entityId;
+  }
+
+  if (
+    (record['generated'] === true || AGREEMENT_DOC_TYPES.has(type)) &&
+    (generateParams['leaseId'] || generateParams['tenantId'] || generateParams['unitId'])
+  ) {
+    actions.unshift({
+      label: 'Preview / download',
+      path: '/documents',
+      queryParams: generateParams,
+      icon: 'download',
+      variant: 'soft',
+    });
+  }
+
+  return actions;
 }
 
 export function buildCollectionDetail(
@@ -162,6 +220,13 @@ export function buildCollectionDetail(
         notes: baseNotes,
         actions: [
           { label: 'Property', path: `/properties/${text(record, 'propertyId')}`, icon: 'building', variant: 'soft' },
+          {
+            label: 'Generate agreement',
+            path: '/documents',
+            queryParams: { generate: 'lease_agreement', unitId: id },
+            icon: 'file',
+            variant: 'secondary',
+          },
           { label: 'Leases', path: '/leases', icon: 'file', variant: 'secondary' },
         ],
       };
@@ -204,7 +269,14 @@ export function buildCollectionDetail(
         ],
         notes: baseNotes,
         actions: [
-          { label: 'Payments', path: '/payments', icon: 'wallet', variant: 'soft' },
+          {
+            label: 'Generate agreement',
+            path: '/documents',
+            queryParams: { generate: '1', tenantId: id },
+            icon: 'file',
+            variant: 'soft',
+          },
+          { label: 'Payments', path: '/payments', icon: 'wallet', variant: 'secondary' },
           { label: 'Arrears', path: '/arrears', icon: 'alert', variant: 'secondary' },
         ],
       };
@@ -240,7 +312,14 @@ export function buildCollectionDetail(
         ],
         notes: baseNotes,
         actions: [
-          { label: 'Tenant', path: `/tenants/${text(record, 'tenantId')}`, icon: 'users', variant: 'soft' },
+          {
+            label: 'Generate agreement',
+            path: '/documents',
+            queryParams: { generate: 'lease_agreement', leaseId: id },
+            icon: 'file',
+            variant: 'soft',
+          },
+          { label: 'Tenant', path: `/tenants/${text(record, 'tenantId')}`, icon: 'users', variant: 'secondary' },
           { label: 'Unit', path: `/units/${text(record, 'unitId')}`, icon: 'door', variant: 'secondary' },
         ],
       };
@@ -396,14 +475,7 @@ export function buildCollectionDetail(
           { id: 't2', title: 'Expiry', at: text(record, 'expiresAt'), tone: status === 'valid' ? 'info' : 'warning' },
         ],
         notes: baseNotes,
-        actions: [
-          {
-            label: prettyLabel(text(record, 'entityType')),
-            path: text(record, 'entityType') === 'property' ? `/properties/${text(record, 'entityId')}` : `/tenants/${text(record, 'entityId')}`,
-            icon: text(record, 'entityType') === 'property' ? 'building' : 'users',
-            variant: 'soft',
-          },
-        ],
+        actions: documentActions(record),
       };
     case 'notifications':
       return {
