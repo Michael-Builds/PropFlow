@@ -74,6 +74,8 @@ The UI talks to the API as `/api` (proxied to `http://localhost:3000` in develop
 
 ## Backend
 
+Implementation detail (modules, env, throttling, Prisma, API status): [`backend/README.md`](backend/README.md).
+
 ```bash
 cd backend
 cp .env.example .env   # then fill values
@@ -119,6 +121,8 @@ Required env groups are documented in [`backend/.env.example`](backend/.env.exam
 Login is rate-limited more tightly than the global windows (short / medium / long). Health and Swagger are skipped. Trackers include user id and client IP (`X-Forwarded-For` when present).
 
 ## Frontend
+
+Implementation detail (routes, mock data, roles, theming, UI map): [`frontend/README.md`](frontend/README.md).
 
 ```bash
 cd frontend

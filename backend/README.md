@@ -1,98 +1,187 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# PropFlow API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS 11 service for PropFlow. It is org-scoped, JWT-authenticated, and sits in front of Neon Postgres, Redis, BullMQ, and S3/CloudFront.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Product rules and the intended REST contract live in [`../docs/PropFlow_PRD_v1.1.txt`](../docs/PropFlow_PRD_v1.1.txt). Currency in product examples is **GHS**.
 
-## Description
+## Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Piece | Choice |
+| --- | --- |
+| Runtime | NestJS 11, Express |
+| Language | TypeScript 6 (this package only) |
+| Database | Prisma 7 + Neon Postgres (`@prisma/adapter-pg`) |
+| Auth | Passport JWT, bcrypt, access + refresh tokens |
+| Cache / queues | Redis (ioredis) + BullMQ |
+| Rate limits | `@nestjs/throttler` + `@nest-lab/throttler-storage-redis` |
+| Files | AWS S3 presigned PUTs, optional CloudFront domain |
+| HTTP | Helmet, compression, global validation pipe, Swagger |
+| Logs | `AppLogger` (`error` / `warning` / `success` / `info`; `debug` off in production) |
 
-## Project setup
+## Layout
 
-```bash
-$ npm install
+```
+backend/
+├── prisma/schema.prisma      Data model
+├── src/
+│   ├── main.ts               Bootstrap, versioning, Swagger
+│   ├── app.module.ts         Root module, global guard/filter/interceptors
+│   ├── config/env.schema.ts  Joi env validation
+│   ├── prisma/               Prisma client wrapper
+│   ├── common/               Logger, Redis, throttler, interceptors, filters
+│   ├── auth/                 Login + JWT strategy
+│   ├── users/
+│   ├── properties/ units/ tenants/ leases/
+│   ├── invoices/ payments/
+│   ├── tickets/ documents/ dashboard/
+│   ├── notifications/ audit-logs/
+│   ├── jobs/                 BullMQ notifications queue
+│   ├── storage/              S3 upload URLs
+│   └── generated/prisma/     Prisma client output (do not edit)
+└── .env.example
 ```
 
-## Compile and run the project
+Prisma client is generated into `src/generated/prisma` (`moduleFormat: cjs`). `npm install` runs `prisma generate` via `postinstall`.
+
+## Run locally
+
+Needs Node 22+, npm, Docker (Redis), and a Postgres URL.
 
 ```bash
-# development
-$ npm run start
+cp .env.example .env
+# fill DATABASE_URL, JWT secrets, Redis, AWS keys
 
-# watch mode
-$ npm run start:dev
+docker run --name propflow-redis -p 6379:6379 -d redis:7
 
-# production mode
-$ npm run start:prod
+npm install
+npm run prisma:generate
+npm run prisma:migrate:dev
+npm run start:dev
 ```
 
-## Run tests
+| URL | Purpose |
+| --- | --- |
+| `http://localhost:3000/api/v1` | Versioned API |
+| `GET /api/v1/health` | Liveness (`{ status: "ok", service: "propflow-api" }`) |
+| `http://localhost:3000/docs` | Swagger UI |
 
-```bash
-# unit tests
-$ npm run test
+Scripts:
 
-# e2e tests
-$ npm run test:e2e
+| Command | Purpose |
+| --- | --- |
+| `npm run start` | Compile once and listen |
+| `npm run start:dev` | Watch mode |
+| `npm run start:prod` | `node dist/main` |
+| `npm run build` | `nest build` |
+| `npm run prisma:migrate:dev` | Dev migrations |
+| `npm run prisma:migrate:deploy` | Deploy migrations |
+| `npm run prisma:studio` | Prisma Studio |
+| `npm test` / `npm run test:e2e` | Jest unit / e2e |
 
-# test coverage
-$ npm run test:cov
-```
+## Environment
 
-## Deployment
+Validated in `src/config/env.schema.ts`. Copy `.env.example` and set at least:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Variable | Notes |
+| --- | --- |
+| `DATABASE_URL` | Neon Postgres connection string |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | Required |
+| `JWT_ACCESS_TTL` | Seconds, default `3600` |
+| `JWT_REFRESH_TTL` | Seconds, default `1209600` (14 days) |
+| `REDIS_HOST` / `REDIS_PORT` | Required. Username/password optional (local Redis has none) |
+| `REDIS_DB` | Default `0` |
+| `PORT` | Default `3000` |
+| `API_PREFIX` | Default `api` |
+| `API_VERSION` | Default `1` (URI versioning) |
+| `AWS_REGION` / `AWS_S3_BUCKET` / keys | Required even if you are not uploading yet |
+| `AWS_S3_ENDPOINT` / `AWS_S3_FORCE_PATH_STYLE` | Optional (MinIO / path-style) |
+| `AWS_CLOUDFRONT_DOMAIN` | Optional public file host |
+| `AUDIT_LOG_ENABLED` | Default `true` |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Throttle windows (overridable):
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+| Name | Default |
+| --- | --- |
+| short | 30 requests / 10s |
+| medium | 120 / 60s |
+| long | 1000 / hour |
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Login is tighter (see below). Health and Swagger skip throttling.
 
-## Resources
+## Bootstrap behaviour
 
-Check out a few resources that may come in handy when working with NestJS:
+`src/main.ts`:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- `trust proxy` so `X-Forwarded-For` is trusted
+- Helmet + compression + CORS
+- Global prefix + URI versioning → `/api/v1/...`
+- `ValidationPipe`: `transform`, `whitelist`, `forbidNonWhitelisted`
+- Bearer auth in Swagger
+- Prisma shutdown hooks
+- Coloured bootstrap logs with listen URL and `/docs`
 
-## Support
+## Cross-cutting
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Auth.** `POST /auth/login` takes `{ email, password }`. Looks up the user, `bcrypt.compare` on `passwordHash`, then signs access and refresh JWTs with claims `sub`, `orgId`, `role`, `email`. Failed logins return `401 Invalid credentials` (same message whether the user is missing or the password is wrong). Login throttle: 5 / 10s (block 60s), 8 / min (block 5 min), 20 / hour (block 1 hour). Tracker is `userId:IP` (`anon` before auth).
 
-## Stay in touch
+**Org scope.** Every domain table has `orgId`. Queries must stay inside the org from the token. Several list methods still take a placeholder `'org_demo'` until JWT is wired through every controller.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Throttler.** Redis-backed. Tracker `userId:IP` including `X-Forwarded-For`. Skips `/health`, `/docs`, `/swagger`.
 
-## License
+**Logging.** `AppLogger` implements Nest `LoggerService`. HTTP interceptor logs method, path, status, duration. Exceptions go through `AllExceptionsFilter`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+**Audit.** `AuditLogInterceptor` writes privileged actions when `AUDIT_LOG_ENABLED` is true. Model: actor, action, entity, before/after JSON, IP.
+
+**Jobs.** BullMQ queue `notifications`. `JobsService` + `NotificationsProcessor` for queued/sent notification work.
+
+**Storage.** `StorageService.createUploadUrl` returns a presigned PUT. Documents module records vault metadata after upload.
+
+## Data model (Prisma)
+
+Enums: `UserRole` (`owner` | `manager` | `finance` | `vendor` | `tenant`), `EntityType` (`property` | `unit` | `tenant` | `lease`).
+
+| Model | Role |
+| --- | --- |
+| `Organization` | Tenant boundary |
+| `User` | Login, role, `passwordHash` |
+| `Property` / `Unit` | Portfolio. Unit has `unitCode`, `rentAmount`, `currency`, status |
+| `Tenant` | Occupant + `kycStatus` |
+| `Lease` | Dates, rent, `dueDay`, `version`. Product rule: one active lease per unit |
+| `Invoice` / `Payment` | Due / paid / balance; payments have method + reference |
+| `Ticket` | Category, priority, SLA timestamps |
+| `Vendor` | Assigned work |
+| `Document` / `ComplianceRule` | Vault + required docs / validity |
+| `Notification` | Channel, type, payload, queued/sent |
+| `AuditLog` | Privileged trail |
+
+Product copy uses GHS; the schema currently defaults unit `currency` to `USD` — set GHS explicitly when creating units.
+
+## HTTP modules
+
+Global prefix + version: **`/api/v1`**.
+
+| Module | Controller prefix | Status |
+| --- | --- | --- |
+| Health | `/health` | Live |
+| Auth | `/auth` | `POST /login` live |
+| Documents | `/documents` | `GET /`, `POST /`, `POST /upload-url` |
+| Audit logs | `/audit-logs` | `GET /` with `page` / `pageSize` (max 100) |
+| Properties, units, tenants, leases | matching prefix | Module + service scaffolded |
+| Invoices, payments, tickets, dashboard | matching prefix | Module + service scaffolded |
+| Notifications | — | Service + queue processor |
+
+Pagination DTO: `page` (default 1), `pageSize` (default 25, max 100).
+
+Intended contract (PRD): Bearer JWT, org from claims, filters as query params, sort `?sort=-created_at`, idempotency keys on retried writes.
+
+## Conventions
+
+- DTO validation with `class-validator` / `class-transformer`
+- Swagger `@ApiTags` / `@ApiBearerAuth` on live controllers
+- Do not hand-edit `src/generated/prisma`
+- Do not log secrets or raw passwords
+- Keep operator-facing copy factual (arrears reminders are not eviction notices)
+
+## Tests
+
+Jest (`rootDir: src`, `*.spec.ts`). E2e: `npm run test:e2e` (`test/jest-e2e.json`).
