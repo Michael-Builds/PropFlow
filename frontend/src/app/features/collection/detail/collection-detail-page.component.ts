@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { combineLatest, forkJoin, of, switchMap } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { COLLECTION_PAGES } from '../../../core/config/collections.config';
 import { buildCollectionDetail, CollectionDetailModel } from '../../../core/config/detail.config';
 import { DataCollection } from '../../../core/interfaces/data.interface';
 import { badgeVariantFor } from '../../../core/utils';
-import { loadDetailRecord } from '../../../core/utils/detail-loader';
 import { DataService, RecordRow } from '../../../core/services/data/data.service';
+import { LoaderService } from '../../../core/services/loader/loader.service';
+import { ToastService } from '../../../core/services/toast/toast.service';
 import { PageHeaderComponent } from '../../../shared/ui/page-header/page-header.component';
 import { CardComponent } from '../../../shared/ui/card/card.component';
 import { BadgeComponent } from '../../../shared/ui/badge/badge.component';
@@ -38,7 +40,10 @@ import { DetailDocumentsComponent } from '../../../shared/ui/detail-documents/de
 })
 export class CollectionDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly data = inject(DataService);
+  private readonly loader = inject(LoaderService);
+  private readonly toast = inject(ToastService);
 
   readonly collection = signal<DataCollection>('properties');
   readonly record = signal<RecordRow | null>(null);
@@ -49,25 +54,26 @@ export class CollectionDetailPageComponent {
   readonly badgeVariant = computed(() => badgeVariantFor(this.view()?.badgeLabel ?? ''));
 
   constructor() {
-    this.route.paramMap
+    combineLatest([this.route.paramMap, this.route.data])
       .pipe(
-        switchMap(() => combineLatest([this.route.paramMap, this.route.data])),
         switchMap(([params, data]) => {
           const collection = (data['collection'] as DataCollection) ?? 'properties';
           this.collection.set(collection);
           const id = params.get('id');
-          const stream = loadDetailRecord({
-            collection,
-            id,
-            listPath: `/${collection}`,
-            loadingLabel: `Loading ${COLLECTION_PAGES[collection].title.toLowerCase()}...`,
-            notFoundMessage: 'Record not found.',
-            errorMessage: 'Could not load this record.',
-          });
-          if (!stream) return of(null);
-          return stream.pipe(
+          const listPath = `/${collection}`;
+          if (!id) {
+            void this.router.navigateByUrl(listPath);
+            return of(null);
+          }
+          this.loader.show(`Loading ${COLLECTION_PAGES[collection].title.toLowerCase()}...`);
+          return this.data.getById<RecordRow>(collection, id).pipe(
+            finalize(() => this.loader.hide()),
             switchMap((record) => {
-              if (!record) return of(null);
+              if (!record) {
+                this.toast.error('Record not found.');
+                void this.router.navigateByUrl(listPath);
+                return of(null);
+              }
               return forkJoin({
                 record: of(record),
                 units: this.data.related('units', (row) => row['propertyId'] === record['id'] || row['id'] === record['unitId']),

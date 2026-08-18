@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
 import { of } from 'rxjs';
 import { APP_ICONS } from '../../../core/icons/app-icons';
@@ -11,11 +11,12 @@ describe('CollectionDetailPageComponent', () => {
       imports: [CollectionDetailPageComponent],
       providers: [
         provideIcons(APP_ICONS),
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {
             data: of({ collection: 'properties' }),
-            snapshot: { paramMap: { get: () => 'prp_001' } },
+            paramMap: of(convertToParamMap({ id: 'prp_001' })),
           },
         },
       ],

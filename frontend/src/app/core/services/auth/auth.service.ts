@@ -66,7 +66,7 @@ export class AuthService {
     }
     const user = DEMO_USERS[email.trim().toLowerCase()];
     if (!user) {
-      return { ok: false, message: 'Unknown demo account. Use one of the emails below.' };
+      return { ok: false, message: 'Invalid email or password.' };
     }
     this._user.set(user);
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));

@@ -21,8 +21,8 @@ export class LoginPageComponent {
 
   readonly submitting = signal(false);
   readonly form = this.fb.nonNullable.group({
-    email: ['owner@propflow.app', [Validators.required, Validators.email]],
-    password: ['password', [Validators.required, Validators.minLength(6)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   submit(): void {

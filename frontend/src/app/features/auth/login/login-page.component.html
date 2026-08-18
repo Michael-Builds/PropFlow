@@ -2,19 +2,13 @@
   <div>
     <p class="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand">PropFlow</p>
     <h2 class="text-2xl font-semibold tracking-tight text-text-primary">Sign in</h2>
-    <p class="mt-1 text-sm text-text-secondary">Same app, different interface by role.</p>
+    <p class="mt-1 text-sm text-text-secondary">Access your operator workspace.</p>
   </div>
 
   <div class="space-y-4">
-    <app-input label="Email" type="email" leftIcon="mail" placeholder="owner@propflow.app" formControlName="email" />
+    <app-input label="Email" type="email" leftIcon="mail" formControlName="email" />
     <app-input label="Password" type="password" leftIcon="lock" formControlName="password" />
   </div>
 
   <app-button type="submit" class="flex! w-full" label="Sign in" [loading]="submitting()" [disabled]="form.invalid" />
-
-  <p class="text-center text-[11px] leading-relaxed text-text-muted">
-    Demo password for all accounts: <span class="font-medium text-text-secondary">password</span>
-    <br />
-    owner · manager · finance · vendor · tenant @propflow.app
-  </p>
 </form>

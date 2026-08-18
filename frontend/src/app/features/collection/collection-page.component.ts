@@ -94,7 +94,7 @@ export class CollectionPageComponent {
 
   openEdit(row: RecordRow): void {
     if (!this.config.canEdit) {
-      this.toast.info(String(row['message'] ?? row['title'] ?? 'Record loaded.'));
+      this.openDetail(row);
       return;
     }
     this.editing.set(row);
