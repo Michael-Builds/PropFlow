@@ -3,8 +3,8 @@ import { DataTableCellType, DataTableColumn } from '../../../core/interfaces/dat
 
 const PDF_FONT = 'Figtree';
 const PDF_FONT_FILE = 'Figtree.ttf';
-const FONT_PATH = '/assets/fonts/Figtree.ttf';
-const LOGO_PATH = '/favicon.ico';
+const FONT_PATH = '/fonts/Figtree.ttf';
+const LOGO_PATH = '/logo-mark.png';
 
 const BRAND = {
   navy: [15, 16, 53] as [number, number, number],

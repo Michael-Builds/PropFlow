@@ -2,6 +2,8 @@
   "typescript.tsdk": "backend/node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
   "files.watcherExclude": {
     "**/node_modules/**": true
   },

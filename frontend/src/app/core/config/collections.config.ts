@@ -1,6 +1,12 @@
 import { DataTableColumn, DataTableFilter } from '../interfaces/data-table.interface';
-import { CollectionPageConfig, DataCollection, FormField } from '../interfaces/data.interface';
-import { badgeVariantFor } from '../utils';
+import {
+  CollectionPageConfig,
+  DataCollection,
+  FormField,
+  FormFieldOption,
+  FormFieldOptionsFrom,
+} from '../interfaces/data.interface';
+import { badgeVariantFor, prettyLabel } from '../utils';
 
 const ACTIONS = {
   key: 'actions',
@@ -41,6 +47,22 @@ function badgeCol(key: string, header: string): DataTableColumn {
     sortable: true,
     badgeVariant: (row) => badgeVariantFor(String((row as Record<string, unknown>)[key] ?? '')),
   };
+}
+
+function selectOpts(values: string[]): FormFieldOption[] {
+  return values.map((value) => ({ label: prettyLabel(value), value }));
+}
+
+function labelledOpts(options: Array<{ label: string; value: string }>): FormFieldOption[] {
+  return options;
+}
+
+function from(
+  collection: DataCollection,
+  labelKey: string,
+  extras: Pick<FormFieldOptionsFrom, 'valueKey' | 'hint'> = {},
+): FormFieldOptionsFrom {
+  return { collection, labelKey, ...extras };
 }
 
 export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
@@ -354,11 +376,24 @@ export const COLLECTION_FILTERS: Record<DataCollection, DataTableFilter[]> = {
   ],
   documents: [
     {
+      key: 'type',
+      label: 'Type',
+      options: [
+        { label: 'Lease agreement', value: 'lease_agreement' },
+        { label: 'National ID', value: 'national_id' },
+        { label: 'Fire certificate', value: 'fire_certificate' },
+        { label: 'Insurance', value: 'insurance' },
+        { label: 'Utility bill', value: 'utility_bill' },
+        { label: 'Contract', value: 'contract' },
+      ],
+    },
+    {
       key: 'status',
       label: 'Status',
       options: [
         { label: 'Valid', value: 'valid' },
         { label: 'Expiring', value: 'expiring' },
+        { label: 'Expired', value: 'expired' },
       ],
     },
   ],
@@ -370,68 +405,280 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
   properties: [
     { key: 'name', label: 'Property name', type: 'text', required: true },
     { key: 'location', label: 'Location', type: 'text', required: true },
+    {
+      key: 'type',
+      label: 'Property type',
+      type: 'select',
+      options: labelledOpts([
+        { label: 'Apartment', value: 'Apartment' },
+        { label: 'Townhouse', value: 'Townhouse' },
+        { label: 'Mixed use', value: 'Mixed use' },
+      ]),
+    },
     { key: 'units', label: 'Units', type: 'number', required: true },
-    { key: 'occupancy', label: 'Occupancy', type: 'text', placeholder: '92%' },
-    { key: 'status', label: 'Status', type: 'select', options: [{ label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }] },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: selectOpts(['active', 'inactive']),
+    },
   ],
   units: [
     { key: 'unitCode', label: 'Unit code', type: 'text', required: true },
-    { key: 'property', label: 'Property', type: 'text', required: true },
-    { key: 'type', label: 'Type', type: 'select', options: [{ label: 'Studio', value: 'studio' }, { label: '1 bed', value: '1 bed' }, { label: '2 bed', value: '2 bed' }, { label: '3 bed', value: '3 bed' }] },
+    {
+      key: 'property',
+      label: 'Property',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('properties', 'name'),
+    },
+    {
+      key: 'type',
+      label: 'Unit type',
+      type: 'select',
+      options: labelledOpts([
+        { label: 'Studio', value: 'studio' },
+        { label: '1 bed', value: '1 bed' },
+        { label: '2 bed', value: '2 bed' },
+        { label: '3 bed', value: '3 bed' },
+      ]),
+    },
     { key: 'rent', label: 'Rent', type: 'text', required: true, placeholder: 'GHS 2,500' },
-    { key: 'status', label: 'Status', type: 'select', options: [{ label: 'Occupied', value: 'occupied' }, { label: 'Vacant', value: 'vacant' }, { label: 'Maintenance', value: 'maintenance' }] },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: selectOpts(['occupied', 'vacant', 'maintenance']),
+    },
   ],
   tenants: [
     { key: 'fullName', label: 'Full name', type: 'text', required: true },
     { key: 'email', label: 'Email', type: 'email', required: true },
-    { key: 'phone', label: 'Phone', type: 'text' },
-    { key: 'kycStatus', label: 'KYC', type: 'select', options: [{ label: 'Verified', value: 'verified' }, { label: 'Pending', value: 'pending' }] },
-    { key: 'status', label: 'Status', type: 'select', options: [{ label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }] },
+    { key: 'phone', label: 'Phone', type: 'tel', placeholder: '+233 24 000 0000' },
+    {
+      key: 'kycStatus',
+      label: 'KYC',
+      type: 'select',
+      options: selectOpts(['verified', 'pending']),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: selectOpts(['active', 'inactive']),
+    },
   ],
   leases: [
-    { key: 'tenant', label: 'Tenant', type: 'text', required: true },
-    { key: 'unit', label: 'Unit', type: 'text', required: true },
+    {
+      key: 'tenant',
+      label: 'Tenant',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('tenants', 'fullName'),
+    },
+    {
+      key: 'unit',
+      label: 'Unit',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('units', 'unitCode'),
+    },
     { key: 'startDate', label: 'Start date', type: 'date', required: true },
     { key: 'endDate', label: 'End date', type: 'date', required: true },
-    { key: 'rent', label: 'Rent', type: 'text', required: true },
-    { key: 'status', label: 'Status', type: 'select', options: [{ label: 'Active', value: 'active' }, { label: 'Ending', value: 'ending' }, { label: 'Terminated', value: 'terminated' }] },
+    { key: 'rent', label: 'Rent', type: 'text', required: true, placeholder: 'GHS 2,500' },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: selectOpts(['active', 'ending', 'terminated']),
+    },
   ],
   invoices: [
-    { key: 'tenant', label: 'Tenant', type: 'text', required: true },
-    { key: 'period', label: 'Period', type: 'text', required: true },
+    {
+      key: 'tenant',
+      label: 'Tenant',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('tenants', 'fullName'),
+    },
+    { key: 'period', label: 'Period', type: 'text', required: true, placeholder: 'Apr 2026' },
     { key: 'dueDate', label: 'Due date', type: 'date', required: true },
-    { key: 'amount', label: 'Amount', type: 'text', required: true },
-    { key: 'balance', label: 'Balance', type: 'text', required: true },
-    { key: 'status', label: 'Status', type: 'select', options: [{ label: 'Paid', value: 'paid' }, { label: 'Partial', value: 'partial' }, { label: 'Overdue', value: 'overdue' }] },
+    { key: 'amount', label: 'Amount', type: 'text', required: true, placeholder: 'GHS 2,500' },
+    { key: 'balance', label: 'Balance', type: 'text', required: true, placeholder: 'GHS 0' },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: selectOpts(['paid', 'partial', 'overdue']),
+    },
   ],
   payments: [
-    { key: 'invoiceId', label: 'Invoice ID', type: 'text', required: true },
-    { key: 'tenant', label: 'Tenant', type: 'text', required: true },
-    { key: 'amount', label: 'Amount', type: 'text', required: true },
-    { key: 'method', label: 'Method', type: 'select', options: [{ label: 'Bank transfer', value: 'bank_transfer' }, { label: 'Mobile money', value: 'mobile_money' }, { label: 'Cash', value: 'cash' }] },
-    { key: 'reference', label: 'Reference', type: 'text' },
+    {
+      key: 'invoiceId',
+      label: 'Invoice',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('invoices', 'id'),
+    },
+    {
+      key: 'tenant',
+      label: 'Tenant',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('tenants', 'fullName'),
+    },
+    { key: 'amount', label: 'Amount', type: 'text', required: true, placeholder: 'GHS 2,500' },
+    {
+      key: 'method',
+      label: 'Method',
+      type: 'select',
+      options: labelledOpts([
+        { label: 'Bank transfer', value: 'bank_transfer' },
+        { label: 'Mobile money', value: 'mobile_money' },
+        { label: 'Cash', value: 'cash' },
+      ]),
+    },
+    { key: 'reference', label: 'Reference', type: 'text', placeholder: 'MM-10422' },
     { key: 'paidAt', label: 'Paid at', type: 'date', required: true },
   ],
   arrears: [
-    { key: 'tenant', label: 'Tenant', type: 'text', required: true },
-    { key: 'lease', label: 'Lease', type: 'text', required: true },
-    { key: 'bucket', label: 'Bucket', type: 'select', options: [{ label: '1-30 days', value: '1-30 days' }, { label: '31-60 days', value: '31-60 days' }, { label: '61-90 days', value: '61-90 days' }] },
-    { key: 'balance', label: 'Balance', type: 'text', required: true },
+    {
+      key: 'tenant',
+      label: 'Tenant',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('tenants', 'fullName'),
+    },
+    {
+      key: 'lease',
+      label: 'Lease',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('leases', 'id'),
+    },
+    {
+      key: 'bucket',
+      label: 'Bucket',
+      type: 'select',
+      options: labelledOpts([
+        { label: '1-30 days', value: '1-30 days' },
+        { label: '31-60 days', value: '31-60 days' },
+        { label: '61-90 days', value: '61-90 days' },
+        { label: '90+ days', value: '90+ days' },
+      ]),
+    },
+    { key: 'balance', label: 'Balance', type: 'text', required: true, placeholder: 'GHS 1,500' },
     { key: 'lastReminder', label: 'Last reminder', type: 'date' },
   ],
   tickets: [
-    { key: 'unit', label: 'Unit', type: 'text', required: true },
-    { key: 'category', label: 'Category', type: 'select', options: [{ label: 'Plumbing', value: 'plumbing' }, { label: 'Electrical', value: 'electrical' }, { label: 'HVAC', value: 'hvac' }, { label: 'Other', value: 'other' }] },
-    { key: 'priority', label: 'Priority', type: 'select', options: [{ label: 'High', value: 'high' }, { label: 'Medium', value: 'medium' }, { label: 'Low', value: 'low' }] },
-    { key: 'assignee', label: 'Assignee', type: 'text' },
-    { key: 'status', label: 'Status', type: 'select', options: [{ label: 'Open', value: 'open' }, { label: 'Assigned', value: 'assigned' }, { label: 'In progress', value: 'in_progress' }, { label: 'Resolved', value: 'resolved' }, { label: 'Closed', value: 'closed' }] },
-    { key: 'slaDue', label: 'SLA due', type: 'text' },
+    {
+      key: 'unit',
+      label: 'Unit',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from('units', 'unitCode'),
+    },
+    {
+      key: 'category',
+      label: 'Category',
+      type: 'select',
+      options: labelledOpts([
+        { label: 'Plumbing', value: 'plumbing' },
+        { label: 'Electrical', value: 'electrical' },
+        { label: 'HVAC', value: 'hvac' },
+        { label: 'Other', value: 'other' },
+      ]),
+    },
+    {
+      key: 'priority',
+      label: 'Priority',
+      type: 'select',
+      options: selectOpts(['high', 'medium', 'low']),
+    },
+    {
+      key: 'assignee',
+      label: 'Assignee',
+      type: 'select',
+      options: labelledOpts([
+        { label: 'Unassigned', value: 'Unassigned' },
+        { label: 'AquaFix Ltd', value: 'AquaFix Ltd' },
+        { label: 'CoolAir', value: 'CoolAir' },
+        { label: 'VoltWorks', value: 'VoltWorks' },
+        { label: 'BuildRight', value: 'BuildRight' },
+      ]),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: labelledOpts([
+        { label: 'Open', value: 'open' },
+        { label: 'Assigned', value: 'assigned' },
+        { label: 'In progress', value: 'in_progress' },
+        { label: 'Resolved', value: 'resolved' },
+        { label: 'Closed', value: 'closed' },
+      ]),
+    },
+    { key: 'slaDue', label: 'SLA due', type: 'text', placeholder: '2026-08-18 09:00' },
+    {
+      key: 'notes',
+      label: 'Notes',
+      type: 'textarea',
+      rows: 4,
+      placeholder: 'Describe the issue, access notes, or completion comments.',
+    },
   ],
   documents: [
-    { key: 'entity', label: 'Entity', type: 'text', required: true },
-    { key: 'type', label: 'Document type', type: 'text', required: true },
+    {
+      key: 'entityType',
+      label: 'Entity type',
+      type: 'select',
+      required: true,
+      options: selectOpts(['property', 'unit', 'tenant', 'lease']),
+    },
+    {
+      key: 'entity',
+      label: 'Entity',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: [
+        from('properties', 'name', { hint: 'Property' }),
+        from('tenants', 'fullName', { hint: 'Tenant' }),
+        from('units', 'unitCode', { hint: 'Unit' }),
+        from('leases', 'id', { hint: 'Lease' }),
+      ],
+    },
+    {
+      key: 'type',
+      label: 'Document type',
+      type: 'select',
+      required: true,
+      options: labelledOpts([
+        { label: 'Lease agreement', value: 'lease_agreement' },
+        { label: 'National ID', value: 'national_id' },
+        { label: 'Fire certificate', value: 'fire_certificate' },
+        { label: 'Insurance', value: 'insurance' },
+        { label: 'Utility bill', value: 'utility_bill' },
+        { label: 'Contract', value: 'contract' },
+      ]),
+    },
     { key: 'expiresAt', label: 'Expires', type: 'date' },
-    { key: 'status', label: 'Status', type: 'select', options: [{ label: 'Valid', value: 'valid' }, { label: 'Expiring', value: 'expiring' }, { label: 'Expired', value: 'expired' }] },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: selectOpts(['valid', 'expiring', 'expired']),
+    },
   ],
   notifications: [],
   'audit-logs': [],

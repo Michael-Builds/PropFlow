@@ -10,7 +10,7 @@ This folder is the operator UX. Screens and tables currently run on **in-memory 
 | --- | --- |
 | Framework | Angular 21 (standalone, OnPush, signals) |
 | Language | TypeScript ~5.9 (do not bump to 6 to match the backend SDK) |
-| Styling | Tailwind CSS 4, Figtree, theme tokens in `src/styles.css` |
+| Styling | Tailwind CSS 4, self-hosted Figtree in `public/fonts`, theme tokens in `src/styles.css` |
 | Icons | `@ng-icons/core` + `@ng-icons/heroicons` outline, registered in `app.config.ts` |
 | Charts | ApexCharts via `app-chart` |
 | Export | CSV + jsPDF / autotable from the data table |
@@ -113,6 +113,7 @@ Reusable pieces under `shared/ui/` (html, css, ts, spec in each folder):
 
 | Component | Use |
 | --- | --- |
+| `app-logo` | In-app mark from `/logo-mark.png` |
 | `app-button` / `app-input` / `app-select` / `app-checkbox` | Forms. Password inputs toggle visibility |
 | `app-data-table` | Search, filters, sort, pagination (5/10/25/50), selection, CSV/PDF, row actions |
 | `app-form-dialog` | Add/edit modal (`body.pf-modal-open` locks scroll) |

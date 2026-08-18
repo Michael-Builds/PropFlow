@@ -6,11 +6,12 @@ import { ModalService } from '../../core/services/modal/modal.service';
 import { NotificationService } from '../../core/services/notification/notification.service';
 import { SidebarService } from '../../core/services/sidebar/sidebar.service';
 import { IconComponent } from '../../shared/icons/icon.component';
+import { LogoComponent } from '../../shared/ui/logo/logo.component';
 
 @Component({
   selector: 'app-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive, IconComponent],
+  imports: [RouterLink, RouterLinkActive, IconComponent, LogoComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
 })

@@ -3,12 +3,13 @@ import { ThemeId } from '../../core/interfaces/theme.interface';
 import { ThemeService } from '../../core/services/theme/theme.service';
 import { ToastService } from '../../core/services/toast/toast.service';
 import { IconComponent } from '../../shared/icons/icon.component';
+import { LogoComponent } from '../../shared/ui/logo/logo.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 
 @Component({
   selector: 'app-appearance-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PageHeaderComponent, IconComponent],
+  imports: [PageHeaderComponent, IconComponent, LogoComponent],
   templateUrl: './appearance-page.component.html',
   styleUrl: './appearance-page.component.css',
   host: { class: 'block' },

@@ -1,0 +1,19 @@
+<label class="flex w-full flex-col gap-1.5">
+  @if (label()) {
+    <span class="text-sm font-medium text-text-primary md:text-base">{{ label() }}</span>
+  }
+
+  <textarea
+    class="min-h-24 w-full resize-y rounded-md border border-border bg-white px-3.5 py-3 text-sm leading-relaxed text-text-primary shadow-none outline-none transition placeholder:text-text-muted focus:border-brand focus:shadow-none disabled:cursor-not-allowed disabled:bg-surface md:px-4 md:text-base"
+    [attr.rows]="rows()"
+    [placeholder]="resolvedPlaceholder()"
+    [disabled]="isDisabled()"
+    [value]="value()"
+    (input)="onInput($event)"
+    (blur)="onTouched()"
+  ></textarea>
+
+  @if (hint()) {
+    <span class="text-xs text-text-muted md:text-sm">{{ hint() }}</span>
+  }
+</label>

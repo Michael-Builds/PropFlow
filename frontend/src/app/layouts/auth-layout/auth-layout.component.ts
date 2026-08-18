@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { IconComponent } from '../../shared/icons/icon.component';
+import { LogoComponent } from '../../shared/ui/logo/logo.component';
 
 @Component({
   selector: 'app-auth-layout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, IconComponent],
+  imports: [RouterOutlet, IconComponent, LogoComponent],
   templateUrl: './auth-layout.component.html',
   styleUrl: './auth-layout.component.css',
 })

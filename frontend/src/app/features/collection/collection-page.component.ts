@@ -7,7 +7,7 @@ import {
   COLLECTION_FILTERS,
   COLLECTION_PAGES,
 } from '../../core/config/collections.config';
-import { DataCollection, FormField } from '../../core/interfaces/data.interface';
+import { DataCollection, FormField, FormFieldOption } from '../../core/interfaces/data.interface';
 import { DataTableColumn, DataTableRowActionEvent } from '../../core/interfaces/data-table.interface';
 import { DataService, RecordRow } from '../../core/services/data/data.service';
 import { LoaderService } from '../../core/services/loader/loader.service';
@@ -19,6 +19,7 @@ import { FormDialogComponent } from '../../shared/ui/form-dialog/form-dialog.com
 import { InputComponent } from '../../shared/ui/input/input.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 import { SelectComponent } from '../../shared/ui/select/select.component';
+import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
 
 @Component({
   selector: 'app-collection-page',
@@ -31,6 +32,7 @@ import { SelectComponent } from '../../shared/ui/select/select.component';
     FormDialogComponent,
     InputComponent,
     SelectComponent,
+    TextareaComponent,
   ],
   templateUrl: './collection-page.component.html',
   styleUrl: './collection-page.component.css',
@@ -105,6 +107,16 @@ export class CollectionPageComponent {
   closeDialog(): void {
     this.dialogOpen.set(false);
     this.editing.set(null);
+  }
+
+  optionsFor(field: FormField): FormFieldOption[] {
+    if (field.options?.length) return field.options;
+    if (field.optionsFrom) return this.data.listOptions(field.optionsFrom);
+    return [];
+  }
+
+  isSearchable(field: FormField): boolean {
+    return field.searchable === true || !!field.optionsFrom;
   }
 
   save(): void {

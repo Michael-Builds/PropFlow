@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { DataCollection } from '../../interfaces/data.interface';
+import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
 import properties from '../../mock/properties.json';
 import units from '../../mock/units.json';
 import tenants from '../../mock/tenants.json';
@@ -91,5 +91,25 @@ export class DataService {
   remove(name: DataCollection, ids: string[]): void {
     STORE[name] = STORE[name].filter((row) => !ids.includes(String(row['id'])));
     this.version.update((n) => n + 1);
+  }
+
+  listOptions(sources: FormFieldOptionsFrom | FormFieldOptionsFrom[]): FormFieldOption[] {
+    this.version();
+    const list = Array.isArray(sources) ? sources : [sources];
+    const options: FormFieldOption[] = [];
+    const seen = new Set<string>();
+    for (const source of list) {
+      for (const row of STORE[source.collection]) {
+        const value = String(row[source.valueKey ?? source.labelKey] ?? '').trim();
+        const base = String(row[source.labelKey] ?? value).trim();
+        if (!value || seen.has(value)) continue;
+        seen.add(value);
+        options.push({
+          label: source.hint ? `${base} · ${source.hint}` : base,
+          value,
+        });
+      }
+    }
+    return options.sort((a, b) => a.label.localeCompare(b.label));
   }
 }

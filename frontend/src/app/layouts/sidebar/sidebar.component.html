@@ -4,8 +4,12 @@
   [class.lg:w-[88px]]="collapsed()"
   [class.translate-x-0]="mobileOpen()"
 >
-  <div class="flex items-center gap-3 border-b border-white/10 px-5 py-5">
-    <div class="flex size-9 items-center justify-center rounded-xl bg-brand text-sm font-bold">PF</div>
+  <div
+    class="flex items-center gap-3 border-b border-white/10 py-5"
+    [class.px-5]="expanded()"
+    [class.justify-center]="!expanded()"
+  >
+    <app-logo [size]="36" />
     @if (expanded()) {
       <div>
         <p class="text-sm font-semibold">PropFlow</p>

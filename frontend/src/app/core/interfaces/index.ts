@@ -39,6 +39,7 @@ export type {
   DataCollection,
   FormFieldType,
   FormFieldOption,
+  FormFieldOptionsFrom,
   FormField,
   CollectionPageConfig,
 } from './data.interface';
