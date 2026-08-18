@@ -16,10 +16,13 @@ export const OrgId = createParamDecorator((required: boolean | undefined, ctx: E
     return orgId;
   }
 
-  if (!user.orgId) {
+  const header = req.headers['x-org-id'];
+  const fromHeader = Array.isArray(header) ? header[0] : header;
+  const orgId = user.orgId || String(fromHeader || '').trim();
+  if (!orgId) {
     throw new BadRequestException('User is not attached to an organisation.');
   }
-  return user.orgId;
+  return orgId;
 });
 
 export type OrgScopedUser = JwtUser & { orgId: string };

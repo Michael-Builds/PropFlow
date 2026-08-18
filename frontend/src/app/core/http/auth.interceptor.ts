@@ -15,9 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = auth.accessToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const orgId = auth.activeOrgId();
-  if (auth.role() === 'platform_admin' && orgId) {
-    headers['x-org-id'] = orgId;
-  }
+  if (orgId) headers['x-org-id'] = orgId;
   return next(req.clone({ setHeaders: headers }));
 };
 
