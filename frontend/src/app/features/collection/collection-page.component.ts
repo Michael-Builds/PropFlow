@@ -137,12 +137,6 @@ export class CollectionPageComponent {
   openDetail(row: RecordRow): void {
     const id = row['id'];
     if (!id) return;
-    if (this.collection === 'organizations') {
-      this.auth.setActiveOrg(String(id));
-      this.toast.success(`Working in ${String(row['name'] ?? 'this company')}.`);
-      void this.router.navigateByUrl('/dashboard');
-      return;
-    }
     void this.router.navigate(['/', this.collection, id]);
   }
 

@@ -1,9 +1,11 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, BadRequestException } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { OrgId } from '../auth/decorators/org-id.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import { DashboardService } from './dashboard.service';
 
 @ApiTags('dashboard')
@@ -30,7 +32,13 @@ export class DashboardController {
   }
 
   @Get('overview')
-  overview(@OrgId() orgId: string) {
+  overview(@CurrentUser() user: JwtUser, @OrgId(false) orgId: string) {
+    if (user.role === 'platform_admin') {
+      return this.dashboardService.platformOverview();
+    }
+    if (!orgId) {
+      throw new BadRequestException('Organisation required.');
+    }
     return this.dashboardService.overview(orgId);
   }
 }

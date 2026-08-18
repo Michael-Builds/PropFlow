@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth/auth.service';
 import { ModalService } from '../../core/services/modal/modal.service';
 import { NotificationService } from '../../core/services/notification/notification.service';
 import { SidebarService } from '../../core/services/sidebar/sidebar.service';
+import { ToastService } from '../../core/services/toast/toast.service';
 import { IconComponent } from '../../shared/icons/icon.component';
 import { LogoComponent } from '../../shared/ui/logo/logo.component';
 
@@ -20,6 +21,7 @@ export class SidebarComponent {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly modal = inject(ModalService);
+  private readonly toast = inject(ToastService);
   readonly unread = inject(NotificationService).unreadCount;
 
   readonly collapsed = this.sidebar.collapsed;
@@ -43,6 +45,7 @@ export class SidebarComponent {
     if (!confirmed) return;
     this.auth.logout();
     this.sidebar.closeMobile();
+    this.toast.success('You have been signed out.');
     void this.router.navigateByUrl('/auth/login');
   }
 }

@@ -21,7 +21,6 @@ export class DataService {
   private readonly store = inject(Store);
   private readonly actions$ = inject(Actions);
   private readonly records = this.store.selectSignal(collectionsFeature.selectRecords);
-  private readonly activeOrgId = this.store.selectSignal(authFeature.selectActiveOrgId);
   private readonly sessionUser = this.store.selectSignal(authFeature.selectUser);
   readonly version = this.store.selectSignal(collectionsFeature.selectVersion);
 
@@ -129,7 +128,7 @@ export class DataService {
   }
 
   prefetchLookups(): void {
-    if (this.sessionUser()?.role === 'platform_admin' && !this.activeOrgId()) return;
+    if (this.sessionUser()?.role === 'platform_admin') return;
     this.store.dispatch(CollectionsActions.prefetchLookups({ names: LOOKUPS }));
   }
 

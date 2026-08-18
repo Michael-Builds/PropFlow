@@ -63,7 +63,17 @@ export class DashboardPageComponent {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   readonly dashboard = signal<DashboardData | null>(null);
+  readonly isPlatformAdmin = computed(() => this.auth.role() === 'platform_admin');
   readonly canManagePortfolio = computed(() => this.auth.canAccess(['owner', 'manager']));
+  readonly canViewAudit = computed(() => this.auth.canAccess(['owner']));
+  readonly headerTitle = computed(() =>
+    this.isPlatformAdmin() ? 'Platform dashboard' : 'Operations dashboard',
+  );
+  readonly headerDescription = computed(() =>
+    this.isPlatformAdmin()
+      ? 'Companies, users, and activity across every organisation on PropFlow.'
+      : 'Occupancy, collections, arrears, and SLA performance across the live portfolio.',
+  );
   readonly quickActions = computed(() => {
     const items = NAV_SECTIONS.flatMap((section) => section.items);
     return (this.dashboard()?.quickActions ?? []).filter((action) => {
@@ -179,7 +189,7 @@ export class DashboardPageComponent {
   }
 
   load(): void {
-    this.loader.show('Loading portfolio...');
+    this.loader.show(this.isPlatformAdmin() ? 'Loading platform...' : 'Loading portfolio...');
     this.data
       .loadDashboard<DashboardData>()
       .pipe(finalize(() => this.loader.hide()))
@@ -224,6 +234,10 @@ export class DashboardPageComponent {
 
   occupancyWidth(value: number): string {
     return `${Math.min(100, Math.max(0, value))}%`;
+  }
+
+  async addCompany(): Promise<void> {
+    void this.router.navigateByUrl('/organizations');
   }
 
   async addProperty(): Promise<void> {

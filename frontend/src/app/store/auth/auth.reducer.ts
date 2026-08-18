@@ -16,7 +16,7 @@ const authReducer = createReducer(
       user,
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
-      activeOrgId: user.role === 'platform_admin' ? state.activeOrgId : user.orgId,
+      activeOrgId: user.role === 'platform_admin' ? null : user.orgId,
       status: 'idle' as const,
       error: null,
     };

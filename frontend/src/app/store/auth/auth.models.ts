@@ -70,7 +70,7 @@ function loadAuthState(): AuthState {
       user: parsed.user,
       accessToken: parsed.accessToken,
       refreshToken: parsed.refreshToken,
-      activeOrgId: parsed.activeOrgId ?? parsed.user.orgId ?? null,
+      activeOrgId: parsed.user.role === 'platform_admin' ? null : (parsed.activeOrgId ?? parsed.user.orgId ?? null),
       status: 'idle',
       error: null,
     };

@@ -1,10 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { catchError, map, of, switchMap, take, tap, withLatestFrom } from 'rxjs';
+import { catchError, map, of, switchMap, tap, withLatestFrom } from 'rxjs';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { httpErrorMessage } from '../../core/api/http-error';
-import { unwrapItems } from '../../core/services/data/api-map';
 import { AuthActions } from './auth.actions';
 import { persistAuth } from './auth.models';
 import { authFeature } from './auth.reducer';
@@ -61,30 +60,6 @@ export class AuthEffects {
       switchMap(({ refreshToken }) => {
         const request = refreshToken ? this.api.logout(refreshToken).pipe(catchError(() => of(null))) : of(null);
         return request.pipe(map(() => AuthActions.logoutSuccess()));
-      }),
-    ),
-  );
-
-  assignPlatformOrg$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.loginSuccess),
-      switchMap(({ response }) => {
-        if (response.user.role !== 'platform_admin') {
-          return of(AuthActions.sessionReady());
-        }
-        return this.store.select(authFeature.selectActiveOrgId).pipe(
-          take(1),
-          switchMap((orgId) => {
-            if (orgId) return of(AuthActions.sessionReady());
-            return this.api.listOrganizations().pipe(
-              map((payload) => {
-                const id = String(unwrapItems(payload)[0]?.['id'] ?? '');
-                return id ? AuthActions.setActiveOrg({ orgId: id }) : AuthActions.sessionReady();
-              }),
-              catchError(() => of(AuthActions.sessionReady())),
-            );
-          }),
-        );
       }),
     ),
   );

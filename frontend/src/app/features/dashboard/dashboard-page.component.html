@@ -2,12 +2,15 @@
   <div class="relative z-1 flex min-w-0 max-w-full flex-col gap-6 sm:gap-8">
     <app-page-header
       eyebrow="PropFlow"
-      title="Operations dashboard"
-      description="Occupancy, collections, arrears, and SLA performance across the live portfolio."
+      [title]="headerTitle()"
+      [description]="headerDescription()"
     >
       <app-button variant="secondary" icon="refresh" label="Refresh" (pressed)="load()" />
       @if (canManagePortfolio()) {
         <app-button icon="plus" label="Add property" (pressed)="addProperty()" />
+      }
+      @if (isPlatformAdmin()) {
+        <app-button icon="plus" label="Add company" (pressed)="addCompany()" />
       }
     </app-page-header>
 
@@ -72,8 +75,8 @@
 
       <section class="flex flex-col gap-4" aria-label="Portfolio overview">
         <div>
-          <h2 class="m-0 text-base font-semibold text-text-primary">Portfolio overview</h2>
-          <p class="mt-0.5 text-sm text-text-secondary">Occupancy, collections, and outstanding balances</p>
+          <h2 class="m-0 text-base font-semibold text-text-primary">{{ isPlatformAdmin() ? 'Platform overview' : 'Portfolio overview' }}</h2>
+          <p class="mt-0.5 text-sm text-text-secondary">{{ isPlatformAdmin() ? 'Companies, users, and collections across PropFlow' : 'Occupancy, collections, and outstanding balances' }}</p>
         </div>
 
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4">
@@ -189,14 +192,20 @@
 
       <section class="flex flex-col gap-4" aria-label="Portfolio health">
         <div>
-          <h2 class="m-0 text-base font-semibold text-text-primary">Portfolio health</h2>
-          <p class="mt-0.5 text-sm text-text-secondary">Property performance and maintenance SLA</p>
+          <h2 class="m-0 text-base font-semibold text-text-primary">{{ isPlatformAdmin() ? 'Company health' : 'Portfolio health' }}</h2>
+          <p class="mt-0.5 text-sm text-text-secondary">{{ isPlatformAdmin() ? 'Each real-estate firm on the platform' : 'Property performance and maintenance SLA' }}</p>
         </div>
 
-        <app-card title="Properties" subtitle="Occupancy and arrears by building">
-          <a card-actions routerLink="/properties" class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer">
-            Manage
-          </a>
+        <app-card [title]="isPlatformAdmin() ? 'Companies' : 'Properties'" [subtitle]="isPlatformAdmin() ? 'Users and properties by firm' : 'Occupancy and arrears by building'">
+          @if (canManagePortfolio() || isPlatformAdmin()) {
+            <a
+              card-actions
+              [routerLink]="isPlatformAdmin() ? '/organizations' : '/properties'"
+              class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer"
+            >
+              Manage
+            </a>
+          }
           <div class="space-y-3">
             @for (property of d.properties; track property.name) {
               <div class="rounded-md border border-border-light bg-white px-4 py-3.5">
@@ -207,11 +216,17 @@
                       <app-badge [variant]="healthVariant(property.health)" [label]="property.health" />
                     </div>
                     <p class="mt-1 text-xs leading-relaxed text-text-secondary">
-                      {{ property.units }} units · {{ property.occupancy }}% occupied ·
-                      {{ property.arrears }} arrears
+                      @if (isPlatformAdmin()) {
+                        {{ property.units }} properties · {{ property.arrears }}
+                      } @else {
+                        {{ property.units }} units · {{ property.occupancy }}% occupied ·
+                        {{ property.arrears }} arrears
+                      }
                     </p>
                   </div>
-                  <p class="text-sm font-semibold tabular-nums text-text-primary">{{ property.occupancy }}%</p>
+                  <p class="text-sm font-semibold tabular-nums text-text-primary">
+                    {{ isPlatformAdmin() ? property.arrears : property.occupancy + '%' }}
+                  </p>
                 </div>
                 <div class="mt-3 h-1.5 overflow-hidden rounded-md bg-border-light">
                   <div
@@ -246,9 +261,15 @@
 
         <div class="flex flex-col gap-4">
           <app-card title="Recent activity" subtitle="Payments, tickets, leases, documents">
-            <a card-actions routerLink="/audit-logs" class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer">
-              Audit logs
-            </a>
+            @if (canViewAudit()) {
+              <a
+                card-actions
+                routerLink="/audit-logs"
+                class="text-sm font-semibold text-brand hover:text-brand-dark md:cursor-pointer"
+              >
+                Audit logs
+              </a>
+            }
             <ul class="divide-y divide-border-light">
               @for (item of d.activity; track item.id) {
                 <li class="flex items-start gap-3 py-3 first:pt-0 last:pb-0">

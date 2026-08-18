@@ -21,8 +21,8 @@ export class DashboardService {
 
     const [units, occupied, invoicesDue, payments, arrears, openTickets] =
       await Promise.all([
-        this.prisma.unit.count({ where: { orgId } }),
-        this.prisma.unit.count({ where: { orgId, status: 'occupied' } }),
+        this.prisma.unit.count({ where: orgId ? { orgId } : {} }),
+        this.prisma.unit.count({ where: { ...(orgId ? { orgId } : {}), status: 'occupied' } }),
         this.prisma.invoice.findMany({
           where: { orgId, dueDate: { gte: monthStart, lte: monthEnd } },
           select: { amountDue: true },
@@ -67,7 +67,7 @@ export class DashboardService {
     };
   }
 
-  async collections(orgId: string) {
+  async collections(orgId?: string) {
     const now = new Date();
     const months: { key: string; start: Date; end: Date }[] = [];
     for (let i = 5; i >= 0; i -= 1) {
@@ -92,7 +92,7 @@ export class DashboardService {
     for (const month of months) {
       const rows = await this.prisma.payment.findMany({
         where: {
-          orgId,
+          ...(orgId ? { orgId } : {}),
           status: 'success',
           paidAt: { gte: month.start, lte: month.end },
         },
@@ -107,9 +107,9 @@ export class DashboardService {
     return { currency: 'GHS', trend };
   }
 
-  async maintenance(orgId: string) {
+  async maintenance(orgId?: string) {
     const tickets = await this.prisma.ticket.findMany({
-      where: { orgId },
+      where: orgId ? { orgId } : {},
       select: {
         status: true,
         slaDueAt: true,
@@ -276,6 +276,105 @@ export class DashboardService {
         { label: 'Post payment', description: 'Apply a receipt to an invoice', path: '/payments', icon: 'wallet' },
         { label: 'Create ticket', description: 'Open a maintenance work order', path: '/tickets', icon: 'wrench' },
         { label: 'Arrears console', description: 'Age balances and remind tenants', path: '/arrears', icon: 'alert' },
+      ],
+    };
+  }
+
+  async platformOverview() {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const [orgs, users, properties, units, occupied, leases, invoices, payments, tickets] =
+      await Promise.all([
+        this.prisma.organization.findMany({
+          include: { _count: { select: { users: true, properties: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 8,
+        }),
+        this.prisma.user.count(),
+        this.prisma.property.count(),
+        this.prisma.unit.count(),
+        this.prisma.unit.count({ where: { status: 'occupied' } }),
+        this.prisma.lease.count({ where: { status: 'active' } }),
+        this.prisma.invoice.aggregate({ where: { balance: { gt: 0 } }, _sum: { balance: true }, _count: true }),
+        this.prisma.payment.findMany({
+          where: { status: 'success', paidAt: { gte: monthStart, lte: monthEnd } },
+          select: { amount: true },
+        }),
+        this.prisma.ticket.groupBy({ by: ['status'], _count: true }),
+      ]);
+
+    const orgCount = await this.prisma.organization.count();
+    const collected = payments.reduce((sum, row) => sum + toNumber(row.amount), 0);
+    const arrears = toNumber(invoices._sum.balance ?? 0);
+    const openTickets = tickets
+      .filter((row) => !['resolved', 'closed'].includes(row.status))
+      .reduce((sum, row) => sum + row._count, 0);
+    const occupancy = units === 0 ? 0 : Math.round((occupied / units) * 1000) / 10;
+    const allPaymentsTrend = await this.collections();
+    const maintenance = await this.maintenance();
+    const vacant = await this.prisma.unit.count({ where: { status: 'vacant' } });
+    const maintenanceUnits = Math.max(0, units - occupied - vacant);
+
+    return {
+      posture: {
+        label: orgCount === 0 ? 'No companies yet' : 'Platform healthy',
+        region: 'All companies',
+        message: `${orgCount} companies · ${users} users · ${properties} properties across the platform.`,
+        syncedAt: new Date().toISOString(),
+        score: Math.max(1, Math.min(10, 10 - arrears / 20000)),
+      },
+      kpis: [
+        { label: 'Companies', value: String(orgCount), hint: 'Active real-estate firms', delta: 0, icon: 'globe' },
+        { label: 'Users', value: String(users), hint: 'Owners, staff, tenants, vendors', delta: 0, icon: 'users' },
+        { label: 'Properties', value: String(properties), hint: `${units} units · ${occupancy}% occupied`, delta: 0, icon: 'building' },
+        { label: 'Active leases', value: String(leases), hint: 'Live tenancies', delta: 0, icon: 'file' },
+        { label: 'Collected', value: `GHS ${collected.toLocaleString('en-GH')}`, hint: 'Posted this month', delta: 0, icon: 'wallet' },
+        { label: 'Open tickets', value: String(openTickets), hint: 'Maintenance across companies', delta: 0, icon: 'wrench' },
+      ],
+      ticketPipeline: tickets.map((row) => ({
+        status: row.status,
+        count: row._count,
+        tone: row.status === 'closed' ? 'muted' : 'info',
+      })),
+      collectionTrend: {
+        labels: allPaymentsTrend.trend.map((row) => row.period.slice(5)),
+        datasets: [{ label: 'Collected', data: allPaymentsTrend.trend.map((row) => row.collected), color: '#0028f2' }],
+      },
+      occupancyMix: {
+        labels: ['Occupied', 'Vacant', 'Maintenance'],
+        data: [occupied, vacant, maintenanceUnits],
+        colors: ['#0f9f6e', '#d97706', '#0284c7'],
+      },
+      ticketSla: {
+        labels: ['All'],
+        datasets: [
+          { label: 'On time', data: [maintenance.slaCompliance], color: '#0f9f6e' },
+          { label: 'Breached', data: [maintenance.breached], color: '#d90a2c' },
+        ],
+      },
+      arrearsAging: { labels: ['Outstanding'], data: [arrears] },
+      properties: orgs.map((org) => ({
+        name: org.name,
+        health: org.status === 'active' ? 'healthy' : 'watch',
+        units: org._count.properties,
+        occupancy: org.status === 'active' ? 100 : 40,
+        arrears: `${org._count.users} users`,
+      })),
+      sla: {
+        onTime: maintenance.slaCompliance,
+        breached: maintenance.breached,
+        open: maintenance.open,
+        avgHours: 0,
+      },
+      activity: [],
+      openAlerts: arrears > 0
+        ? [{ title: 'Platform arrears', source: `${invoices._count} invoices outstanding`, time: 'Now', severity: 'warning' as const }]
+        : [],
+      quickActions: [
+        { label: 'Add company', description: 'Create a real-estate firm and owner', path: '/organizations', icon: 'globe' },
+        { label: 'Review companies', description: 'See every organisation on the platform', path: '/organizations', icon: 'building' },
       ],
     };
   }

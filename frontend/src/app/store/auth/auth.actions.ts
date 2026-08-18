@@ -15,6 +15,5 @@ export const AuthActions = createActionGroup({
     Logout: props<{ refreshToken: string | null }>(),
     'Logout Success': emptyProps(),
     'Set Active Org': props<{ orgId: string }>(),
-    'Session Ready': emptyProps(),
   },
 });
