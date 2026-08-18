@@ -5,6 +5,7 @@ import { Observable, catchError, filter, map, of, switchMap, take, throwError } 
 import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
 import { DashboardData } from '../../interfaces/dashboard.interface';
 import { RecordRow } from './api-map';
+import { authFeature } from '../../../store/auth/auth.reducer';
 import { CollectionsActions } from '../../../store/collections/collections.actions';
 import { collectionsFeature } from '../../../store/collections/collections.reducer';
 import { collectionEntitySelectors } from '../../../store/collections/collections.state';
@@ -20,6 +21,8 @@ export class DataService {
   private readonly store = inject(Store);
   private readonly actions$ = inject(Actions);
   private readonly records = this.store.selectSignal(collectionsFeature.selectRecords);
+  private readonly activeOrgId = this.store.selectSignal(authFeature.selectActiveOrgId);
+  private readonly sessionUser = this.store.selectSignal(authFeature.selectUser);
   readonly version = this.store.selectSignal(collectionsFeature.selectVersion);
 
   loadCollection<T = RecordRow>(name: DataCollection): Observable<T[]> {
@@ -126,6 +129,7 @@ export class DataService {
   }
 
   prefetchLookups(): void {
+    if (this.sessionUser()?.role === 'platform_admin' && !this.activeOrgId()) return;
     this.store.dispatch(CollectionsActions.prefetchLookups({ names: LOOKUPS }));
   }
 

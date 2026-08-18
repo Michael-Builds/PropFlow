@@ -35,6 +35,12 @@ export class AuthApiService {
     return this.http.post<{ ok: boolean }>(`${API_BASE}/auth/reset-password`, { token, password });
   }
 
+  listOrganizations(): Observable<unknown> {
+    return this.http.get(`${API_BASE}/platform/organizations`, {
+      params: { page: '1', pageSize: '100' },
+    });
+  }
+
   logout(refreshToken: string): Observable<unknown> {
     return this.http.post(`${API_BASE}/auth/logout`, { refreshToken });
   }

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { Observable, map, of, take } from 'rxjs';
+import { Observable, map, of, switchMap, take } from 'rxjs';
 import { ROLE_LABELS } from '../../config/nav.config';
 import { UserRole } from '../../interfaces/nav.interface';
 import { AuthActions } from '../../../store/auth/auth.actions';
@@ -36,11 +36,19 @@ export class AuthService {
     return this.actions$.pipe(
       ofType(AuthActions.loginSuccess, AuthActions.loginFailure),
       take(1),
-      map((action) =>
-        action.type === AuthActions.loginSuccess.type
-          ? { ok: true as const }
-          : { ok: false, message: action.message },
-      ),
+      switchMap((action) => {
+        if (action.type === AuthActions.loginFailure.type) {
+          return of({ ok: false, message: action.message });
+        }
+        if (action.response.user.role !== 'platform_admin') {
+          return of({ ok: true as const });
+        }
+        return this.actions$.pipe(
+          ofType(AuthActions.setActiveOrg, AuthActions.sessionReady),
+          take(1),
+          map(() => ({ ok: true as const })),
+        );
+      }),
     );
   }
 
@@ -82,9 +90,7 @@ export class AuthService {
   }
 
   homePath(): string {
-    const role = this.user()?.role;
-    if (role === 'platform_admin') return '/organizations';
-    if (role === 'vendor' || role === 'tenant') return '/tickets';
+    if (this.role() === 'platform_admin' && !this.activeOrgId()) return '/organizations';
     return '/dashboard';
   }
 }

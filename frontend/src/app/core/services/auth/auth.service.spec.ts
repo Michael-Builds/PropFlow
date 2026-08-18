@@ -43,7 +43,7 @@ describe('AuthService', () => {
     expect(result?.ok).toBe(false);
   });
 
-  it('should send vendors to tickets', () => {
+  it('should send every role to the dashboard', () => {
     service.login('vendor@propflow.app', 'password').subscribe();
     const req = http.expectOne((request) => request.url.includes('/auth/login'));
     req.flush({
@@ -58,7 +58,7 @@ describe('AuthService', () => {
         fullName: 'AquaFix Ops',
       },
     });
-    expect(service.homePath()).toBe('/tickets');
+    expect(service.homePath()).toBe('/dashboard');
   });
 
   it('should clear session on logout', () => {

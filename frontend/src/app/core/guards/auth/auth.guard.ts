@@ -11,9 +11,6 @@ export const authGuard: CanActivateFn = (_route, state) => {
   }
 
   const path = '/' + state.url.split('?')[0].split('/').filter(Boolean)[0];
-  if (auth.role() === 'platform_admin' && !auth.activeOrgId() && path !== '/organizations' && path !== '/appearance') {
-    return router.createUrlTree(['/organizations']);
-  }
   const item = NAV_SECTIONS.flatMap((section) => section.items).find(
     (nav) => nav.path === path || nav.path === state.url.split('?')[0],
   );

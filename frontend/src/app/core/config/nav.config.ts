@@ -15,7 +15,7 @@ export const NAV_SECTIONS: NavSection[] = [
     id: 'overview',
     label: 'Overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['owner', 'manager', 'finance', 'platform_admin'] },
+      { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: 'dashboard', roles: ['owner', 'manager', 'finance', 'vendor', 'tenant', 'platform_admin'] },
     ],
   },
   {

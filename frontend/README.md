@@ -40,8 +40,9 @@ The sign-in page does **not** list these. Session is stored in `localStorage` un
 | `owner@propflow.app` | Owner | `/dashboard` |
 | `manager@propflow.app` | Manager | `/dashboard` |
 | `finance@propflow.app` | Finance | `/dashboard` |
-| `vendor@propflow.app` | Vendor | `/tickets` |
-| `tenant@propflow.app` | Tenant | `/tickets` |
+| `vendor@propflow.app` | Vendor | `/dashboard` |
+| `tenant@propflow.app` | Tenant | `/dashboard` |
+| `platform@propflow.app` | Platform | `/dashboard` |
 
 Failed logins toast a generic invalid-credentials message. Password fields use show/hide (`eye` / `eyeOff`) inside `app-input`, not on the page.
 
