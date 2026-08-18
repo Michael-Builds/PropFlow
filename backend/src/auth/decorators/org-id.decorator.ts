@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException, createParamDecorator, ExecutionContext } from '@nestjs/common';
-import type { JwtUser } from './current-user.decorator';
+import { isPlatformAdmin, type JwtUser } from './current-user.decorator';
 
 /**
  * Resolves the company org for org-scoped routes.
@@ -10,7 +10,7 @@ export const OrgId = createParamDecorator((_data: unknown, ctx: ExecutionContext
   const user = req.user as JwtUser | undefined;
   if (!user) throw new BadRequestException('Authentication required.');
 
-  if (user.role === 'platform_admin') {
+  if (isPlatformAdmin(user)) {
     throw new ForbiddenException('Platform operators use platform endpoints, not company-scoped data.');
   }
 

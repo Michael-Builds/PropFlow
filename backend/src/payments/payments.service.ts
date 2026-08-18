@@ -217,7 +217,7 @@ export class PaymentsService {
       ...(query.direction ? { direction: query.direction } : {}),
     };
 
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.payment.findMany({
         where,
         orderBy: { createdAt: 'desc' },

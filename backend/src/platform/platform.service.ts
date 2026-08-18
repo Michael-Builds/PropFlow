@@ -17,7 +17,7 @@ export class PlatformService {
 
   async listOrganizations(query: PaginationQueryDto) {
     const { page, pageSize, skip, take } = pageArgs(query.page, query.pageSize);
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.organization.findMany({
         orderBy: { createdAt: 'desc' },
         skip,

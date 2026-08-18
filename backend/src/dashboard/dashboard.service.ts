@@ -88,21 +88,20 @@ export class DashboardService {
       });
     }
 
-    const trend: { period: string; collected: number }[] = [];
-    for (const month of months) {
-      const rows = await this.prisma.payment.findMany({
-        where: {
-          ...(orgId ? { orgId } : {}),
-          status: 'success',
-          paidAt: { gte: month.start, lte: month.end },
-        },
-        select: { amount: true },
-      });
-      trend.push({
-        period: month.key,
-        collected: rows.reduce((sum, row) => sum + toNumber(row.amount), 0),
-      });
-    }
+    const rows = await this.prisma.payment.findMany({
+      where: {
+        ...(orgId ? { orgId } : {}),
+        status: 'success',
+        paidAt: { gte: months[0].start, lte: months[months.length - 1].end },
+      },
+      select: { amount: true, paidAt: true },
+    });
+    const trend = months.map((month) => ({
+      period: month.key,
+      collected: rows
+        .filter((row) => row.paidAt && row.paidAt >= month.start && row.paidAt <= month.end)
+        .reduce((sum, row) => sum + toNumber(row.amount), 0),
+    }));
 
     return { currency: 'GHS', trend };
   }
@@ -285,36 +284,38 @@ export class DashboardService {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    const [orgs, users, properties, units, occupied, leases, invoices, payments, tickets] =
-      await Promise.all([
-        this.prisma.organization.findMany({
-          include: { _count: { select: { users: true, properties: true } } },
-          orderBy: { createdAt: 'desc' },
-          take: 8,
-        }),
-        this.prisma.user.count(),
-        this.prisma.property.count(),
-        this.prisma.unit.count(),
-        this.prisma.unit.count({ where: { status: 'occupied' } }),
-        this.prisma.lease.count({ where: { status: 'active' } }),
-        this.prisma.invoice.aggregate({ where: { balance: { gt: 0 } }, _sum: { balance: true }, _count: true }),
-        this.prisma.payment.findMany({
-          where: { status: 'success', paidAt: { gte: monthStart, lte: monthEnd } },
-          select: { amount: true },
-        }),
-        this.prisma.ticket.groupBy({ by: ['status'], _count: true }),
-      ]);
-
-    const orgCount = await this.prisma.organization.count();
+    const [orgCount, users, properties, units] = await Promise.all([
+      this.prisma.organization.count(),
+      this.prisma.user.count(),
+      this.prisma.property.count(),
+      this.prisma.unit.count(),
+    ]);
+    const [occupied, vacant, leases, invoices] = await Promise.all([
+      this.prisma.unit.count({ where: { status: 'occupied' } }),
+      this.prisma.unit.count({ where: { status: 'vacant' } }),
+      this.prisma.lease.count({ where: { status: 'active' } }),
+      this.prisma.invoice.aggregate({ where: { balance: { gt: 0 } }, _sum: { balance: true }, _count: true }),
+    ]);
+    const [payments, tickets, orgs, allPaymentsTrend, maintenance] = await Promise.all([
+      this.prisma.payment.findMany({
+        where: { status: 'success', paidAt: { gte: monthStart, lte: monthEnd } },
+        select: { amount: true },
+      }),
+      this.prisma.ticket.groupBy({ by: ['status'], _count: true }),
+      this.prisma.organization.findMany({
+        include: { _count: { select: { users: true, properties: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 8,
+      }),
+      this.collections(),
+      this.maintenance(),
+    ]);
     const collected = payments.reduce((sum, row) => sum + toNumber(row.amount), 0);
     const arrears = toNumber(invoices._sum.balance ?? 0);
     const openTickets = tickets
       .filter((row) => !['resolved', 'closed'].includes(row.status))
       .reduce((sum, row) => sum + row._count, 0);
     const occupancy = units === 0 ? 0 : Math.round((occupied / units) * 1000) / 10;
-    const allPaymentsTrend = await this.collections();
-    const maintenance = await this.maintenance();
-    const vacant = await this.prisma.unit.count({ where: { status: 'vacant' } });
     const maintenanceUnits = Math.max(0, units - occupied - vacant);
 
     return {

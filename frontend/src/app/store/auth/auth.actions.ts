@@ -12,7 +12,7 @@ export const AuthActions = createActionGroup({
     'Reset Password': props<{ token: string; password: string }>(),
     'Reset Password Success': emptyProps(),
     'Reset Password Failure': props<{ message: string }>(),
-    Logout: props<{ refreshToken: string | null }>(),
+    Logout: props<{ refreshToken: string | null; accessToken: string | null }>(),
     'Logout Success': emptyProps(),
     'Set Active Org': props<{ orgId: string }>(),
   },

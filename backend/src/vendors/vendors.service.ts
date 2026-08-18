@@ -12,7 +12,7 @@ export class VendorsService {
   async list(orgId: string, query: PaginationQueryDto) {
     const { page, pageSize, skip, take } = pageArgs(query.page, query.pageSize);
     const where = { orgId };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.vendor.findMany({ where, orderBy: { name: 'asc' }, skip, take }),
       this.prisma.vendor.count({ where }),
     ]);

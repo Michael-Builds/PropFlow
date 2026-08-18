@@ -13,7 +13,7 @@ export class CollectionsEffects {
   load$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CollectionsActions.load),
-      mergeMap(({ name }) =>
+      concatMap(({ name }) =>
         this.api.list(name).pipe(
           map((rows) => CollectionsActions.loadSuccess({ name, rows })),
           catchError((error) =>

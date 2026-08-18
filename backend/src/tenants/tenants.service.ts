@@ -30,7 +30,7 @@ export class TenantsService {
           }
         : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.tenant.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
       this.prisma.tenant.count({ where }),
     ]);

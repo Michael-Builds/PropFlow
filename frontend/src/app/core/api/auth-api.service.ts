@@ -35,7 +35,11 @@ export class AuthApiService {
     return this.http.post<{ ok: boolean }>(`${API_BASE}/auth/reset-password`, { token, password });
   }
 
-  logout(refreshToken: string): Observable<unknown> {
-    return this.http.post(`${API_BASE}/auth/logout`, { refreshToken });
+  logout(refreshToken: string, accessToken?: string | null): Observable<unknown> {
+    return this.http.post(
+      `${API_BASE}/auth/logout`,
+      { refreshToken },
+      accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : {},
+    );
   }
 }

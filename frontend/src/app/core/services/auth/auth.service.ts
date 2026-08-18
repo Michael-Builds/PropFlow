@@ -67,7 +67,12 @@ export class AuthService {
   }
 
   logout(): void {
-    this.store.dispatch(AuthActions.logout({ refreshToken: this.refreshTokenSignal() }));
+    this.store.dispatch(
+      AuthActions.logout({
+        refreshToken: this.refreshTokenSignal(),
+        accessToken: this.accessTokenSignal(),
+      }),
+    );
   }
 
   setActiveOrg(orgId: string): void {

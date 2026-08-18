@@ -19,7 +19,7 @@ export class DocumentsService {
       ...(query.entityId ? { entityId: query.entityId } : {}),
       ...(query.docType ? { docType: query.docType } : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.document.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
       this.prisma.document.count({ where }),
     ]);

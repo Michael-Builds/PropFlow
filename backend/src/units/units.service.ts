@@ -29,7 +29,7 @@ export class UnitsService {
       ...(query.blockId ? { blockId: query.blockId } : {}),
       ...(query.status ? { status: query.status } : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.unit.findMany({
         where,
         orderBy: { unitCode: 'asc' },

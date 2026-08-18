@@ -70,7 +70,7 @@ export class UsersService {
       ...(query.role ? { role: query.role as Prisma.EnumUserRoleFilter['equals'] } : {}),
       ...(query.status ? { status: query.status } : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.user.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
       this.prisma.user.count({ where }),
     ]);

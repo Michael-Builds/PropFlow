@@ -31,7 +31,7 @@ export class TicketsService {
       ...(user.role === 'tenant' && user.tenantId ? { tenantId: user.tenantId } : {}),
       ...(user.role === 'vendor' ? { OR: [{ assigneeUserId: user.sub }, { vendorId: user.vendorId ?? '' }] } : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.ticket.findMany({
         where,
         orderBy: { createdAt: 'desc' },

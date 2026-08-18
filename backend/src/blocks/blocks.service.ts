@@ -14,7 +14,7 @@ export class BlocksService {
       orgId,
       ...(query.propertyId ? { propertyId: query.propertyId } : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.block.findMany({ where, orderBy: { name: 'asc' }, skip, take }),
       this.prisma.block.count({ where }),
     ]);

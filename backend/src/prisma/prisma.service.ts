@@ -1,5 +1,6 @@
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
 import { AppLogger } from '../common/logger/app-logger.service';
@@ -10,10 +11,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     configService: ConfigService,
     private readonly logger: AppLogger,
   ) {
-    const adapter = new PrismaPg({
+    const pool = new Pool({
       connectionString: configService.getOrThrow<string>('DATABASE_URL'),
+      max: 8,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 15_000,
     });
-    super({ adapter });
+    super({ adapter: new PrismaPg(pool) });
   }
 
   async onModuleInit(): Promise<void> {

@@ -20,7 +20,7 @@ export class NotificationsService {
       userId,
       ...(orgId ? { orgId } : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.notification.findMany({
         where,
         orderBy: { createdAt: 'desc' },

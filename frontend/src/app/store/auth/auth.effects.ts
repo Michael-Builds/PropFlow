@@ -57,8 +57,10 @@ export class AuthEffects {
   logout$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.logout),
-      switchMap(({ refreshToken }) => {
-        const request = refreshToken ? this.api.logout(refreshToken).pipe(catchError(() => of(null))) : of(null);
+      switchMap(({ refreshToken, accessToken }) => {
+        const request = refreshToken
+          ? this.api.logout(refreshToken, accessToken).pipe(catchError(() => of(null)))
+          : of(null);
         return request.pipe(map(() => AuthActions.logoutSuccess()));
       }),
     ),

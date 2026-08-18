@@ -28,7 +28,7 @@ export class LeasesService {
       ...(query.tenantId ? { tenantId: query.tenantId } : {}),
       ...(query.propertyId ? { propertyId: query.propertyId } : {}),
     };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.lease.findMany({
         where,
         orderBy: { createdAt: 'desc' },

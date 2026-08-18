@@ -21,6 +21,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     tenantId?: string | null;
     vendorId?: string | null;
   }) {
-    return payload;
+    return {
+      sub: payload.sub,
+      orgId: payload.orgId ?? null,
+      role: payload.role,
+      email: payload.email,
+      tenantId: payload.tenantId ?? null,
+      vendorId: payload.vendorId ?? null,
+    };
   }
 }
