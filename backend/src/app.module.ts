@@ -18,6 +18,7 @@ import { LeasesModule } from './leases/leases.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { PaymentsModule } from './payments/payments.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { VendorsModule } from './vendors/vendors.module';
 import { DocumentsModule } from './documents/documents.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
@@ -82,6 +83,7 @@ import { createRedisOptions } from './common/redis/redis-options';
     InvoicesModule,
     PaymentsModule,
     TicketsModule,
+    VendorsModule,
     DocumentsModule,
     DashboardModule,
     AuditLogsModule,

@@ -24,6 +24,7 @@ import { THROTTLE_SKIP_ALL } from '../common/throttler/throttle.constants';
 import { PaymentsService } from './payments.service';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
+import { CreatePaymentDto } from './dto/create-payment.dto';
 
 @ApiTags('payments')
 @Controller('payments')
@@ -35,6 +36,14 @@ export class PaymentsController {
   @UseGuards(OptionalJwtAuthGuard)
   checkout(@Body() dto: CreateCheckoutDto, @CurrentUser() user?: JwtUser) {
     return this.paymentsService.checkout(dto, user);
+  }
+
+  @Post()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('owner', 'manager', 'finance')
+  post(@CurrentUser() user: JwtUser, @Body() dto: CreatePaymentDto) {
+    return this.paymentsService.postManual(user.orgId, user.sub, dto);
   }
 
   @Get()

@@ -13,8 +13,9 @@ import { grossUpForCustomerFees, invoiceStatus, toNumber } from '../common/money
 import { PaystackService } from './paystack.service';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
-import { JwtUser } from '../auth/decorators/current-user.decorator';
+import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import { InvoicesService } from '../invoices/invoices.service';
+import { CreatePaymentDto } from './dto/create-payment.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -146,6 +147,56 @@ export class PaymentsService {
       });
       throw error;
     }
+  }
+
+  async postManual(orgId: string, userId: string, dto: CreatePaymentDto) {
+    const invoice = await this.prisma.invoice.findFirst({ where: { id: dto.invoiceId, orgId } });
+    if (!invoice) throw new NotFoundException('Invoice not found.');
+    const balance = toNumber(invoice.balance);
+    if (balance <= 0) throw new BadRequestException('This invoice is already settled.');
+    if (dto.amount > balance) {
+      throw new BadRequestException('Amount cannot exceed the outstanding balance.');
+    }
+
+    const reference = dto.reference?.trim() || this.newReference();
+    const paidAt = dto.paidAt ? new Date(dto.paidAt) : new Date();
+
+    return this.prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.create({
+        data: {
+          orgId,
+          invoiceId: invoice.id,
+          amount: dto.amount,
+          feeAmount: 0,
+          chargedAmount: dto.amount,
+          currency: invoice.currency,
+          method: dto.method,
+          provider: 'manual',
+          direction: 'in',
+          status: 'success',
+          reference,
+          paidAt,
+          createdBy: userId,
+        },
+      });
+
+      const amountPaid = toNumber(invoice.amountPaid) + dto.amount;
+      const nextBalance = Math.max(0, toNumber(invoice.amountDue) - amountPaid);
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          amountPaid,
+          balance: nextBalance,
+          status: invoiceStatus(nextBalance, amountPaid, invoice.dueDate),
+        },
+      });
+
+      this.logger.success(
+        `Manual payment ${payment.reference} posted on invoice ${invoice.id}`,
+        PaymentsService.name,
+      );
+      return this.present(payment);
+    });
   }
 
   feeQuote(netGhs: number) {

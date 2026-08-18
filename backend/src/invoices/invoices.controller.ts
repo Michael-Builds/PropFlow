@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -8,6 +8,7 @@ import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import { InvoicesService } from './invoices.service';
 import { GenerateInvoiceDto } from './dto/generate-invoice.dto';
 import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
+import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 
 @ApiTags('invoices')
 @ApiBearerAuth()
@@ -17,9 +18,10 @@ export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
-  @Roles('owner', 'manager', 'finance')
+  @Roles('owner', 'manager', 'finance', 'tenant')
   list(@CurrentUser() user: JwtUser, @Query() query: ListInvoicesQueryDto) {
-    return this.invoicesService.list(user.orgId, query);
+    const tenantId = user.role === 'tenant' ? user.tenantId ?? 'none' : query.tenantId;
+    return this.invoicesService.list(user.orgId, { ...query, tenantId });
   }
 
   @Get('arrears')
@@ -28,15 +30,31 @@ export class InvoicesController {
     return this.invoicesService.arrears(user.orgId);
   }
 
-  @Get(':id')
-  @Roles('owner', 'manager', 'finance', 'tenant')
-  get(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    return this.invoicesService.getById(user.orgId, id);
-  }
-
   @Post('generate')
   @Roles('owner', 'manager', 'finance')
   generate(@CurrentUser() user: JwtUser, @Body() dto: GenerateInvoiceDto) {
     return this.invoicesService.generate(user.orgId, dto);
+  }
+
+  @Post('generate-due')
+  @Roles('owner', 'manager', 'finance')
+  generateDue(@CurrentUser() user: JwtUser) {
+    return this.invoicesService.generateDue(user.orgId);
+  }
+
+  @Get(':id')
+  @Roles('owner', 'manager', 'finance', 'tenant')
+  get(@CurrentUser() user: JwtUser, @Param('id') id: string) {
+    return this.invoicesService.getById(
+      user.orgId,
+      id,
+      user.role === 'tenant' ? user.tenantId : undefined,
+    );
+  }
+
+  @Patch(':id')
+  @Roles('owner', 'manager', 'finance')
+  update(@CurrentUser() user: JwtUser, @Param('id') id: string, @Body() dto: UpdateInvoiceDto) {
+    return this.invoicesService.update(user.orgId, id, dto);
   }
 }

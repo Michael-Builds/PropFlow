@@ -34,91 +34,143 @@ model Organization {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   orgId        String
-  email        String   @unique
+  email        String    @unique
   role         UserRole
   passwordHash String
-  status       String   @default("active")
+  status       String    @default("active")
+  tenantId     String?
+  vendorId     String?
   lastLoginAt  DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 
-  organization Organization @relation(fields: [orgId], references: [id])
+  organization  Organization   @relation(fields: [orgId], references: [id])
+  refreshTokens RefreshToken[]
+
+  @@index([orgId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Property {
-  id         String   @id @default(cuid())
-  orgId      String
-  name       String
+  id          String   @id @default(cuid())
+  orgId       String
+  name        String
+  location    String?
   addressJson Json?
-  timezone   String?
-  status     String   @default("active")
-  createdAt  DateTime @default(now())
+  timezone    String?
+  type        String?
+  manager     String?
+  yearBuilt   Int?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
 
   organization Organization @relation(fields: [orgId], references: [id])
   units        Unit[]
+  leases       Lease[]
+  tickets      Ticket[]
+
+  @@index([orgId, status])
 }
 
 model Unit {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   orgId      String
   propertyId String
   unitCode   String
   type       String?
+  floor      Int?
+  sqm        Decimal? @db.Decimal(10, 2)
   rentAmount Decimal  @db.Decimal(12, 2)
   currency   String   @default("GHS")
   status     String   @default("vacant")
   createdAt  DateTime @default(now())
 
   property Property @relation(fields: [propertyId], references: [id])
+  leases   Lease[]
+  tickets  Ticket[]
+
+  @@unique([orgId, propertyId, unitCode])
+  @@index([orgId, status])
 }
 
 model Tenant {
-  id        String   @id @default(cuid())
-  orgId     String
-  fullName  String
-  email     String?
-  phone     String?
-  status    String   @default("active")
-  kycStatus String   @default("pending")
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  orgId            String
+  fullName         String
+  email            String?
+  phone            String?
+  occupation       String?
+  emergencyContact String?
+  status           String   @default("active")
+  kycStatus        String   @default("pending")
+  createdAt        DateTime @default(now())
+
+  leases   Lease[]
+  invoices Invoice[]
+  tickets  Ticket[]
+
+  @@index([orgId, status])
 }
 
 model Lease {
-  id         String   @id @default(cuid())
-  orgId      String
-  propertyId String
-  unitId     String
-  tenantId   String
-  startDate  DateTime
-  endDate    DateTime
-  rentAmount Decimal  @db.Decimal(12, 2)
-  dueDay     Int
-  status     String   @default("active")
-  version    Int      @default(1)
-  createdAt  DateTime @default(now())
+  id           String   @id @default(cuid())
+  orgId        String
+  propertyId   String
+  unitId       String
+  tenantId     String
+  startDate    DateTime
+  endDate      DateTime
+  rentAmount   Decimal  @db.Decimal(12, 2)
+  dueDay       Int
+  billingCycle String   @default("monthly")
+  status       String   @default("active")
+  version      Int      @default(1)
+  notes        String?
+  createdAt    DateTime @default(now())
 
+  property Property  @relation(fields: [propertyId], references: [id])
+  unit     Unit      @relation(fields: [unitId], references: [id])
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
   invoices Invoice[]
+
+  @@index([orgId, status])
+  @@index([unitId, status])
+  @@index([tenantId])
 }
 
 model Invoice {
-  id            String   @id @default(cuid())
-  orgId         String
-  leaseId       String
-  tenantId      String
-  periodStart   DateTime
-  periodEnd     DateTime
-  dueDate       DateTime
-  amountDue     Decimal  @db.Decimal(12, 2)
-  amountPaid    Decimal  @db.Decimal(12, 2) @default(0)
-  balance       Decimal  @db.Decimal(12, 2)
-  currency      String   @default("GHS")
-  status        String   @default("due")
-  checkoutToken String   @unique @default(cuid())
-  notes         String?
-  createdAt     DateTime @default(now())
+  id             String    @id @default(cuid())
+  orgId          String
+  leaseId        String
+  tenantId       String
+  periodStart    DateTime
+  periodEnd      DateTime
+  dueDate        DateTime
+  amountDue      Decimal   @db.Decimal(12, 2)
+  amountPaid     Decimal   @db.Decimal(12, 2) @default(0)
+  balance        Decimal   @db.Decimal(12, 2)
+  currency       String    @default("GHS")
+  status         String    @default("due")
+  checkoutToken  String    @unique @default(cuid())
+  notes          String?
+  lastReminderAt DateTime?
+  createdAt      DateTime  @default(now())
 
   lease    Lease     @relation(fields: [leaseId], references: [id])
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
   payments Payment[]
 
   @@index([orgId, status])
@@ -154,62 +206,99 @@ model Payment {
 }
 
 model Ticket {
-  id         String   @id @default(cuid())
-  orgId      String
-  propertyId String
-  unitId     String?
-  tenantId   String?
-  category   String
-  priority   String
-  status     String   @default("open")
-  slaDueAt   DateTime?
-  resolvedAt DateTime?
-  closedAt   DateTime?
-  createdAt  DateTime @default(now())
+  id             String    @id @default(cuid())
+  orgId          String
+  propertyId     String
+  unitId         String?
+  tenantId       String?
+  category       String
+  priority       String
+  status         String    @default("open")
+  slaDueAt       DateTime?
+  assigneeUserId String?
+  vendorId       String?
+  costAmount     Decimal?  @db.Decimal(12, 2)
+  notes          String?
+  resolvedAt     DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime  @default(now())
+
+  property Property      @relation(fields: [propertyId], references: [id])
+  unit     Unit?         @relation(fields: [unitId], references: [id])
+  tenant   Tenant?       @relation(fields: [tenantId], references: [id])
+  vendor   Vendor?       @relation(fields: [vendorId], references: [id])
+  events   TicketEvent[]
+
+  @@index([orgId, status])
+  @@index([assigneeUserId])
+}
+
+model TicketEvent {
+  id          String   @id @default(cuid())
+  orgId       String
+  ticketId    String
+  eventType   String
+  payloadJson Json?
+  actorUserId String?
+  createdAt   DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
 }
 
 model Vendor {
-  id             String   @id @default(cuid())
-  orgId          String
-  name           String
-  contactJson    Json?
+  id              String   @id @default(cuid())
+  orgId           String
+  name            String
+  contactJson     Json?
   specialtiesJson Json?
-  status         String   @default("active")
-  createdAt      DateTime @default(now())
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+
+  tickets Ticket[]
+
+  @@index([orgId, status])
 }
 
 model Document {
-  id          String    @id @default(cuid())
-  orgId       String
-  entityType  EntityType
-  entityId    String
-  docType     String
-  fileUrl     String
-  expiresAt   DateTime?
-  status      String    @default("valid")
+  id           String     @id @default(cuid())
+  orgId        String
+  entityType   EntityType
+  entityId     String
+  docType      String
+  fileUrl      String
+  expiresAt    DateTime?
+  status       String     @default("valid")
   metadataJson Json?
-  createdAt   DateTime  @default(now())
+  createdAt    DateTime   @default(now())
+
+  @@index([orgId, entityType, entityId])
+  @@index([orgId, status])
 }
 
 model ComplianceRule {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   orgId        String
   entityType   EntityType
   docType      String
-  required     Boolean  @default(true)
+  required     Boolean    @default(true)
   validityDays Int?
 }
 
 model Notification {
-  id         String   @id @default(cuid())
-  orgId      String
-  userId     String?
-  channel    String
-  type       String
+  id          String    @id @default(cuid())
+  orgId       String
+  userId      String?
+  channel     String
+  type        String
   payloadJson Json
-  status     String   @default("queued")
-  sentAt     DateTime?
-  createdAt  DateTime @default(now())
+  status      String    @default("queued")
+  readAt      DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([orgId, userId, status])
 }
 
 model AuditLog {
@@ -223,4 +312,6 @@ model AuditLog {
   afterJson   Json?
   ip          String?
   createdAt   DateTime @default(now())
+
+  @@index([orgId, createdAt])
 }

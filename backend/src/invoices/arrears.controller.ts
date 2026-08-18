@@ -1,4 +1,4 @@
-import { Body, Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -18,5 +18,10 @@ export class ArrearsController {
   @Get()
   list(@CurrentUser() user: JwtUser) {
     return this.invoicesService.arrears(user.orgId);
+  }
+
+  @Post('reminders/run')
+  runReminders(@CurrentUser() user: JwtUser) {
+    return this.invoicesService.runReminders(user.orgId);
   }
 }

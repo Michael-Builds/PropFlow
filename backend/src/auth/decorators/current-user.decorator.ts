@@ -6,6 +6,8 @@ export type JwtUser = {
   orgId: string;
   role: UserRole;
   email: string;
+  tenantId?: string | null;
+  vendorId?: string | null;
 };
 
 export const CurrentUser = createParamDecorator(

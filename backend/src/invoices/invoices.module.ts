@@ -4,9 +4,10 @@ import { ArrearsController } from './arrears.controller';
 import { InvoicesService } from './invoices.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, NotificationsModule],
   controllers: [InvoicesController, ArrearsController],
   providers: [InvoicesService],
   exports: [InvoicesService],

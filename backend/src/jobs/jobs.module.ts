@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { BullModule } from '@nestjs/bullmq';
-import { NotificationsProcessor } from './processors/notifications.processor';
 
 @Module({
   imports: [
@@ -9,7 +8,7 @@ import { NotificationsProcessor } from './processors/notifications.processor';
       name: 'notifications',
     }),
   ],
-  providers: [JobsService, NotificationsProcessor],
+  providers: [JobsService],
   exports: [BullModule, JobsService],
 })
 export class JobsModule {}

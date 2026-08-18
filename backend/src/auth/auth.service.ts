@@ -1,15 +1,28 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { createHash } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from '../users/users.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { AppLogger } from '../common/logger/app-logger.service';
+import type { UserRole } from '../generated/prisma/client';
+
+type TokenClaims = {
+  sub: string;
+  orgId: string;
+  role: UserRole;
+  email: string;
+  tenantId: string | null;
+  vendorId: string | null;
+};
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly logger: AppLogger,
@@ -17,7 +30,7 @@ export class AuthService {
 
   async login(payload: LoginDto) {
     const user = await this.usersService.findByEmail(payload.email);
-    if (!user) {
+    if (!user || user.status !== 'active') {
       this.logger.warning(
         `Failed login for ${payload.email}: user not found`,
         AuthService.name,
@@ -34,20 +47,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const claims = {
-      sub: user.id,
-      orgId: user.orgId,
-      role: user.role,
-      email: user.email,
-    };
-
-    const accessToken = await this.jwtService.signAsync(claims, {
-      secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-      expiresIn: this.configService.getOrThrow<number>('JWT_ACCESS_TTL'),
-    });
-    const refreshToken = await this.jwtService.signAsync(claims, {
-      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.getOrThrow<number>('JWT_REFRESH_TTL'),
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
     });
 
     this.logger.success(
@@ -55,15 +57,112 @@ export class AuthService {
       AuthService.name,
     );
 
+    return this.issueSession(user);
+  }
+
+  async refresh(refreshToken: string) {
+    const claims = await this.verifyRefresh(refreshToken);
+    const tokenHash = hashToken(refreshToken);
+    const stored = await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+    if (!stored || stored.revokedAt || stored.expiresAt.getTime() < Date.now()) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    if (stored.userId !== claims.sub) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    await this.prisma.refreshToken.update({
+      where: { id: stored.id },
+      data: { revokedAt: new Date() },
+    });
+
+    const user = await this.usersService.findById(claims.sub);
+    if (!user || user.status !== 'active') {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    return this.issueSession(user);
+  }
+
+  async logout(userId: string, refreshToken?: string) {
+    if (refreshToken) {
+      const tokenHash = hashToken(refreshToken);
+      await this.prisma.refreshToken.updateMany({
+        where: { userId, tokenHash, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    } else {
+      await this.prisma.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    }
+    this.logger.success(`User ${userId} signed out`, AuthService.name);
+    return { ok: true };
+  }
+
+  private async issueSession(user: {
+    id: string;
+    orgId: string;
+    role: UserRole;
+    email: string;
+    tenantId: string | null;
+    vendorId: string | null;
+  }) {
+    const claims: TokenClaims = {
+      sub: user.id,
+      orgId: user.orgId,
+      role: user.role,
+      email: user.email,
+      tenantId: user.tenantId,
+      vendorId: user.vendorId,
+    };
+
+    const accessTtl = this.configService.getOrThrow<number>('JWT_ACCESS_TTL');
+    const refreshTtl = this.configService.getOrThrow<number>('JWT_REFRESH_TTL');
+
+    const accessToken = await this.jwtService.signAsync(claims, {
+      secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+      expiresIn: accessTtl,
+    });
+    const refreshToken = await this.jwtService.signAsync(claims, {
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      expiresIn: refreshTtl,
+    });
+
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashToken(refreshToken),
+        expiresAt: new Date(Date.now() + refreshTtl * 1000),
+      },
+    });
+
     return {
       accessToken,
       refreshToken,
-      expiresIn: this.configService.getOrThrow<number>('JWT_ACCESS_TTL'),
+      expiresIn: accessTtl,
       user: {
         id: user.id,
         role: user.role,
         orgId: user.orgId,
+        tenantId: user.tenantId,
+        vendorId: user.vendorId,
       },
     };
   }
+
+  private async verifyRefresh(token: string): Promise<TokenClaims> {
+    try {
+      return await this.jwtService.verifyAsync<TokenClaims>(token, {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+}
+
+function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
 }

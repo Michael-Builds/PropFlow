@@ -122,9 +122,9 @@ Login is tighter (see below). Health and Swagger skip throttling.
 
 ## Cross-cutting
 
-**Auth.** `POST /auth/login` takes `{ email, password }`. Looks up the user, `bcrypt.compare` on `passwordHash`, then signs access and refresh JWTs with claims `sub`, `orgId`, `role`, `email`. Failed logins return `401 Invalid credentials` (same message whether the user is missing or the password is wrong). Login throttle: 5 / 10s (block 60s), 8 / min (block 5 min), 20 / hour (block 1 hour). Tracker is `userId:IP` (`anon` before auth).
+**Auth.** `POST /auth/login` takes `{ email, password }`. Looks up the user, `bcrypt.compare` on `passwordHash`, then signs access and refresh JWTs with claims `sub`, `orgId`, `role`, `email`, `tenantId`, `vendorId`. Refresh tokens are hashed in `RefreshToken` and rotated on `POST /auth/refresh`. `POST /auth/logout` (Bearer) revokes the presented refresh token or all sessions. Failed logins return `401 Invalid credentials`. Login throttle: 5 / 10s (block 60s), 8 / min (block 5 min), 20 / hour (block 1 hour). Tracker is `userId:IP` (`anon` before auth).
 
-**Org scope.** Every domain table has `orgId`. Queries must stay inside the org from the token. Several list methods still take a placeholder `'org_demo'` until JWT is wired through every controller.
+**Org scope.** Every domain table has `orgId`. Queries stay inside the org from the token. Tenant and vendor roles are further scoped by `tenantId` / `vendorId` on the user when set.
 
 **Throttler.** Redis-backed. Tracker `userId:IP` including `X-Forwarded-For`. Skips `/health`, `/docs`, `/swagger`.
 
@@ -154,25 +154,31 @@ Enums: `UserRole` (`owner` | `manager` | `finance` | `vendor` | `tenant`), `Enti
 | `Notification` | Channel, type, payload, queued/sent |
 | `AuditLog` | Privileged trail |
 
-Product copy uses GHS; the schema currently defaults unit `currency` to `USD` — set GHS explicitly when creating units.
+Product copy uses GHS; unit `currency` defaults to **GHS**.
 
 ## HTTP modules
 
-Global prefix + version: **`/api/v1`**.
+Global prefix + version: **`/api/v1`**. Authenticated routes take Bearer JWT. Org is always taken from the token.
 
-| Module | Controller prefix | Status |
-| --- | --- | --- |
-| Health | `/health` | Live |
-| Auth | `/auth` | `POST /login` live |
-| Documents | `/documents` | `GET /`, `POST /`, `POST /upload-url` |
-| Audit logs | `/audit-logs` | `GET /` with `page` / `pageSize` (max 100) |
-| Properties, units, tenants, leases | matching prefix | Module + service scaffolded |
-| Invoices, payments, tickets, dashboard | matching prefix | Module + service scaffolded |
-| Notifications | — | Service + queue processor |
+| Module | Status |
+| --- | --- |
+| Health | `GET /health` |
+| Auth | `POST /login`, `POST /refresh`, `POST /logout` |
+| Properties / units / tenants | CRUD list/get/create/patch |
+| Leases | CRUD + `POST /:id/renew` + `POST /:id/terminate` (no overlapping active lease on a unit) |
+| Invoices | list/get/generate/`POST /generate-due`/patch + `GET /invoices/arrears` |
+| Arrears | `GET /arrears`, `POST /arrears/reminders/run` |
+| Payments | `POST /` (manual), `POST /checkout`, list, ledger, verify, webhook |
+| Tickets | CRUD + assign / resolve / close + event timeline |
+| Vendors | list/get/create/patch |
+| Documents | list/get/create/patch/delete + `POST /upload-url` |
+| Notifications | list + `PATCH /:id/read` |
+| Dashboard | `GET /summary`, `/collections`, `/maintenance` |
+| Audit logs | `GET /` (owner) |
 
 Pagination DTO: `page` (default 1), `pageSize` (default 25, max 100).
 
-Intended contract (PRD): Bearer JWT, org from claims, filters as query params, sort `?sort=-created_at`, idempotency keys on retried writes.
+Demo seed (`npm run prisma:seed`): org `org_001`, users `owner@` / `manager@` / `finance@` / `vendor@` / `tenant@propflow.app`, password `password`.
 
 ## Conventions
 
