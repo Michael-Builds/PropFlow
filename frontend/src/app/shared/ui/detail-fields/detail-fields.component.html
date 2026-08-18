@@ -1,15 +1,10 @@
-<dl
-  class="grid gap-x-6 gap-y-5"
-  [class.sm:grid-cols-1]="columns() === 1"
-  [class.sm:grid-cols-2]="columns() === 2"
-  [class.sm:grid-cols-3]="columns() === 3"
->
+<dl class="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-3">
   @for (field of fields(); track field.label) {
-    <div>
+    <div class="min-w-0">
       <dt class="text-[11px] font-semibold tracking-wide text-text-muted uppercase">
         {{ field.label }}
       </dt>
-      <dd class="mt-1.5">
+      <dd class="mt-1">
         @if (field.kind === 'badge') {
           <app-badge [variant]="field.variant" [label]="field.value" />
         } @else {
@@ -17,8 +12,6 @@
             class="text-sm break-words text-text-primary"
             [class.font-medium]="field.emphasis"
             [class.tabular-nums]="field.tabular"
-            [class.font-mono]="field.mono"
-            [class.text-[13px]]="field.mono"
           >
             {{ field.value }}
           </span>

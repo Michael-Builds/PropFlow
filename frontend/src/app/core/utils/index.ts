@@ -41,6 +41,7 @@ export {
   formatGhs,
   badgeVariantFor,
   prettyLabel,
+  formatDisplayDate,
 } from './format';
 
 export { oddLastGridClass, isOddLastItem } from './layout';

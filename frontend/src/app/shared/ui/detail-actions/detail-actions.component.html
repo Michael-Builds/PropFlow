@@ -1,12 +1,14 @@
-<div class="space-y-2">
+<div class="flex flex-col gap-1.5">
   @for (action of actions(); track action.path + action.label) {
-    <a [routerLink]="action.path" class="block md:cursor-pointer">
-      <app-button
-        class="flex! w-full!"
-        [variant]="action.variant"
-        [icon]="action.icon"
-        [label]="action.label"
-      />
+    <a
+      [routerLink]="action.path"
+      class="flex items-center gap-2.5 rounded-md border border-border-light px-3 py-2 text-sm font-medium text-text-primary transition hover:border-brand/35 hover:bg-brand-muted md:cursor-pointer"
+    >
+      <span class="flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-soft text-brand">
+        <app-icon [name]="action.icon" [size]="15" />
+      </span>
+      <span class="min-w-0 flex-1 truncate">{{ action.label }}</span>
+      <app-icon name="chevron" [size]="14" class="shrink-0 -rotate-90 text-text-muted" />
     </a>
   }
 </div>

@@ -1,10 +1,10 @@
 <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
   @for (stat of stats(); track stat.label) {
-    <div class="rounded-md border border-border-light bg-surface/40 px-4 py-3">
+    <div class="rounded-md border border-border-light bg-white px-4 py-3">
       <p class="text-[11px] font-semibold tracking-wide text-text-muted uppercase">{{ stat.label }}</p>
-      <p class="mt-1.5 text-lg font-semibold tabular-nums text-text-primary">{{ stat.value }}</p>
+      <p class="mt-1 text-base font-semibold tabular-nums text-text-primary sm:text-lg">{{ stat.value }}</p>
       @if (stat.hint) {
-        <p class="mt-1 text-xs text-text-secondary">{{ stat.hint }}</p>
+        <p class="mt-0.5 text-xs text-text-secondary">{{ stat.hint }}</p>
       }
     </div>
   }

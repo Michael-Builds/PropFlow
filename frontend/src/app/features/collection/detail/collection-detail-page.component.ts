@@ -9,9 +9,11 @@ import { badgeVariantFor } from '../../../core/utils';
 import { DataService, RecordRow } from '../../../core/services/data/data.service';
 import { LoaderService } from '../../../core/services/loader/loader.service';
 import { ToastService } from '../../../core/services/toast/toast.service';
+import { IconComponent } from '../../../shared/icons/icon.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header/page-header.component';
 import { CardComponent } from '../../../shared/ui/card/card.component';
 import { BadgeComponent } from '../../../shared/ui/badge/badge.component';
+import { ButtonComponent } from '../../../shared/ui/button/button.component';
 import { DetailFieldsComponent } from '../../../shared/ui/detail-fields/detail-fields.component';
 import { DetailStatsComponent } from '../../../shared/ui/detail-stats/detail-stats.component';
 import { DetailTimelineComponent } from '../../../shared/ui/detail-timeline/detail-timeline.component';
@@ -24,9 +26,11 @@ import { DetailDocumentsComponent } from '../../../shared/ui/detail-documents/de
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
+    IconComponent,
     PageHeaderComponent,
     CardComponent,
     BadgeComponent,
+    ButtonComponent,
     DetailFieldsComponent,
     DetailStatsComponent,
     DetailTimelineComponent,

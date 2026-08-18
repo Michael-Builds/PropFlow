@@ -80,3 +80,25 @@ export function badgeVariantFor(value: string): 'neutral' | 'brand' | 'success' 
 export function prettyLabel(value: string): string {
   return value.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
+
+export function formatDisplayDate(value: string): string {
+  const raw = value.trim();
+  if (!raw || raw === '—') return '—';
+
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (dateOnly) {
+    const date = new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  const normalised = raw.includes('T') ? raw : raw.replace(' ', 'T');
+  const parsed = new Date(normalised);
+  if (!Number.isFinite(parsed.getTime())) return raw;
+  const hasClock = /T\d{2}:\d{2}|\d{2}:\d{2}/.test(raw);
+  return parsed.toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    ...(hasClock ? { hour: '2-digit', minute: '2-digit' } : {}),
+  });
+}

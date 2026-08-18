@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
   host: {
-    class: 'block h-full min-w-0 max-w-full overflow-hidden',
+    class: 'block min-w-0 max-w-full overflow-hidden',
   },
 })
 export class CardComponent {

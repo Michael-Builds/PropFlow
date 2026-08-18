@@ -12,5 +12,4 @@ import { DetailField } from '../../../core/interfaces/detail.interface';
 })
 export class DetailFieldsComponent {
   readonly fields = input.required<DetailField[]>();
-  readonly columns = input<1 | 2 | 3>(2);
 }
