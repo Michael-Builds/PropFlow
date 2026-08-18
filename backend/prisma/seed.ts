@@ -62,7 +62,128 @@ async function main() {
     });
   }
 
-  console.log('Seeded org org_001, platform admin, and demo users (password: password)');
+  const property = await prisma.property.upsert({
+    where: { id: 'prop_001' },
+    update: {
+      name: 'Airport City Residences',
+      location: 'Airport City, Accra',
+      type: 'residential',
+      manager: 'Yaw Asante',
+      status: 'active',
+    },
+    create: {
+      id: 'prop_001',
+      orgId: org.id,
+      name: 'Airport City Residences',
+      location: 'Airport City, Accra',
+      type: 'residential',
+      manager: 'Yaw Asante',
+      yearBuilt: 2019,
+      status: 'active',
+    },
+  });
+
+  const block = await prisma.block.upsert({
+    where: { id: 'block_001' },
+    update: { name: 'Block A', status: 'active' },
+    create: {
+      id: 'block_001',
+      orgId: org.id,
+      propertyId: property.id,
+      name: 'Block A',
+      status: 'active',
+    },
+  });
+
+  const occupiedUnit = await prisma.unit.upsert({
+    where: { id: 'unit_001' },
+    update: {
+      unitCode: 'A-12',
+      type: '2-bed',
+      rentAmount: 3500,
+      status: 'occupied',
+      blockId: block.id,
+    },
+    create: {
+      id: 'unit_001',
+      orgId: org.id,
+      propertyId: property.id,
+      blockId: block.id,
+      unitCode: 'A-12',
+      type: '2-bed',
+      floor: 1,
+      rentAmount: 3500,
+      currency: 'GHS',
+      status: 'occupied',
+    },
+  });
+
+  await prisma.unit.upsert({
+    where: { id: 'unit_002' },
+    update: {
+      unitCode: 'A-13',
+      type: '1-bed',
+      rentAmount: 2200,
+      status: 'vacant',
+      blockId: block.id,
+    },
+    create: {
+      id: 'unit_002',
+      orgId: org.id,
+      propertyId: property.id,
+      blockId: block.id,
+      unitCode: 'A-13',
+      type: '1-bed',
+      floor: 1,
+      rentAmount: 2200,
+      currency: 'GHS',
+      status: 'vacant',
+    },
+  });
+
+  const tenant = await prisma.tenant.upsert({
+    where: { id: 'tenant_001' },
+    update: {
+      fullName: 'Ama Boateng',
+      email: 'tenant@propflow.app',
+      status: 'active',
+      kycStatus: 'verified',
+    },
+    create: {
+      id: 'tenant_001',
+      orgId: org.id,
+      fullName: 'Ama Boateng',
+      email: 'tenant@propflow.app',
+      occupation: 'Analyst',
+      status: 'active',
+      kycStatus: 'verified',
+    },
+  });
+
+  await prisma.lease.upsert({
+    where: { id: 'lease_001' },
+    update: {
+      rentAmount: 3500,
+      status: 'active',
+      notes: 'Demo lease for Airport City A-12',
+    },
+    create: {
+      id: 'lease_001',
+      orgId: org.id,
+      propertyId: property.id,
+      unitId: occupiedUnit.id,
+      tenantId: tenant.id,
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-12-31'),
+      rentAmount: 3500,
+      dueDay: 5,
+      billingCycle: 'monthly',
+      status: 'active',
+      notes: 'Demo lease for Airport City A-12',
+    },
+  });
+
+  console.log('Seeded org org_001, platform admin, demo users, and sample portfolio (password: password)');
   await prisma.$disconnect();
 }
 
