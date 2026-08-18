@@ -126,11 +126,18 @@ export class GenerateAgreementDialogComponent implements OnInit, OnDestroy {
     const agreement = this.agreement();
     if (!agreement) return;
     this.saving.set(true);
-    this.agreements.saveToVault(agreement);
-    this.saving.set(false);
-    this.savedToVault.set(true);
-    this.toast.success('Saved to the document vault.');
-    this.saved.emit();
+    this.agreements.saveToVault(agreement).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.savedToVault.set(true);
+        this.toast.success('Saved to the document vault.');
+        this.saved.emit();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('Could not save this agreement.');
+      },
+    });
   }
 
   issuedLabel(value: string): string {

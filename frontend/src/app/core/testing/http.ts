@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from '../services/auth/auth.service';
+import { provideAppStore } from '../../store';
 
 export const OWNER_AUTH = {
   accessToken: 'access-token',
@@ -16,7 +17,7 @@ export const OWNER_AUTH = {
 };
 
 export function httpTestProviders() {
-  return [provideHttpClient(), provideHttpClientTesting()];
+  return [provideHttpClient(), provideHttpClientTesting(), provideAppStore()];
 }
 
 export function completeOwnerLogin(http: HttpTestingController, auth: AuthService): void {

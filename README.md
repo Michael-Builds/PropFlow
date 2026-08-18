@@ -61,7 +61,7 @@ Frontend structure follows a TrustNET-style layout: each UI piece typically has 
 | Files | S3 + CloudFront (presigned upload URLs) |
 | Rate limits | `@nestjs/throttler` with Redis storage; tighter windows on login |
 
-The UI talks to the API as `/api` (proxied to `http://localhost:3000` in development). The Nest app serves versioned routes under `/api/v1` and Swagger at `/docs`.
+The UI calls the API at `environment.apiBaseUrl` (`{origin}/api/{version}`). The Nest app serves versioned routes under `/api/v1` and Swagger at `/docs`.
 
 **Current frontend auth** is a local demo session (email + password against in-memory accounts). List/detail screens use in-memory mock JSON so the operator UX can be exercised without the API. The Nest API is the production contract for the same domains.
 
@@ -132,7 +132,7 @@ npm start
 
 App: [http://localhost:4200](http://localhost:4200)
 
-`ng serve` proxies `/api` → `http://localhost:3000` via [`frontend/proxy.conf.json`](frontend/proxy.conf.json).
+The frontend uses `environment.apiBaseUrl` from [`frontend/src/environments`](frontend/src/environments).
 
 ```bash
 npm run build    # production bundle

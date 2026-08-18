@@ -5,11 +5,13 @@ import { provideIcons, provideNgIconsConfig } from '@ng-icons/core';
 import { routes } from './app.routes';
 import { APP_ICONS } from './core/icons/app-icons';
 import { authInterceptor } from './core/http/auth.interceptor';
+import { provideAppStore } from './store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptors([authInterceptor])),
+    provideAppStore(),
     provideNgIconsConfig({ size: '1em' }),
     provideIcons(APP_ICONS),
     provideRouter(

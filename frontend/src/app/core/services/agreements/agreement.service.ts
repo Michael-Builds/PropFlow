@@ -1,5 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { AGREEMENT_TEMPLATES, agreementTemplateById, agreementTemplateFromQuery } from '../../config/agreement-templates';
+import {
+  AGREEMENT_TEMPLATES,
+  agreementTemplateById,
+  agreementTemplateFromQuery,
+} from '../../config/agreement-templates';
 import {
   AgreementTemplate,
   AgreementTemplateId,
@@ -131,7 +135,7 @@ export class AgreementService {
     await downloadAgreementPdf(agreement);
   }
 
-  saveToVault(agreement: GeneratedAgreement): RecordRow {
+  saveToVault(agreement: GeneratedAgreement) {
     const today = agreement.issuedAt.slice(0, 10);
     return this.data.create('documents', {
       entityId: agreement.leaseId ?? agreement.tenantId ?? '',

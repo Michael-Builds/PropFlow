@@ -1,158 +1,90 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, tap } from 'rxjs';
+import { Injectable, computed, inject } from '@angular/core';
+import { Actions, ofType } from '@ngrx/effects';
+import { Store } from '@ngrx/store';
+import { Observable, map, of, take } from 'rxjs';
 import { ROLE_LABELS } from '../../config/nav.config';
-import { SessionUser } from '../../interfaces/user.interface';
 import { UserRole } from '../../interfaces/nav.interface';
-import { initialsFromName } from '../../utils';
-import { API_BASE } from '../data/api-map';
-
-const AUTH_KEY = 'propflow.session';
-
-type AuthResponse = {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  user: {
-    id: string;
-    role: UserRole;
-    orgId: string | null;
-    email: string;
-    fullName?: string | null;
-    tenantId?: string | null;
-    vendorId?: string | null;
-  };
-};
-
-type StoredSession = {
-  user: SessionUser;
-  accessToken: string;
-  refreshToken: string;
-  activeOrgId: string | null;
-};
+import { AuthActions } from '../../../store/auth/auth.actions';
+import { authFeature } from '../../../store/auth/auth.reducer';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http = inject(HttpClient);
-  private readonly stored = this.readSession();
-  private readonly _user = signal<SessionUser | null>(this.stored?.user ?? null);
-  private readonly _accessToken = signal<string | null>(this.stored?.accessToken ?? null);
-  private readonly _refreshToken = signal<string | null>(this.stored?.refreshToken ?? null);
-  private readonly _activeOrgId = signal<string | null>(this.stored?.activeOrgId ?? this.stored?.user.orgId ?? null);
+  private readonly store = inject(Store);
+  private readonly actions$ = inject(Actions);
 
-  readonly user = this._user.asReadonly();
-  readonly authenticated = computed(() => this._user() !== null);
-  readonly role = computed(() => this._user()?.role ?? null);
-  readonly displayName = computed(() => this._user()?.fullName ?? 'Guest');
+  readonly user = this.store.selectSignal(authFeature.selectUser);
+  readonly authenticated = computed(() => this.user() !== null);
+  readonly role = computed(() => this.user()?.role ?? null);
+  readonly displayName = computed(() => this.user()?.fullName ?? 'Guest');
   readonly roleLabel = computed(() => {
-    const role = this._user()?.role;
+    const role = this.user()?.role;
     return role ? ROLE_LABELS[role] : '';
   });
-  readonly activeOrgId = this._activeOrgId.asReadonly();
+  readonly activeOrgId = this.store.selectSignal(authFeature.selectActiveOrgId);
+  private readonly accessTokenSignal = this.store.selectSignal(authFeature.selectAccessToken);
+  private readonly refreshTokenSignal = this.store.selectSignal(authFeature.selectRefreshToken);
 
   accessToken(): string | null {
-    return this._accessToken();
+    return this.accessTokenSignal();
   }
 
   login(email: string, password: string): Observable<{ ok: boolean; message?: string }> {
     if (password.length < 6) {
       return of({ ok: false, message: 'Password must be at least 6 characters.' });
     }
-    return this.http.post<AuthResponse>(`${API_BASE}/auth/login`, { email, password }).pipe(
-      tap((res) => this.applyAuth(res)),
-      map(() => ({ ok: true as const })),
-      catchError((err: { error?: { message?: string } }) =>
-        of({ ok: false, message: err.error?.message ?? 'Invalid email or password.' }),
+    this.store.dispatch(AuthActions.login({ email, password }));
+    return this.actions$.pipe(
+      ofType(AuthActions.loginSuccess, AuthActions.loginFailure),
+      take(1),
+      map((action) =>
+        action.type === AuthActions.loginSuccess.type
+          ? { ok: true as const }
+          : { ok: false, message: action.message },
       ),
     );
   }
 
   forgotPassword(email: string): Observable<{ ok: boolean }> {
-    return this.http.post<{ ok: boolean }>(`${API_BASE}/auth/forgot-password`, { email }).pipe(
-      catchError(() => of({ ok: true })),
+    this.store.dispatch(AuthActions.forgotPassword({ email }));
+    return this.actions$.pipe(
+      ofType(AuthActions.forgotPasswordSuccess),
+      take(1),
+      map(() => ({ ok: true })),
     );
   }
 
   resetPassword(token: string, password: string): Observable<{ ok: boolean; message?: string }> {
-    return this.http.post<{ ok: boolean }>(`${API_BASE}/auth/reset-password`, { token, password }).pipe(
-      map(() => ({ ok: true as const })),
-      catchError((err: { error?: { message?: string } }) =>
-        of({ ok: false, message: err.error?.message ?? 'Unable to reset password.' }),
+    this.store.dispatch(AuthActions.resetPassword({ token, password }));
+    return this.actions$.pipe(
+      ofType(AuthActions.resetPasswordSuccess, AuthActions.resetPasswordFailure),
+      take(1),
+      map((action) =>
+        action.type === AuthActions.resetPasswordSuccess.type
+          ? { ok: true as const }
+          : { ok: false, message: action.message },
       ),
     );
   }
 
   logout(): void {
-    const refreshToken = this._refreshToken();
-    if (this._accessToken() && refreshToken) {
-      this.http.post(`${API_BASE}/auth/logout`, { refreshToken }).subscribe({ error: () => undefined });
-    }
-    this._user.set(null);
-    this._accessToken.set(null);
-    this._refreshToken.set(null);
-    this._activeOrgId.set(null);
-    localStorage.removeItem(AUTH_KEY);
+    this.store.dispatch(AuthActions.logout({ refreshToken: this.refreshTokenSignal() }));
   }
 
   setActiveOrg(orgId: string): void {
-    this._activeOrgId.set(orgId);
-    this.persist();
+    this.store.dispatch(AuthActions.setActiveOrg({ orgId }));
   }
 
   canAccess(roles: UserRole[]): boolean {
-    const role = this._user()?.role;
+    const role = this.user()?.role;
     if (!role) return false;
     if (role === 'platform_admin') return true;
     return roles.includes(role);
   }
 
   homePath(): string {
-    const role = this._user()?.role;
+    const role = this.user()?.role;
     if (role === 'platform_admin') return '/organizations';
     if (role === 'vendor' || role === 'tenant') return '/tickets';
     return '/dashboard';
-  }
-
-  private applyAuth(res: AuthResponse): void {
-    const fullName = res.user.fullName?.trim() || res.user.email;
-    const user: SessionUser = {
-      id: res.user.id,
-      orgId: res.user.orgId,
-      fullName,
-      email: res.user.email,
-      role: res.user.role,
-      initials: initialsFromName(fullName),
-    };
-    this._user.set(user);
-    this._accessToken.set(res.accessToken);
-    this._refreshToken.set(res.refreshToken);
-    this._activeOrgId.set(res.user.role === 'platform_admin' ? this._activeOrgId() : res.user.orgId);
-    this.persist();
-  }
-
-  private persist(): void {
-    const user = this._user();
-    const accessToken = this._accessToken();
-    const refreshToken = this._refreshToken();
-    if (!user || !accessToken || !refreshToken) return;
-    const payload: StoredSession = {
-      user,
-      accessToken,
-      refreshToken,
-      activeOrgId: this._activeOrgId(),
-    };
-    localStorage.setItem(AUTH_KEY, JSON.stringify(payload));
-  }
-
-  private readSession(): StoredSession | null {
-    try {
-      const raw = localStorage.getItem(AUTH_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as StoredSession | SessionUser;
-      if ('accessToken' in parsed && 'user' in parsed) return parsed;
-      return null;
-    } catch {
-      return null;
-    }
   }
 }

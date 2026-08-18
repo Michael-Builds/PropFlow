@@ -13,6 +13,22 @@ export type DataCollection =
   | 'users'
   | 'organizations';
 
+export const DATA_COLLECTIONS: readonly DataCollection[] = [
+  'properties',
+  'units',
+  'tenants',
+  'leases',
+  'invoices',
+  'payments',
+  'arrears',
+  'tickets',
+  'documents',
+  'notifications',
+  'audit-logs',
+  'users',
+  'organizations',
+] as const;
+
 export type FormFieldType = 'text' | 'email' | 'tel' | 'select' | 'date' | 'textarea' | 'number';
 
 export interface FormFieldOption {

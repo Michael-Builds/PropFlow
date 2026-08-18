@@ -1,9 +1,15 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, forkJoin, map, of, tap } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Actions, ofType } from '@ngrx/effects';
+import { Store } from '@ngrx/store';
+import { Observable, catchError, filter, map, of, switchMap, take, throwError } from 'rxjs';
 import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
 import { DashboardData } from '../../interfaces/dashboard.interface';
-import { API_BASE, collectionPath, fromApi, toApi, unwrapItems, type RecordRow } from './api-map';
+import { RecordRow } from './api-map';
+import { CollectionsActions } from '../../../store/collections/collections.actions';
+import { collectionsFeature } from '../../../store/collections/collections.reducer';
+import { collectionEntitySelectors } from '../../../store/collections/collections.state';
+import { DashboardActions } from '../../../store/dashboard/dashboard.actions';
+import { dashboardFeature } from '../../../store/dashboard/dashboard.reducer';
 
 export type { RecordRow };
 
@@ -11,24 +17,36 @@ const LOOKUPS: DataCollection[] = ['properties', 'units', 'tenants', 'leases', '
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
-  private readonly http = inject(HttpClient);
-  readonly version = signal(0);
-  private readonly cache: Record<DataCollection, RecordRow[]> = emptyCache();
+  private readonly store = inject(Store);
+  private readonly actions$ = inject(Actions);
+  private readonly records = this.store.selectSignal(collectionsFeature.selectRecords);
+  readonly version = this.store.selectSignal(collectionsFeature.selectVersion);
 
   loadCollection<T = RecordRow>(name: DataCollection): Observable<T[]> {
-    const params = new HttpParams().set('page', '1').set('pageSize', '100');
-    return this.http.get<unknown>(collectionPath(name), { params }).pipe(
-      map((payload) => unwrapItems(payload).map((row) => fromApi(name, row))),
-      tap((rows) => {
-        this.cache[name] = rows;
-        this.version.update((n) => n + 1);
-      }),
-      map((rows) => rows as T[]),
+    this.store.dispatch(CollectionsActions.load({ name }));
+    return this.actions$.pipe(
+      ofType(CollectionsActions.loadSuccess, CollectionsActions.loadFailure),
+      filter((action) => action.name === name),
+      take(1),
+      switchMap((action) =>
+        action.type === CollectionsActions.loadFailure.type
+          ? throwError(() => new Error(action.error))
+          : of(action.rows as T[]),
+      ),
     );
   }
 
   dashboard<T = DashboardData>(): Observable<T> {
-    return this.http.get<T>(`${API_BASE}/dashboard/overview`);
+    this.store.dispatch(DashboardActions.load());
+    return this.actions$.pipe(
+      ofType(DashboardActions.loadSuccess, DashboardActions.loadFailure),
+      take(1),
+      switchMap((action) =>
+        action.type === DashboardActions.loadFailure.type
+          ? throwError(() => new Error(action.error))
+          : of(action.data as T),
+      ),
+    );
   }
 
   loadDashboard<T = DashboardData>(): Observable<T> {
@@ -36,7 +54,7 @@ export class DataService {
   }
 
   related(name: DataCollection, predicate: (row: RecordRow) => boolean): Observable<RecordRow[]> {
-    const cached = this.cache[name];
+    const cached = this.listSync(name);
     if (cached.length) {
       return of(cached.filter(predicate).map((row) => ({ ...row })));
     }
@@ -44,71 +62,71 @@ export class DataService {
   }
 
   getById<T = RecordRow>(name: DataCollection, id: string): Observable<T | null> {
-    return this.http.get<RecordRow>(`${collectionPath(name)}/${id}`).pipe(
-      map((row) => fromApi(name, row) as T),
+    this.store.dispatch(CollectionsActions.loadOne({ name, id }));
+    return this.actions$.pipe(
+      ofType(CollectionsActions.loadOneSuccess, CollectionsActions.loadOneFailure),
+      filter((action) => action.name === name && ('id' in action ? action.id === id : String(action.row['id']) === id)),
+      take(1),
+      map((action) => (action.type === CollectionsActions.loadOneSuccess.type ? (action.row as T) : null)),
       catchError(() => of(null)),
     );
   }
 
   listSync<T = RecordRow>(name: DataCollection): T[] {
     this.version();
-    return this.cache[name] as T[];
+    return collectionEntitySelectors.selectAll(this.records()[name]) as T[];
   }
 
   findSync<T = RecordRow>(name: DataCollection, id: string): T | null {
-    const row = this.cache[name].find((item) => item['id'] === id) ?? null;
+    this.version();
+    const row = this.records()[name].entities[id] ?? null;
     return (row ? { ...row } : null) as T | null;
   }
 
   create(name: DataCollection, payload: RecordRow): Observable<RecordRow> {
-    const body = toApi(name, payload);
-    const url = name === 'invoices' ? `${API_BASE}/invoices/generate` : collectionPath(name);
-    return this.http.post<RecordRow>(url, body).pipe(
-      map((row) => {
-        const record = name === 'organizations' && row['organization']
-          ? fromApi(name, row['organization'] as RecordRow)
-          : fromApi(name, row);
-        this.cache[name] = [record, ...this.cache[name]];
-        this.version.update((n) => n + 1);
-        return record;
-      }),
+    this.store.dispatch(CollectionsActions.create({ name, payload }));
+    return this.actions$.pipe(
+      ofType(CollectionsActions.createSuccess, CollectionsActions.createFailure),
+      filter((action) => action.name === name),
+      take(1),
+      switchMap((action) =>
+        action.type === CollectionsActions.createFailure.type
+          ? throwError(() => new Error(action.error))
+          : of(action.row),
+      ),
     );
   }
 
   update(name: DataCollection, id: string, payload: RecordRow): Observable<RecordRow | null> {
-    return this.http.patch<RecordRow>(`${collectionPath(name)}/${id}`, toApi(name, payload)).pipe(
-      map((row) => {
-        const record = fromApi(name, row);
-        this.cache[name] = this.cache[name].map((item) => (item['id'] === id ? record : item));
-        this.version.update((n) => n + 1);
-        return record;
-      }),
+    this.store.dispatch(CollectionsActions.update({ name, id, payload }));
+    return this.actions$.pipe(
+      ofType(CollectionsActions.updateSuccess, CollectionsActions.updateFailure),
+      filter((action) => action.name === name),
+      take(1),
+      switchMap((action) =>
+        action.type === CollectionsActions.updateFailure.type
+          ? throwError(() => new Error(action.error))
+          : of(action.row),
+      ),
     );
   }
 
   remove(name: DataCollection, ids: string[]): Observable<void> {
-    const requests = ids.map((id) => {
-      if (name === 'documents') {
-        return this.http.delete(`${collectionPath(name)}/${id}`);
-      }
-      if (name === 'users') {
-        return this.http.patch(`${collectionPath(name)}/${id}`, { status: 'disabled' });
-      }
-      return of(null);
-    });
-    return forkJoin(requests).pipe(
-      tap(() => {
-        this.cache[name] = this.cache[name].filter((row) => !ids.includes(String(row['id'])));
-        this.version.update((n) => n + 1);
-      }),
-      map(() => undefined),
+    this.store.dispatch(CollectionsActions.remove({ name, ids }));
+    return this.actions$.pipe(
+      ofType(CollectionsActions.removeSuccess, CollectionsActions.removeFailure),
+      filter((action) => action.name === name),
+      take(1),
+      switchMap((action) =>
+        action.type === CollectionsActions.removeFailure.type
+          ? throwError(() => new Error(action.error))
+          : of(undefined),
+      ),
     );
   }
 
   prefetchLookups(): void {
-    for (const name of LOOKUPS) {
-      this.loadCollection(name).subscribe({ error: () => undefined });
-    }
+    this.store.dispatch(CollectionsActions.prefetchLookups({ names: LOOKUPS }));
   }
 
   listOptions(sources: FormFieldOptionsFrom | FormFieldOptionsFrom[]): FormFieldOption[] {
@@ -117,7 +135,7 @@ export class DataService {
     const options: FormFieldOption[] = [];
     const seen = new Set<string>();
     for (const source of list) {
-      for (const row of this.cache[source.collection]) {
+      for (const row of this.listSync(source.collection)) {
         const value = String(row[source.valueKey ?? source.labelKey] ?? '').trim();
         const base = String(row[source.labelKey] ?? value).trim();
         if (!value || seen.has(value)) continue;
@@ -130,22 +148,8 @@ export class DataService {
     }
     return options.sort((a, b) => a.label.localeCompare(b.label));
   }
-}
 
-function emptyCache(): Record<DataCollection, RecordRow[]> {
-  return {
-    properties: [],
-    units: [],
-    tenants: [],
-    leases: [],
-    invoices: [],
-    payments: [],
-    arrears: [],
-    tickets: [],
-    documents: [],
-    notifications: [],
-    'audit-logs': [],
-    users: [],
-    organizations: [],
-  };
+  dashboardSnapshot(): DashboardData | null {
+    return this.store.selectSignal(dashboardFeature.selectData)();
+  }
 }

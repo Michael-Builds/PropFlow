@@ -2,7 +2,7 @@
 
 Angular 21 workspace for landlords, managers, finance, vendors, and tenants. One app; the signed-in `role` shows and hides navigation.
 
-This folder is the operator UX. Screens and tables currently run on **in-memory mock JSON**. The Nest API in `../backend` is the production contract (`/api` is already proxied there). Product spec: [`../docs/PropFlow_PRD_v1.1.txt`](../docs/PropFlow_PRD_v1.1.txt). Amounts in the UI are **GHS**.
+This folder is the operator UX. The Nest API in `../backend` is the production contract. API origin and version live in `src/environments`. Product spec: [`../docs/PropFlow_PRD_v1.1.txt`](../docs/PropFlow_PRD_v1.1.txt). Amounts in the UI are **GHS**.
 
 ## Stack
 
@@ -23,7 +23,7 @@ npm install
 npm start
 ```
 
-Open [http://localhost:4200](http://localhost:4200). `ng serve` uses [`proxy.conf.json`](proxy.conf.json) so `/api` goes to `http://localhost:3000`.
+Open [http://localhost:4200](http://localhost:4200). HTTP calls go to `environment.apiBaseUrl` (`{origin}/api/{version}`).
 
 ```bash
 npm run build    # production
@@ -173,6 +173,6 @@ Tokens in `src/styles.css`: `--pf-brand`, `--pf-navy-deep`, surface, semantic su
 - Do not put demo credentials on the login screen
 - Frontend TypeScript stays on 5.9 even if the editor language service is 6 from the backend SDK
 
-## Wiring the API later
+## API
 
-`proxy.conf.json` already forwards `/api`. Replace `AuthService` and `DataService` with HTTP calls to `/api/v1` (Bearer access token, refresh on 401, org from claims). Keep the same routes and table/detail shells.
+Auth, collections, and dashboard go through NgRx to `environment.apiBaseUrl`. Change origin or version in `src/environments/environment.model.ts`.

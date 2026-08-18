@@ -1,22 +1,21 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { AppNotification } from '../../interfaces/user.interface';
 import { formatRelativeTime } from '../../utils';
 import { AuthService } from '../auth/auth.service';
-import { DataService } from '../data/data.service';
-import { API_BASE } from '../data/api-map';
-import { HttpClient } from '@angular/common/http';
+import { RecordRow } from '../data/api-map';
+import { CollectionsActions } from '../../../store/collections/collections.actions';
+import { selectCollectionItems } from '../../../store/collections/collections.selectors';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly data = inject(DataService);
+  private readonly store = inject(Store);
   private readonly auth = inject(AuthService);
-  private readonly http = inject(HttpClient);
-  private readonly _items = signal<AppNotification[]>([]);
-
-  readonly items = this._items.asReadonly();
-  readonly unreadCount = computed(() => this._items().filter((item) => !item.read).length);
-  readonly unreadItems = computed(() => this._items().filter((item) => !item.read));
-  readonly recentItems = computed(() => this._items().slice(0, 6));
+  private readonly rows = this.store.selectSignal(selectCollectionItems('notifications'));
+  readonly items = computed(() => this.rows().map(toNotification));
+  readonly unreadCount = computed(() => this.items().filter((item) => !item.read).length);
+  readonly unreadItems = computed(() => this.items().filter((item) => !item.read));
+  readonly recentItems = computed(() => this.items().slice(0, 6));
 
   constructor() {
     if (this.auth.authenticated()) this.refresh();
@@ -24,24 +23,31 @@ export class NotificationService {
 
   refresh(): void {
     if (!this.auth.authenticated()) return;
-    this.data.loadCollection<AppNotification>('notifications').subscribe({
-      next: (items) => this._items.set(items),
-      error: () => this._items.set([]),
-    });
+    this.store.dispatch(CollectionsActions.load({ name: 'notifications' }));
   }
 
   markRead(id: string): void {
-    this._items.update((items) =>
-      items.map((item) => (item.id === id ? { ...item, read: true } : item)),
-    );
-    this.http.patch(`${API_BASE}/notifications/${id}/read`, {}).subscribe({ error: () => undefined });
+    this.store.dispatch(CollectionsActions.markNotificationRead({ id }));
   }
 
   markAllRead(): void {
-    this._items().filter((item) => !item.read).forEach((item) => this.markRead(item.id));
+    this.items()
+      .filter((item) => !item.read)
+      .forEach((item) => this.markRead(item.id));
   }
 
   relativeTime(iso: string): string {
     return formatRelativeTime(iso);
   }
+}
+
+function toNotification(row: RecordRow): AppNotification {
+  return {
+    id: String(row['id'] ?? ''),
+    title: String(row['title'] ?? ''),
+    message: String(row['message'] ?? ''),
+    type: String(row['type'] ?? 'info'),
+    read: Boolean(row['read']),
+    createdAt: String(row['createdAt'] ?? ''),
+  };
 }

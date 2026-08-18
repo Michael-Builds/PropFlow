@@ -7,7 +7,9 @@ async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL is required to seed.');
 
-  const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: url }),
+  });
   const passwordHash = await bcrypt.hash('password', 10);
 
   const org = await prisma.organization.upsert({
@@ -16,10 +18,18 @@ async function main() {
     create: { id: 'org_001', name: 'PropFlow Demo', status: 'active' },
   });
 
-  const platformEmail = (process.env.PLATFORM_ADMIN_EMAIL ?? 'platform@propflow.app').toLowerCase();
+  const platformEmail = (
+    process.env.PLATFORM_ADMIN_EMAIL ?? 'platform@propflow.app'
+  ).toLowerCase();
   await prisma.user.upsert({
     where: { email: platformEmail },
-    update: { passwordHash, role: 'platform_admin', status: 'active', orgId: null, fullName: 'PropFlow Platform' },
+    update: {
+      passwordHash,
+      role: 'platform_admin',
+      status: 'active',
+      orgId: null,
+      fullName: 'PropFlow Platform',
+    },
     create: {
       email: platformEmail,
       role: 'platform_admin',
@@ -183,7 +193,9 @@ async function main() {
     },
   });
 
-  console.log('Seeded org org_001, platform admin, demo users, and sample portfolio (password: password)');
+  console.log(
+    'Seeded org org_001, platform admin, demo users, and sample portfolio (password: password)',
+  );
   await prisma.$disconnect();
 }
 

@@ -4,12 +4,14 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const apiBase = environment.apiBaseUrl;
-  if (!req.url.startsWith(apiBase) && !req.url.startsWith('/api/')) {
+  if (!isApiRequest(req.url)) {
     return next(req);
   }
+
   const auth = inject(AuthService);
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    'ngrok-skip-browser-warning': 'true',
+  };
   const token = auth.accessToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const orgId = auth.activeOrgId();
@@ -18,3 +20,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
   return next(req.clone({ setHeaders: headers }));
 };
+
+function isApiRequest(url: string): boolean {
+  return (
+    url.startsWith(environment.apiBaseUrl) ||
+    url.startsWith(`${environment.apiOrigin}/api/`) ||
+    url.startsWith('/api/')
+  );
+}
