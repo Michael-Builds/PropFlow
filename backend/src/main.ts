@@ -9,7 +9,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { AppLogger } from './common/logger/app-logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
   const logger = app.get(AppLogger);
   app.useLogger(logger);
 

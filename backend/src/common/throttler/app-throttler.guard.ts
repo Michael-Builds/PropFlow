@@ -29,6 +29,7 @@ export class AppThrottlerGuard extends ThrottlerGuard {
     const path = String(req.originalUrl ?? req.url ?? '');
     return (
       path.includes('/health') ||
+      path.includes('/payments/webhook') ||
       path.startsWith('/docs') ||
       path.startsWith('/swagger')
     );

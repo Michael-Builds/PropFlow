@@ -33,4 +33,13 @@ export const envSchema = Joi.object({
   AWS_S3_FORCE_PATH_STYLE: Joi.boolean().truthy('true').falsy('false').default(false),
   AWS_CLOUDFRONT_DOMAIN: Joi.string().allow('').optional(),
   AUDIT_LOG_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  FRONTEND_URL: Joi.string().uri().default('http://localhost:4200'),
+  PAYSTACK_SECRET_KEY: Joi.string().required(),
+  PAYSTACK_PUBLIC_KEY: Joi.string().required(),
+  PAYSTACK_CURRENCY: Joi.string().default('GHS'),
+  PAYSTACK_FEE_PERCENT: Joi.number().min(0).max(100).default(1.95),
+  PAYSTACK_FEE_FLAT: Joi.number().min(0).default(0),
+  PAYSTACK_FEE_CAP: Joi.number().min(0).empty('').allow(null).optional(),
+  PAYSTACK_CALLBACK_URL: Joi.string().uri().allow('').optional(),
+  PAYSTACK_CHANNELS: Joi.string().default('card,mobile_money,bank_transfer'),
 });

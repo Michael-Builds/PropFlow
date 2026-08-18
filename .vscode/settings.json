@@ -10,5 +10,5 @@
   "search.exclude": {
     "**/node_modules": true
   },
-  "prisma.pinToPrisma6": true
+  "prisma.pinToPrisma6": false
 }
