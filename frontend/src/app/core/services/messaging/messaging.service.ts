@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, effect, inject, signal } from '@angular/core';
 import { tap } from 'rxjs';
 import { MessagingApiService } from '../../api/messaging-api.service';
 import {
@@ -19,32 +19,49 @@ export class MessagingService {
   readonly conversations = signal<ConversationSummary[]>([]);
   readonly active = signal<ConversationDetail | null>(null);
   readonly loading = signal(false);
+  private readonly listLoaded = signal(false);
+  private readonly loadedDetails = signal(new Set<string>());
 
   constructor() {
     this.realtime.connect();
-    const userId = this.auth.user()?.id;
-    if (userId) this.realtime.joinUser(userId);
     this.realtime.messages$.subscribe((msg) => this.onRealtimeMessage(msg));
+
+    effect(() => {
+      const userId = this.auth.user()?.id;
+      if (!userId) {
+        this.clearCache();
+        return;
+      }
+      this.realtime.joinUser(userId);
+    });
   }
 
-  refreshList(): void {
+  refreshList(force = false): void {
+    if (!force && this.listLoaded()) return;
     this.loading.set(true);
     this.api.list().subscribe({
       next: (rows) => {
         this.conversations.set(rows);
+        this.listLoaded.set(true);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
   }
 
-  open(id: string): void {
+  open(id: string, force = false): void {
+    const current = this.active();
+    if (!force && current?.id === id && this.loadedDetails().has(id)) {
+      return;
+    }
+
     this.loading.set(true);
     this.api.get(id).subscribe({
       next: (detail) => {
         this.active.set(detail);
+        this.loadedDetails.update((set) => new Set(set).add(id));
         this.loading.set(false);
-        this.refreshList();
+        this.refreshList(true);
       },
       error: () => this.loading.set(false),
     });
@@ -54,7 +71,8 @@ export class MessagingService {
     return this.api.create({ type, body, subject }).pipe(
       tap((detail) => {
         this.active.set(detail);
-        this.refreshList();
+        this.loadedDetails.update((set) => new Set(set).add(detail.id));
+        this.refreshList(true);
       }),
     );
   }
@@ -70,7 +88,7 @@ export class MessagingService {
           ...current,
           messages: [...current.messages, { ...message, senderName: this.auth.displayName() }],
         });
-        this.refreshList();
+        this.refreshList(true);
       },
     });
   }
@@ -82,9 +100,16 @@ export class MessagingService {
       next: () => {
         const current = this.active();
         if (current) this.active.set({ ...current, status: 'closed' });
-        this.refreshList();
+        this.refreshList(true);
       },
     });
+  }
+
+  clearCache(): void {
+    this.conversations.set([]);
+    this.active.set(null);
+    this.listLoaded.set(false);
+    this.loadedDetails.set(new Set());
   }
 
   private onRealtimeMessage(message: MessageItem & { conversationId: string }): void {
@@ -96,6 +121,6 @@ export class MessagingService {
         messages: [...current.messages, message],
       });
     }
-    this.refreshList();
+    this.refreshList(true);
   }
 }

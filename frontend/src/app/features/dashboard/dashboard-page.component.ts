@@ -1,27 +1,27 @@
-import { LoaderService } from '../../core/services/loader/loader.service';
-import { finalize } from 'rxjs/operators';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { NAV_SECTIONS } from '../../core/config/nav.config';
 import { DataCollection, collectionRoute } from '../../core/enums/data-collection.enum';
 import { UserRole, UserRoles } from '../../core/enums/user-role.enum';
+import { BadgeVariant } from '../../core/interfaces/badge.interface';
+import { TnChartDataset, TnChartType } from '../../core/interfaces/chart.interface';
+import { DashboardData } from '../../core/interfaces/dashboard.interface';
+import { NavIconName } from '../../core/interfaces/nav.interface';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { DataService } from '../../core/services/data/data.service';
-import { ToastService } from '../../core/services/toast/toast.service';
+import { LoaderService } from '../../core/services/loader/loader.service';
 import { ModalService } from '../../core/services/modal/modal.service';
-import { DashboardData } from '../../core/interfaces/dashboard.interface';
-import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
-import { CardComponent } from '../../shared/ui/card/card.component';
-import { BadgeComponent } from '../../shared/ui/badge/badge.component';
-import { BadgeVariant } from '../../core/interfaces/badge.interface';
-import { ButtonComponent } from '../../shared/ui/button/button.component';
-import { ChartComponent } from '../../shared/ui/chart/chart.component';
-import { StatCardComponent } from '../../shared/ui/stat-card/stat-card.component';
-import { IconComponent } from '../../shared/icons/icon.component';
-import { NavIconName } from '../../core/interfaces/nav.interface';
-import { TnChartDataset, TnChartType } from '../../core/interfaces/chart.interface';
+import { ToastService } from '../../core/services/toast/toast.service';
 import { oddLastGridClass } from '../../core/utils';
+import { IconComponent } from '../../shared/icons/icon.component';
+import { BadgeComponent } from '../../shared/ui/badge/badge.component';
+import { ButtonComponent } from '../../shared/ui/button/button.component';
+import { CardComponent } from '../../shared/ui/card/card.component';
+import { ChartComponent } from '../../shared/ui/chart/chart.component';
+import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
+import { StatCardComponent } from '../../shared/ui/stat-card/stat-card.component';
 
 type MetricItem = { label: string; value: string };
 
@@ -189,13 +189,21 @@ export class DashboardPageComponent {
   });
 
   constructor() {
+    const cached = this.data.dashboardSnapshot();
+    if (cached) {
+      this.dashboard.set(cached);
+      return;
+    }
     this.load();
   }
 
-  load(): void {
-    this.loader.show(this.isPlatformAdmin() ? 'Loading platform...' : 'Loading portfolio...');
+  load(force = false): void {
+    const hasCache = !!this.data.dashboardSnapshot();
+    if (!hasCache || force) {
+      this.loader.show(this.isPlatformAdmin() ? 'Loading platform...' : 'Loading portfolio...');
+    }
     this.data
-      .loadDashboard<DashboardData>()
+      .loadDashboard<DashboardData>({ force })
       .pipe(finalize(() => this.loader.hide()))
       .subscribe({
         next: (payload) => this.dashboard.set(payload),

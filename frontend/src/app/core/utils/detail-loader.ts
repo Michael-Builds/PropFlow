@@ -25,7 +25,8 @@ export function loadDetailRecord(options: {
     return null;
   }
 
-  loader.show(options.loadingLabel);
+  const cached = data.findSync(options.collection, options.id);
+  if (!cached) loader.show(options.loadingLabel);
   return data.getById<RecordRow>(options.collection, options.id).pipe(
     finalize(() => loader.hide()),
     tap({

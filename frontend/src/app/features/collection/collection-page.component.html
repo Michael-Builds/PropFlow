@@ -1,5 +1,5 @@
 <app-page-header [eyebrow]="config.eyebrow" [title]="config.title" [description]="config.description">
-  <app-button variant="secondary" icon="refresh" label="Refresh" (pressed)="refresh()" />
+  <app-button variant="secondary" icon="refresh" label="Refresh" (pressed)="refresh(true)" />
   @if (canGenerate()) {
     <app-button variant="secondary" icon="file" label="Generate agreement" (pressed)="openGenerate()" />
   }

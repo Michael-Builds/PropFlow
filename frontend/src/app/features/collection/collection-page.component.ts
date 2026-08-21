@@ -8,14 +8,13 @@ import {
   COLLECTION_PAGES,
 } from '../../core/config/collections.config';
 import { AGREEMENT_SOURCE_COLLECTIONS, AgreementTemplateId, DataCollection, UserRoles } from '../../core/enums';
-import { FormField, FormFieldOption } from '../../core/interfaces/data.interface';
 import { DataTableColumn, DataTableRowActionEvent } from '../../core/interfaces/data-table.interface';
+import { FormField, FormFieldOption } from '../../core/interfaces/data.interface';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { DataService, RecordRow } from '../../core/services/data/data.service';
 import { LoaderService } from '../../core/services/loader/loader.service';
 import { ModalService } from '../../core/services/modal/modal.service';
 import { ToastService } from '../../core/services/toast/toast.service';
-import { GenerateAgreementDialogComponent } from '../documents/generate-agreement/generate-agreement-dialog.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
 import { DataTableComponent } from '../../shared/ui/data-table/data-table.component';
 import { FormDialogComponent } from '../../shared/ui/form-dialog/form-dialog.component';
@@ -23,6 +22,7 @@ import { InputComponent } from '../../shared/ui/input/input.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 import { SelectComponent } from '../../shared/ui/select/select.component';
 import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
+import { GenerateAgreementDialogComponent } from '../documents/generate-agreement/generate-agreement-dialog.component';
 
 const GENERATE_COLLECTIONS: readonly DataCollection[] = AGREEMENT_SOURCE_COLLECTIONS;
 
@@ -116,10 +116,18 @@ export class CollectionPageComponent {
     if (this.collection === DataCollection.Documents) this.refresh();
   }
 
-  refresh(): void {
+  refresh(force = false): void {
+    if (!force && this.data.isCollectionLoaded(this.collection)) {
+      this.rows.set(this.data.listSync(this.collection));
+      this.loading.set(false);
+      return;
+    }
+
     this.loading.set(true);
-    this.loader.show();
-    this.data.loadCollection(this.collection).subscribe({
+    if (force || !this.data.isCollectionLoaded(this.collection)) {
+      this.loader.show();
+    }
+    this.data.loadCollection(this.collection, { force }).subscribe({
       next: (rows) => {
         this.rows.set(rows);
         this.loading.set(false);

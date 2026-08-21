@@ -2,26 +2,26 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { combineLatest, forkJoin, of, switchMap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { COLLECTION_PAGES } from '../../../core/config/collections.config';
 import { canReadCollection } from '../../../core/config/access';
+import { COLLECTION_PAGES } from '../../../core/config/collections.config';
 import { buildCollectionDetail, CollectionDetailModel } from '../../../core/config/detail.config';
 import { DataCollection } from '../../../core/enums/data-collection.enum';
-import { badgeVariantFor } from '../../../core/utils';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { DataService, RecordRow } from '../../../core/services/data/data.service';
 import { LoaderService } from '../../../core/services/loader/loader.service';
 import { ToastService } from '../../../core/services/toast/toast.service';
+import { badgeVariantFor } from '../../../core/utils';
 import { IconComponent } from '../../../shared/icons/icon.component';
-import { PageHeaderComponent } from '../../../shared/ui/page-header/page-header.component';
-import { CardComponent } from '../../../shared/ui/card/card.component';
 import { BadgeComponent } from '../../../shared/ui/badge/badge.component';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
-import { DetailFieldsComponent } from '../../../shared/ui/detail-fields/detail-fields.component';
-import { DetailStatsComponent } from '../../../shared/ui/detail-stats/detail-stats.component';
-import { DetailTimelineComponent } from '../../../shared/ui/detail-timeline/detail-timeline.component';
-import { DetailNotesComponent } from '../../../shared/ui/detail-notes/detail-notes.component';
+import { CardComponent } from '../../../shared/ui/card/card.component';
 import { DetailActionsComponent } from '../../../shared/ui/detail-actions/detail-actions.component';
 import { DetailDocumentsComponent } from '../../../shared/ui/detail-documents/detail-documents.component';
+import { DetailFieldsComponent } from '../../../shared/ui/detail-fields/detail-fields.component';
+import { DetailNotesComponent } from '../../../shared/ui/detail-notes/detail-notes.component';
+import { DetailStatsComponent } from '../../../shared/ui/detail-stats/detail-stats.component';
+import { DetailTimelineComponent } from '../../../shared/ui/detail-timeline/detail-timeline.component';
+import { PageHeaderComponent } from '../../../shared/ui/page-header/page-header.component';
 
 @Component({
   selector: 'app-collection-detail-page',
@@ -72,7 +72,10 @@ export class CollectionDetailPageComponent {
             void this.router.navigateByUrl(listPath);
             return of(null);
           }
-          this.loader.show(`Loading ${COLLECTION_PAGES[collection].title.toLowerCase()}...`);
+          const cached = this.data.findSync(collection, id);
+          if (!cached) {
+            this.loader.show(`Loading ${COLLECTION_PAGES[collection].title.toLowerCase()}...`);
+          }
           return this.data.getById<RecordRow>(collection, id).pipe(
             finalize(() => this.loader.hide()),
             switchMap((record) => {

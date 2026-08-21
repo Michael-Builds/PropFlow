@@ -39,6 +39,42 @@ describe('DataService', () => {
     expect(Array.isArray(payload.kpis)).toBe(true);
   });
 
+  it('should reuse cached dashboard without another API call', async () => {
+    const first = firstValueFrom(service.loadDashboard<{ kpis?: unknown[] }>());
+    http.expectOne((request) => request.url.includes('/dashboard/overview')).flush({
+      kpis: [{ label: 'Occupancy' }],
+    });
+    await first;
+
+    const second = await firstValueFrom(service.loadDashboard<{ kpis?: unknown[] }>());
+    http.expectNone((request) => request.url.includes('/dashboard/overview'));
+    expect(Array.isArray(second.kpis)).toBe(true);
+  });
+
+  it('should reuse a cached collection without another API call', async () => {
+    const first = firstValueFrom(service.loadCollection<{ id: string }>(DataCollection.Tenants));
+    http.expectOne((request) => request.url.includes('/tenants')).flush({
+      items: [{ id: 'tnt_001', fullName: 'Ama Boateng' }],
+    });
+    await first;
+
+    const second = await firstValueFrom(service.loadCollection<{ id: string }>(DataCollection.Tenants));
+    http.expectNone((request) => request.url.includes('/tenants'));
+    expect(second[0]?.id).toBe('tnt_001');
+  });
+
+  it('should reuse a cached record from getById', async () => {
+    const list = firstValueFrom(service.loadCollection<{ id: string }>(DataCollection.Tenants));
+    http.expectOne((request) => request.url.includes('/tenants')).flush({
+      items: [{ id: 'tnt_001', fullName: 'Ama Boateng' }],
+    });
+    await list;
+
+    const found = await firstValueFrom(service.getById<{ id: string }>(DataCollection.Tenants, 'tnt_001'));
+    http.expectNone((request) => request.url.includes('/tenants/tnt_001'));
+    expect(found?.id).toBe('tnt_001');
+  });
+
   it('should find a record by id', async () => {
     const pending = firstValueFrom(service.getById<{ id: string }>(DataCollection.Tenants, 'tnt_001'));
     const req = http.expectOne((request) => request.url.includes('/tenants/tnt_001'));

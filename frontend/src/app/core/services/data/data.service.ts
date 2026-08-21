@@ -2,18 +2,18 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { Observable, catchError, filter, map, of, switchMap, take, throwError } from 'rxjs';
-import { LOOKUP_COLLECTIONS } from '../../enums/data-collection.enum';
-import { UserRole } from '../../enums/user-role.enum';
-import { canReadCollection } from '../../config/access';
-import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
-import { DashboardData } from '../../interfaces/dashboard.interface';
-import { RecordRow } from './api-map';
 import { authFeature } from '../../../store/auth/auth.reducer';
 import { CollectionsActions } from '../../../store/collections/collections.actions';
 import { collectionsFeature } from '../../../store/collections/collections.reducer';
 import { collectionEntitySelectors } from '../../../store/collections/collections.state';
 import { DashboardActions } from '../../../store/dashboard/dashboard.actions';
 import { dashboardFeature } from '../../../store/dashboard/dashboard.reducer';
+import { canReadCollection } from '../../config/access';
+import { LOOKUP_COLLECTIONS } from '../../enums/data-collection.enum';
+import { UserRole } from '../../enums/user-role.enum';
+import { DashboardData } from '../../interfaces/dashboard.interface';
+import { DataCollection, FormFieldOption, FormFieldOptionsFrom } from '../../interfaces/data.interface';
+import { RecordRow } from './api-map';
 
 export type { RecordRow };
 
@@ -27,7 +27,15 @@ export class DataService {
   private readonly sessionUser = this.store.selectSignal(authFeature.selectUser);
   readonly version = this.store.selectSignal(collectionsFeature.selectVersion);
 
-  loadCollection<T = RecordRow>(name: DataCollection): Observable<T[]> {
+  loadCollection<T = RecordRow>(
+    name: DataCollection,
+    options?: { force?: boolean },
+  ): Observable<T[]> {
+    const slice = this.records()[name];
+    if (!options?.force && slice.status === 'loaded') {
+      return of(collectionEntitySelectors.selectAll(slice) as T[]);
+    }
+
     this.store.dispatch(CollectionsActions.load({ name }));
     return this.actions$.pipe(
       ofType(CollectionsActions.loadSuccess, CollectionsActions.loadFailure),
@@ -41,7 +49,13 @@ export class DataService {
     );
   }
 
-  dashboard<T = DashboardData>(): Observable<T> {
+  dashboard<T = DashboardData>(options?: { force?: boolean }): Observable<T> {
+    const cached = this.dashboardSnapshot();
+    const status = this.store.selectSignal(dashboardFeature.selectStatus)();
+    if (!options?.force && status === 'loaded' && cached) {
+      return of(cached as T);
+    }
+
     this.store.dispatch(DashboardActions.load());
     return this.actions$.pipe(
       ofType(DashboardActions.loadSuccess, DashboardActions.loadFailure),
@@ -54,23 +68,35 @@ export class DataService {
     );
   }
 
-  loadDashboard<T = DashboardData>(): Observable<T> {
-    return this.dashboard<T>();
+  loadDashboard<T = DashboardData>(options?: { force?: boolean }): Observable<T> {
+    return this.dashboard<T>(options);
   }
 
   related(name: DataCollection, predicate: (row: RecordRow) => boolean): Observable<RecordRow[]> {
-    const cached = this.listSync(name);
-    if (cached.length) {
-      return of(cached.filter(predicate).map((row) => ({ ...row })));
+    if (this.isCollectionLoaded(name)) {
+      return of(this.listSync(name).filter(predicate).map((row) => ({ ...row })));
     }
     return this.loadCollection(name).pipe(map((rows) => rows.filter(predicate)));
   }
 
-  getById<T = RecordRow>(name: DataCollection, id: string): Observable<T | null> {
+  getById<T = RecordRow>(
+    name: DataCollection,
+    id: string,
+    options?: { force?: boolean },
+  ): Observable<T | null> {
+    if (!options?.force) {
+      const cached = this.findSync<T>(name, id);
+      if (cached) return of(cached);
+    }
+
     this.store.dispatch(CollectionsActions.loadOne({ name, id }));
     return this.actions$.pipe(
       ofType(CollectionsActions.loadOneSuccess, CollectionsActions.loadOneFailure),
-      filter((action) => action.name === name && ('id' in action ? action.id === id : String(action.row['id']) === id)),
+      filter(
+        (action) =>
+          action.name === name &&
+          ('id' in action ? action.id === id : String(action.row['id']) === id),
+      ),
       take(1),
       map((action) => (action.type === CollectionsActions.loadOneSuccess.type ? (action.row as T) : null)),
       catchError(() => of(null)),
@@ -133,9 +159,15 @@ export class DataService {
   prefetchLookups(): void {
     const role = this.sessionUser()?.role;
     if (!role || role === UserRole.PlatformAdmin) return;
-    const names = LOOKUPS.filter((name) => canReadCollection(role, name));
+    const names = LOOKUPS.filter(
+      (name) => canReadCollection(role, name) && this.records()[name].status !== 'loaded',
+    );
     if (!names.length) return;
     this.store.dispatch(CollectionsActions.prefetchLookups({ names: [...names] }));
+  }
+
+  isCollectionLoaded(name: DataCollection): boolean {
+    return this.records()[name].status === 'loaded';
   }
 
   listOptions(sources: FormFieldOptionsFrom | FormFieldOptionsFrom[]): FormFieldOption[] {

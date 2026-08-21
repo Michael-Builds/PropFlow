@@ -3,6 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, concatMap, map, mergeMap, of } from 'rxjs';
 import { DataApiService } from '../../core/api/data-api.service';
 import { httpErrorMessage } from '../../core/api/http-error';
+import { DashboardActions } from '../dashboard/dashboard.actions';
 import { CollectionsActions } from './collections.actions';
 
 @Injectable()
@@ -90,6 +91,17 @@ export class CollectionsEffects {
           ),
         ),
       ),
+    ),
+  );
+
+  invalidateDashboard$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        CollectionsActions.createSuccess,
+        CollectionsActions.updateSuccess,
+        CollectionsActions.removeSuccess,
+      ),
+      map(() => DashboardActions.clear()),
     ),
   );
 
