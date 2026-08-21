@@ -74,6 +74,25 @@ export class NotificationsService {
     });
   }
 
+  async markFailed(notificationId: string, reason: string) {
+    this.logger.warning(
+      `Notification ${notificationId} failed: ${reason}`,
+      NotificationsService.name,
+    );
+    const existing = await this.prisma.notification.findUnique({ where: { id: notificationId } });
+    const payload =
+      existing?.payloadJson && typeof existing.payloadJson === 'object'
+        ? { ...(existing.payloadJson as Record<string, unknown>) }
+        : {};
+    return this.prisma.notification.update({
+      where: { id: notificationId },
+      data: {
+        status: 'failed',
+        payloadJson: { ...payload, error: reason },
+      },
+    });
+  }
+
   present(row: {
     id: string;
     orgId: string;
