@@ -1,15 +1,15 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 import { OrgId } from '../auth/decorators/org-id.decorator';
-import { DocumentsService } from './documents.service';
-import { StorageService } from '../storage/storage.service';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateUploadUrlDto } from '../storage/dto/create-upload-url.dto';
+import { StorageService } from '../storage/storage.service';
+import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
-import { UpdateDocumentDto } from './dto/update-document.dto';
 import { ListDocumentsQueryDto } from './dto/list-documents-query.dto';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 
 @ApiTags('documents')
 @ApiBearerAuth()

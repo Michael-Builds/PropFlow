@@ -278,6 +278,7 @@ export class ComplianceService {
       unit: units.map((r) => r.id),
       tenant: tenants.map((r) => r.id),
       lease: leases.map((r) => r.id),
+      ticket: [],
     };
   }
 }

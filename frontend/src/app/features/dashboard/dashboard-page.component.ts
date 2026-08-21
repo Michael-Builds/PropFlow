@@ -21,7 +21,10 @@ import { ButtonComponent } from '../../shared/ui/button/button.component';
 import { CardComponent } from '../../shared/ui/card/card.component';
 import { ChartComponent } from '../../shared/ui/chart/chart.component';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
+import { SelectComponent } from '../../shared/ui/select/select.component';
+import { InputComponent } from '../../shared/ui/input/input.component';
 import { StatCardComponent } from '../../shared/ui/stat-card/stat-card.component';
+import { FormsModule } from '@angular/forms';
 
 type MetricItem = { label: string; value: string };
 
@@ -43,6 +46,7 @@ type ChartPanel = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     NgClass,
+    FormsModule,
     RouterLink,
     PageHeaderComponent,
     CardComponent,
@@ -51,6 +55,8 @@ type ChartPanel = {
     ChartComponent,
     StatCardComponent,
     IconComponent,
+    SelectComponent,
+    InputComponent,
   ],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.css',
@@ -64,6 +70,9 @@ export class DashboardPageComponent {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   readonly dashboard = signal<DashboardData | null>(null);
+  readonly propertyFilter = signal('');
+  readonly dateFrom = signal('');
+  readonly dateTo = signal('');
   readonly isPlatformAdmin = computed(() => this.auth.role() === UserRole.PlatformAdmin);
   readonly canManagePortfolio = computed(() => this.auth.canAccess(UserRoles.portfolio));
   readonly canViewAudit = computed(() => this.auth.canAccess(UserRoles.audit));
@@ -83,6 +92,22 @@ export class DashboardPageComponent {
       const nav = items.find((item) => item.path === action.path);
       return !nav || this.auth.canAccess(nav.roles);
     });
+  });
+
+  readonly propertyOptions = computed(() => {
+    const rows = this.dashboard()?.properties ?? [];
+    return [
+      { label: 'All properties', value: '' },
+      ...rows.map((p) => ({ label: p.name, value: p.id || p.name })),
+    ];
+  });
+
+  readonly filteredProperties = computed(() => {
+    const d = this.dashboard();
+    if (!d) return [];
+    const key = this.propertyFilter();
+    if (!key) return d.properties;
+    return d.properties.filter((p) => p.id === key || p.name === key);
   });
 
   readonly pipelineTotal = computed(() => {

@@ -29,8 +29,8 @@ export class LeasesController {
 
   @Post()
   @Roles('owner', 'manager')
-  create(@OrgId() orgId: string, @Body() dto: CreateLeaseDto) {
-    return this.leasesService.create(orgId, dto);
+  create(@OrgId() orgId: string, @CurrentUser() user: JwtUser, @Body() dto: CreateLeaseDto) {
+    return this.leasesService.create(orgId, dto, user.sub);
   }
 
   @Get(':id')
@@ -39,21 +39,42 @@ export class LeasesController {
     return this.leasesService.getById(orgId, id);
   }
 
+  @Get(':id/history')
+  @Roles('owner', 'manager', 'finance')
+  history(@OrgId() orgId: string, @Param('id') id: string) {
+    return this.leasesService.history(orgId, id);
+  }
+
   @Patch(':id')
   @Roles('owner', 'manager')
-  update(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: UpdateLeaseDto) {
-    return this.leasesService.update(orgId, id, dto);
+  update(
+    @OrgId() orgId: string,
+    @CurrentUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateLeaseDto,
+  ) {
+    return this.leasesService.update(orgId, id, dto, user.sub);
   }
 
   @Post(':id/renew')
   @Roles('owner', 'manager')
-  renew(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: RenewLeaseDto) {
-    return this.leasesService.renew(orgId, id, dto);
+  renew(
+    @OrgId() orgId: string,
+    @CurrentUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: RenewLeaseDto,
+  ) {
+    return this.leasesService.renew(orgId, id, dto, user.sub);
   }
 
   @Post(':id/terminate')
   @Roles('owner', 'manager')
-  terminate(@OrgId() orgId: string, @Param('id') id: string, @Body() dto: TerminateLeaseDto) {
-    return this.leasesService.terminate(orgId, id, dto);
+  terminate(
+    @OrgId() orgId: string,
+    @CurrentUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: TerminateLeaseDto,
+  ) {
+    return this.leasesService.terminate(orgId, id, dto, user.sub);
   }
 }

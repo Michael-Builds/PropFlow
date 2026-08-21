@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { toCsv } from '../common/csv';
+import { rowsToPdf } from '../common/pdf';
 import { toNumber } from '../common/money';
 import { arrearsBucket } from '../common/aging';
 import { decryptPii } from '../common/pii';
@@ -10,6 +11,25 @@ export class ExportsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async csv(orgId: string, resource: string) {
+    const data = await this.load(orgId, resource);
+    return {
+      filename: `propflow-${resource}.csv`,
+      contentType: 'text/csv',
+      body: toCsv(data.headers, data.rows),
+    };
+  }
+
+  async pdf(orgId: string, resource: string) {
+    const data = await this.load(orgId, resource);
+    const body = await rowsToPdf(`PropFlow ${resource}`, data.headers, data.rows);
+    return {
+      filename: `propflow-${resource}.pdf`,
+      contentType: 'application/pdf',
+      body,
+    };
+  }
+
+  private async load(orgId: string, resource: string) {
     switch (resource) {
       case 'properties':
         return this.properties(orgId);
@@ -28,7 +48,7 @@ export class ExportsService {
       case 'tickets':
         return this.tickets(orgId);
       default:
-        return { filename: 'export.csv', contentType: 'text/csv', body: '' };
+        return { headers: [] as string[], rows: [] as Record<string, string | number>[] };
     }
   }
 
@@ -36,18 +56,14 @@ export class ExportsService {
     const rows = await this.prisma.property.findMany({ where: { orgId }, orderBy: { name: 'asc' } });
     const headers = ['id', 'name', 'location', 'status', 'createdAt'];
     return {
-      filename: 'propflow-properties.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          id: row.id,
-          name: row.name,
-          location: row.location ?? '',
-          status: row.status,
-          createdAt: row.createdAt.toISOString(),
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        location: row.location ?? '',
+        status: row.status,
+        createdAt: row.createdAt.toISOString(),
+      })),
     };
   }
 
@@ -59,20 +75,16 @@ export class ExportsService {
     });
     const headers = ['id', 'property', 'unitCode', 'type', 'rentAmount', 'currency', 'status'];
     return {
-      filename: 'propflow-units.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          id: row.id,
-          property: row.property.name,
-          unitCode: row.unitCode,
-          type: row.type ?? '',
-          rentAmount: toNumber(row.rentAmount),
-          currency: row.currency,
-          status: row.status,
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        id: row.id,
+        property: row.property.name,
+        unitCode: row.unitCode,
+        type: row.type ?? '',
+        rentAmount: toNumber(row.rentAmount),
+        currency: row.currency,
+        status: row.status,
+      })),
     };
   }
 
@@ -80,19 +92,15 @@ export class ExportsService {
     const rows = await this.prisma.tenant.findMany({ where: { orgId }, orderBy: { fullName: 'asc' } });
     const headers = ['id', 'fullName', 'email', 'phone', 'kycStatus', 'status'];
     return {
-      filename: 'propflow-tenants.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          id: row.id,
-          fullName: row.fullName,
-          email: row.email ?? '',
-          phone: decryptPii(row.phone) ?? '',
-          kycStatus: row.kycStatus,
-          status: row.status,
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        id: row.id,
+        fullName: row.fullName,
+        email: row.email ?? '',
+        phone: decryptPii(row.phone) ?? '',
+        kycStatus: row.kycStatus,
+        status: row.status,
+      })),
     };
   }
 
@@ -104,20 +112,16 @@ export class ExportsService {
     });
     const headers = ['id', 'tenant', 'unit', 'startDate', 'endDate', 'rentAmount', 'status'];
     return {
-      filename: 'propflow-leases.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          id: row.id,
-          tenant: row.tenant.fullName,
-          unit: row.unit.unitCode,
-          startDate: row.startDate.toISOString().slice(0, 10),
-          endDate: row.endDate.toISOString().slice(0, 10),
-          rentAmount: toNumber(row.rentAmount),
-          status: row.status,
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        id: row.id,
+        tenant: row.tenant.fullName,
+        unit: row.unit.unitCode,
+        startDate: row.startDate.toISOString().slice(0, 10),
+        endDate: row.endDate.toISOString().slice(0, 10),
+        rentAmount: toNumber(row.rentAmount),
+        status: row.status,
+      })),
     };
   }
 
@@ -125,40 +129,35 @@ export class ExportsService {
     const rows = await this.prisma.invoice.findMany({ where: { orgId }, orderBy: { dueDate: 'desc' } });
     const headers = ['id', 'tenantId', 'leaseId', 'dueDate', 'amountDue', 'balance', 'status'];
     return {
-      filename: 'propflow-invoices.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          id: row.id,
-          tenantId: row.tenantId,
-          leaseId: row.leaseId,
-          dueDate: row.dueDate.toISOString().slice(0, 10),
-          amountDue: toNumber(row.amountDue),
-          balance: toNumber(row.balance),
-          status: row.status,
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        id: row.id,
+        tenantId: row.tenantId,
+        leaseId: row.leaseId,
+        dueDate: row.dueDate.toISOString().slice(0, 10),
+        amountDue: toNumber(row.amountDue),
+        balance: toNumber(row.balance),
+        status: row.status,
+      })),
     };
   }
 
   private async payments(orgId: string) {
-    const rows = await this.prisma.payment.findMany({ where: { orgId, status: 'success' }, orderBy: { paidAt: 'desc' } });
+    const rows = await this.prisma.payment.findMany({
+      where: { orgId, status: 'success' },
+      orderBy: { paidAt: 'desc' },
+    });
     const headers = ['id', 'invoiceId', 'amount', 'method', 'reference', 'paidAt'];
     return {
-      filename: 'propflow-payments.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          id: row.id,
-          invoiceId: row.invoiceId,
-          amount: toNumber(row.amount),
-          method: row.method,
-          reference: row.reference,
-          paidAt: row.paidAt?.toISOString() ?? '',
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        id: row.id,
+        invoiceId: row.invoiceId,
+        amount: toNumber(row.amount),
+        method: row.method,
+        reference: row.reference,
+        paidAt: row.paidAt?.toISOString() ?? '',
+      })),
     };
   }
 
@@ -170,19 +169,15 @@ export class ExportsService {
     });
     const headers = ['invoiceId', 'tenant', 'leaseId', 'bucket', 'balance', 'dueDate'];
     return {
-      filename: 'propflow-arrears.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          invoiceId: row.id,
-          tenant: row.tenant.fullName,
-          leaseId: row.leaseId,
-          bucket: arrearsBucket(row.dueDate),
-          balance: toNumber(row.balance),
-          dueDate: row.dueDate.toISOString().slice(0, 10),
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        invoiceId: row.id,
+        tenant: row.tenant.fullName,
+        leaseId: row.leaseId,
+        bucket: arrearsBucket(row.dueDate),
+        balance: toNumber(row.balance),
+        dueDate: row.dueDate.toISOString().slice(0, 10),
+      })),
     };
   }
 
@@ -190,19 +185,15 @@ export class ExportsService {
     const rows = await this.prisma.ticket.findMany({ where: { orgId }, orderBy: { createdAt: 'desc' } });
     const headers = ['id', 'category', 'priority', 'status', 'slaDueAt', 'createdAt'];
     return {
-      filename: 'propflow-tickets.csv',
-      contentType: 'text/csv',
-      body: toCsv(
-        headers,
-        rows.map((row) => ({
-          id: row.id,
-          category: row.category,
-          priority: row.priority,
-          status: row.status,
-          slaDueAt: row.slaDueAt?.toISOString() ?? '',
-          createdAt: row.createdAt.toISOString(),
-        })),
-      ),
+      headers,
+      rows: rows.map((row) => ({
+        id: row.id,
+        category: row.category,
+        priority: row.priority,
+        status: row.status,
+        slaDueAt: row.slaDueAt?.toISOString() ?? '',
+        createdAt: row.createdAt.toISOString(),
+      })),
     };
   }
 }

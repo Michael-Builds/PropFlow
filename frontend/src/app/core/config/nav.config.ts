@@ -18,6 +18,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: 'Portfolio',
     items: [
       { id: DataCollection.Properties, label: 'Properties', path: collectionRoute(DataCollection.Properties), icon: 'building', roles: UserRoles.portfolio },
+      { id: DataCollection.Blocks, label: 'Blocks', path: collectionRoute(DataCollection.Blocks), icon: 'building', roles: UserRoles.portfolio },
       { id: DataCollection.Units, label: 'Units', path: collectionRoute(DataCollection.Units), icon: 'door', roles: UserRoles.portfolio },
       { id: DataCollection.Tenants, label: 'Tenants', path: collectionRoute(DataCollection.Tenants), icon: 'users', roles: UserRoles.portfolio },
       { id: DataCollection.Leases, label: 'Leases', path: collectionRoute(DataCollection.Leases), icon: 'file', roles: UserRoles.portfolio },
@@ -37,6 +38,8 @@ export const NAV_SECTIONS: NavSection[] = [
     label: 'Operations',
     items: [
       { id: DataCollection.Tickets, label: 'Maintenance', path: collectionRoute(DataCollection.Tickets), icon: 'wrench', roles: UserRoles.tickets },
+      { id: DataCollection.Vendors, label: 'Vendors', path: collectionRoute(DataCollection.Vendors), icon: 'users', roles: UserRoles.portfolio },
+      { id: 'compliance', label: 'Compliance', path: '/compliance', icon: 'shield', roles: UserRoles.documents },
       { id: 'messages', label: 'Messages', path: '/messages', icon: 'mail', roles: UserRoles.messaging },
       { id: DataCollection.Documents, label: 'Documents', path: collectionRoute(DataCollection.Documents), icon: 'folder', roles: UserRoles.documents },
       { id: DataCollection.Notifications, label: 'Notifications', path: collectionRoute(DataCollection.Notifications), icon: 'bell', roles: UserRoles.all, badgeKey: DataCollection.Notifications },

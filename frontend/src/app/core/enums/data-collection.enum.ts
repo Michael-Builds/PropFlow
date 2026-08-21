@@ -2,6 +2,7 @@ import { enumValues } from './helpers';
 
 export enum DataCollection {
   Properties = 'properties',
+  Blocks = 'blocks',
   Units = 'units',
   Tenants = 'tenants',
   Leases = 'leases',
@@ -9,6 +10,7 @@ export enum DataCollection {
   Payments = 'payments',
   Arrears = 'arrears',
   Tickets = 'tickets',
+  Vendors = 'vendors',
   Documents = 'documents',
   Notifications = 'notifications',
   AuditLogs = 'audit-logs',
@@ -20,10 +22,12 @@ export const DATA_COLLECTIONS = enumValues(DataCollection);
 
 export const LOOKUP_COLLECTIONS = [
   DataCollection.Properties,
+  DataCollection.Blocks,
   DataCollection.Units,
   DataCollection.Tenants,
   DataCollection.Leases,
   DataCollection.Invoices,
+  DataCollection.Vendors,
   DataCollection.Users,
 ] as const;
 

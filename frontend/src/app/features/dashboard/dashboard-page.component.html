@@ -14,6 +14,29 @@
       }
     </app-page-header>
 
+    @if (!isPlatformAdmin()) {
+      <div class="grid gap-3 sm:grid-cols-3">
+        <app-select
+          label="Property"
+          [options]="propertyOptions()"
+          [ngModel]="propertyFilter()"
+          (ngModelChange)="propertyFilter.set($event)"
+        />
+        <app-input
+          label="From"
+          type="date"
+          [ngModel]="dateFrom()"
+          (ngModelChange)="dateFrom.set($event)"
+        />
+        <app-input
+          label="To"
+          type="date"
+          [ngModel]="dateTo()"
+          (ngModelChange)="dateTo.set($event)"
+        />
+      </div>
+    }
+
     @if (dashboard(); as d) {
       <section
         class="dashboard-posture relative overflow-hidden rounded-md border border-white/10 bg-navy-deep px-5 py-5 text-white md:px-6 md:py-8"
@@ -207,7 +230,7 @@
             </a>
           }
           <div class="space-y-3">
-            @for (property of d.properties; track property.name) {
+            @for (property of filteredProperties(); track property.name) {
               <div class="rounded-md border border-border-light bg-white px-4 py-3.5">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="min-w-0">

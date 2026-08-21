@@ -2,9 +2,9 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsIn, IsOptional, IsString } from 'class-validator';
 
 export class CreateDocumentDto {
-  @ApiProperty({ enum: ['property', 'unit', 'tenant', 'lease'] })
-  @IsIn(['property', 'unit', 'tenant', 'lease'])
-  entityType: 'property' | 'unit' | 'tenant' | 'lease';
+  @ApiProperty({ enum: ['property', 'unit', 'tenant', 'lease', 'ticket'] })
+  @IsIn(['property', 'unit', 'tenant', 'lease', 'ticket'])
+  entityType: 'property' | 'unit' | 'tenant' | 'lease' | 'ticket';
 
   @ApiProperty()
   @IsString()

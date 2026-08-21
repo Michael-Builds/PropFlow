@@ -69,6 +69,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/messages/messages-page.component').then((m) => m.MessagesPageComponent),
       },
+      {
+        path: 'compliance',
+        loadComponent: () =>
+          import('./features/compliance/compliance-page.component').then((m) => m.CompliancePageComponent),
+      },
       ...DATA_COLLECTIONS.map((collection) => ({
         path: collection,
         children: [

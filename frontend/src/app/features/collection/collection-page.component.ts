@@ -1,13 +1,22 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import {
   COLLECTION_COLUMNS,
   COLLECTION_FIELDS,
   COLLECTION_FILTERS,
   COLLECTION_PAGES,
 } from '../../core/config/collections.config';
-import { AGREEMENT_SOURCE_COLLECTIONS, AgreementTemplateId, DataCollection, UserRoles } from '../../core/enums';
+import { DataApiService } from '../../core/api/data-api.service';
+import {
+  AGREEMENT_SOURCE_COLLECTIONS,
+  AgreementTemplateId,
+  DataCollection,
+  TicketStatus,
+  UnitStatus,
+  UserRoles,
+} from '../../core/enums';
 import { DataTableColumn, DataTableRowActionEvent } from '../../core/interfaces/data-table.interface';
 import { FormField, FormFieldOption } from '../../core/interfaces/data.interface';
 import { AuthService } from '../../core/services/auth/auth.service';
@@ -15,6 +24,7 @@ import { DataService, RecordRow } from '../../core/services/data/data.service';
 import { LoaderService } from '../../core/services/loader/loader.service';
 import { ModalService } from '../../core/services/modal/modal.service';
 import { ToastService } from '../../core/services/toast/toast.service';
+import { prettyLabel } from '../../core/utils';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
 import { DataTableComponent } from '../../shared/ui/data-table/data-table.component';
 import { FormDialogComponent } from '../../shared/ui/form-dialog/form-dialog.component';
@@ -25,6 +35,22 @@ import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
 import { GenerateAgreementDialogComponent } from '../documents/generate-agreement/generate-agreement-dialog.component';
 
 const GENERATE_COLLECTIONS: readonly DataCollection[] = AGREEMENT_SOURCE_COLLECTIONS;
+const BOARD_STATUSES = [
+  TicketStatus.Open,
+  TicketStatus.Assigned,
+  TicketStatus.InProgress,
+  TicketStatus.Resolved,
+  TicketStatus.Closed,
+] as const;
+
+const ENTITY_PATH: Record<string, string> = {
+  property: 'properties',
+  unit: 'units',
+  tenant: 'tenants',
+  lease: 'leases',
+  ticket: 'tickets',
+  invoice: 'invoices',
+};
 
 @Component({
   selector: 'app-collection-page',
@@ -47,6 +73,7 @@ export class CollectionPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly data = inject(DataService);
+  private readonly api = inject(DataApiService);
   private readonly loader = inject(LoaderService);
   private readonly toast = inject(ToastService);
   private readonly modal = inject(ModalService);
@@ -70,6 +97,25 @@ export class CollectionPageComponent {
   readonly generateLeaseId = signal<string | null>(null);
   readonly generateTenantId = signal<string | null>(null);
   readonly generateUnitId = signal<string | null>(null);
+  readonly ticketView = signal<'table' | 'board'>('table');
+  readonly actionDialog = signal<'promise' | 'escalate' | 'assign' | null>(null);
+  readonly actionRow = signal<RecordRow | null>(null);
+  readonly actionForm = this.fb.nonNullable.group({
+    promiseToPayAt: [''],
+    promisedAmount: [''],
+    notes: [''],
+    vendorId: [''],
+  });
+
+  readonly boardColumns = computed(() =>
+    BOARD_STATUSES.map((status) => ({
+      status,
+      label: prettyLabel(status),
+      rows: this.rows().filter((row) => String(row['status'] ?? '') === status),
+    })),
+  );
+
+  readonly vendorOptions = computed(() => this.data.listOptions({ collection: DataCollection.Vendors, labelKey: 'name', valueKey: 'id' }));
 
   constructor() {
     this.route.data.subscribe((data) => {
@@ -150,6 +196,15 @@ export class CollectionPageComponent {
   openDetail(row: RecordRow): void {
     const id = row['id'];
     if (!id) return;
+    if (this.collection === DataCollection.Notifications) {
+      const entityType = String(row['entityType'] ?? '');
+      const entityId = String(row['entityId'] ?? '');
+      const path = ENTITY_PATH[entityType];
+      if (path && entityId) {
+        void this.router.navigate(['/', path, entityId]);
+        return;
+      }
+    }
     void this.router.navigate(['/', this.collection, id]);
   }
 
@@ -206,7 +261,7 @@ export class CollectionPageComponent {
           this.toast.success(current ? 'Record updated.' : 'Record created.');
         }
         this.closeDialog();
-        this.refresh();
+        this.refresh(true);
       },
       error: () => {
         this.saving.set(false);
@@ -226,11 +281,176 @@ export class CollectionPageComponent {
     }
     if (event.action.id === 'delete') {
       await this.deleteRows([event.row]);
+      return;
+    }
+    if (event.action.id === 'receipt') {
+      this.downloadReceipt(String(event.row['id']));
+      return;
+    }
+    if (event.action.id === 'promise') {
+      this.actionRow.set(event.row);
+      this.actionForm.reset({ promiseToPayAt: '', promisedAmount: '', notes: '', vendorId: '' });
+      this.actionDialog.set('promise');
+      return;
+    }
+    if (event.action.id === 'escalate') {
+      this.actionRow.set(event.row);
+      this.actionForm.reset({ promiseToPayAt: '', promisedAmount: '', notes: '', vendorId: '' });
+      this.actionDialog.set('escalate');
     }
   }
 
   async onBulkDelete(rows: RecordRow[]): Promise<void> {
     await this.deleteRows(rows);
+  }
+
+  runReminders(): void {
+    this.api.runArrearsReminders().subscribe({
+      next: (res) => {
+        this.toast.success(`Queued ${res.reminded} reminder${res.reminded === 1 ? '' : 's'}.`);
+        this.refresh(true);
+      },
+      error: () => this.toast.error('Could not run reminders.'),
+    });
+  }
+
+  onImportFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    this.api.importUnits(file).subscribe({
+      next: (res) => {
+        this.toast.success(`Imported ${res.created} unit${res.created === 1 ? '' : 's'}${res.errors.length ? ` (${res.errors.length} errors)` : ''}.`);
+        this.refresh(true);
+      },
+      error: () => this.toast.error('CSV import failed.'),
+    });
+  }
+
+  async bulkSetMaintenance(rows: RecordRow[]): Promise<void> {
+    if (!rows.length) return;
+    const ok = await this.modal.confirm({
+      title: 'Mark units as maintenance?',
+      message: `Set ${rows.length} selected unit(s) to maintenance hold.`,
+      confirmLabel: 'Update',
+    });
+    if (!ok) return;
+    forkJoin(
+      rows.map((row) =>
+        this.data.update(DataCollection.Units, String(row['id']), { status: UnitStatus.Maintenance }),
+      ),
+    ).subscribe({
+      next: () => {
+        this.toast.success('Units updated.');
+        this.refresh(true);
+      },
+      error: () => this.toast.error('Could not update units.'),
+    });
+  }
+
+  submitActionDialog(): void {
+    const row = this.actionRow();
+    const kind = this.actionDialog();
+    if (!row || !kind) return;
+    const id = String(row['invoiceId'] ?? row['id']);
+    const value = this.actionForm.getRawValue();
+    if (kind === 'promise') {
+      if (!value.promiseToPayAt) {
+        this.toast.error('Promise date is required.');
+        return;
+      }
+      this.api
+        .promiseToPay(id, {
+          promiseToPayAt: value.promiseToPayAt,
+          promisedAmount: value.promisedAmount ? Number(value.promisedAmount) : undefined,
+        })
+        .subscribe({
+          next: () => {
+            this.toast.success('Promise to pay recorded.');
+            this.actionDialog.set(null);
+            this.refresh(true);
+          },
+          error: () => this.toast.error('Could not record promise.'),
+        });
+      return;
+    }
+    if (kind === 'escalate') {
+      this.api.escalateArrears(id, { notes: value.notes || undefined }).subscribe({
+        next: () => {
+          this.toast.success('Arrears escalated.');
+          this.actionDialog.set(null);
+          this.refresh(true);
+        },
+        error: () => this.toast.error('Could not escalate.'),
+      });
+      return;
+    }
+    if (kind === 'assign') {
+      if (!value.vendorId) {
+        this.toast.error('Select a vendor.');
+        return;
+      }
+      this.api.assignTicket(String(row['id']), { vendorId: value.vendorId }).subscribe({
+        next: () => {
+          this.toast.success('Ticket assigned.');
+          this.actionDialog.set(null);
+          this.refresh(true);
+        },
+        error: () => this.toast.error('Could not assign ticket.'),
+      });
+    }
+  }
+
+  openAssign(row: RecordRow): void {
+    this.actionRow.set(row);
+    this.actionForm.reset({ promiseToPayAt: '', promisedAmount: '', notes: '', vendorId: '' });
+    this.actionDialog.set('assign');
+  }
+
+  startTicket(row: RecordRow): void {
+    this.api.startTicket(String(row['id'])).subscribe({
+      next: () => {
+        this.toast.success('Ticket in progress.');
+        this.refresh(true);
+      },
+      error: () => this.toast.error('Could not start ticket.'),
+    });
+  }
+
+  resolveTicket(row: RecordRow): void {
+    this.api.resolveTicket(String(row['id'])).subscribe({
+      next: () => {
+        this.toast.success('Ticket resolved.');
+        this.refresh(true);
+      },
+      error: () => this.toast.error('Could not resolve ticket.'),
+    });
+  }
+
+  closeTicket(row: RecordRow): void {
+    this.api.closeTicket(String(row['id'])).subscribe({
+      next: () => {
+        this.toast.success('Ticket closed.');
+        this.refresh(true);
+      },
+      error: () => this.toast.error('Could not close ticket.'),
+    });
+  }
+
+  private downloadReceipt(id: string): void {
+    this.api.paymentReceipt(id).subscribe({
+      next: (receipt) => {
+        const blob = new Blob([receipt.body], { type: receipt.contentType || 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${receipt.reference || id}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.toast.error('Could not download receipt.'),
+    });
   }
 
   private apply(collection: DataCollection): void {
@@ -239,10 +459,15 @@ export class CollectionPageComponent {
     this.columns = COLLECTION_COLUMNS[collection];
     this.filters = COLLECTION_FILTERS[collection];
     this.fields = COLLECTION_FIELDS[collection];
+    this.ticketView.set('table');
     this.closeDialog();
     this.generateOpen.set(false);
+    this.actionDialog.set(null);
     this.buildForm();
     this.data.prefetchLookups();
+    if (collection === DataCollection.Tickets || collection === DataCollection.Units) {
+      this.data.loadCollection(DataCollection.Vendors).subscribe({ error: () => undefined });
+    }
     this.refresh();
   }
 
@@ -266,16 +491,18 @@ export class CollectionPageComponent {
       variant: 'danger',
     });
     if (!confirmed) return;
-    this.data.remove(
-      this.collection,
-      rows.map((row) => String(row['id'])),
-    ).subscribe({
-      next: () => {
-        this.toast.success('Records removed.');
-        this.refresh();
-      },
-      error: () => this.toast.error('Could not remove those records.'),
-    });
+    this.data
+      .remove(
+        this.collection,
+        rows.map((row) => String(row['id'])),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success('Records removed.');
+          this.refresh(true);
+        },
+        error: () => this.toast.error('Could not remove those records.'),
+      });
   }
 
   private buildForm(): void {

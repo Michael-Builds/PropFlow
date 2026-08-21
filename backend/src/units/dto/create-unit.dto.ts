@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsNumber, IsObject, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateUnitDto {
   @ApiProperty()
@@ -49,4 +49,12 @@ export class CreateUnitDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiPropertyOptional({
+    description: 'Utility setup, e.g. meters and account numbers',
+    example: { electricityMeter: 'EL-001', waterMeter: 'WT-001', prepaid: true },
+  })
+  @IsOptional()
+  @IsObject()
+  utilityJson?: Record<string, unknown>;
 }

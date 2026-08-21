@@ -132,6 +132,7 @@ export enum EntityType {
   Unit = 'unit',
   Tenant = 'tenant',
   Lease = 'lease',
+  Ticket = 'ticket',
 }
 
 export enum DocumentType {

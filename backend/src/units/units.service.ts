@@ -14,6 +14,11 @@ const UNIT_INCLUDE = {
   block: { select: { name: true } },
 } as const;
 
+function asJson(value: Record<string, unknown> | undefined): Prisma.InputJsonValue | undefined {
+  if (value == null) return undefined;
+  return value as Prisma.InputJsonValue;
+}
+
 @Injectable()
 export class UnitsService {
   constructor(
@@ -56,19 +61,23 @@ export class UnitsService {
     if (dto.blockId) await this.assertBlock(orgId, dto.propertyId, dto.blockId);
 
     try {
+      const data: Prisma.UnitUncheckedCreateInput = {
+        orgId,
+        propertyId: dto.propertyId,
+        blockId: dto.blockId,
+        unitCode: dto.unitCode,
+        type: dto.type,
+        floor: dto.floor,
+        sqm: dto.sqm,
+        rentAmount: dto.rentAmount,
+        currency: dto.currency ?? 'GHS',
+        status: dto.status ?? 'vacant',
+      };
+      if (dto.utilityJson != null) {
+        data.utilityJson = asJson(dto.utilityJson);
+      }
       const row = await this.prisma.unit.create({
-        data: {
-          orgId,
-          propertyId: dto.propertyId,
-          blockId: dto.blockId,
-          unitCode: dto.unitCode,
-          type: dto.type,
-          floor: dto.floor,
-          sqm: dto.sqm,
-          rentAmount: dto.rentAmount,
-          currency: dto.currency ?? 'GHS',
-          status: dto.status ?? 'vacant',
-        },
+        data,
         include: UNIT_INCLUDE,
       });
       this.logger.success(`Unit ${row.id} created`, UnitsService.name);
@@ -86,19 +95,23 @@ export class UnitsService {
     const propertyId = dto.propertyId ?? current.propertyId;
     if (dto.propertyId) await this.assertProperty(orgId, dto.propertyId);
     if (dto.blockId) await this.assertBlock(orgId, propertyId, dto.blockId);
+    const data: Prisma.UnitUncheckedUpdateInput = {
+      ...(dto.propertyId != null ? { propertyId: dto.propertyId } : {}),
+      ...(dto.blockId !== undefined ? { blockId: dto.blockId } : {}),
+      ...(dto.unitCode != null ? { unitCode: dto.unitCode } : {}),
+      ...(dto.type != null ? { type: dto.type } : {}),
+      ...(dto.floor != null ? { floor: dto.floor } : {}),
+      ...(dto.sqm != null ? { sqm: dto.sqm } : {}),
+      ...(dto.rentAmount != null ? { rentAmount: dto.rentAmount } : {}),
+      ...(dto.currency != null ? { currency: dto.currency } : {}),
+      ...(dto.status != null ? { status: dto.status } : {}),
+      ...(dto.utilityJson !== undefined
+        ? { utilityJson: asJson(dto.utilityJson) ?? Prisma.DbNull }
+        : {}),
+    };
     const row = await this.prisma.unit.update({
       where: { id },
-      data: {
-        ...(dto.propertyId != null ? { propertyId: dto.propertyId } : {}),
-        ...(dto.blockId !== undefined ? { blockId: dto.blockId } : {}),
-        ...(dto.unitCode != null ? { unitCode: dto.unitCode } : {}),
-        ...(dto.type != null ? { type: dto.type } : {}),
-        ...(dto.floor != null ? { floor: dto.floor } : {}),
-        ...(dto.sqm != null ? { sqm: dto.sqm } : {}),
-        ...(dto.rentAmount != null ? { rentAmount: dto.rentAmount } : {}),
-        ...(dto.currency != null ? { currency: dto.currency } : {}),
-        ...(dto.status != null ? { status: dto.status } : {}),
-      },
+      data,
       include: UNIT_INCLUDE,
     });
     return this.present(row);
@@ -137,6 +150,20 @@ export class UnitsService {
             rentAmount,
             currency: row.currency || 'GHS',
             status: row.status || 'vacant',
+            utilityJson:
+              row.electricity_meter || row.water_meter || row.utility_account
+                ? {
+                    ...(row.electricity_meter || row.electricityMeter
+                      ? { electricityMeter: row.electricity_meter || row.electricityMeter }
+                      : {}),
+                    ...(row.water_meter || row.waterMeter
+                      ? { waterMeter: row.water_meter || row.waterMeter }
+                      : {}),
+                    ...(row.utility_account || row.utilityAccount
+                      ? { utilityAccount: row.utility_account || row.utilityAccount }
+                      : {}),
+                  }
+                : undefined,
           }),
         );
       } catch (error) {
@@ -162,6 +189,7 @@ export class UnitsService {
     rentAmount: { toString(): string };
     currency: string;
     status: string;
+    utilityJson?: unknown;
     createdAt: Date;
     property?: { name: string };
     block?: { name: string } | null;
@@ -181,6 +209,7 @@ export class UnitsService {
       rent: toNumber(row.rentAmount),
       currency: row.currency,
       status: row.status,
+      utilityJson: row.utilityJson ?? null,
       createdAt: row.createdAt,
     };
   }

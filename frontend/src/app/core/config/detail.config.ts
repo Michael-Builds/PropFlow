@@ -237,6 +237,61 @@ export function buildCollectionDetail(
           { label: 'Leases', path: collectionRoute(DataCollection.Leases), icon: 'file', variant: 'secondary' },
         ],
       };
+    case DataCollection.Blocks:
+      return {
+        title: text(record, 'name'),
+        description: `Block on ${text(record, 'property')}`,
+        badgeLabel: status,
+        stats: [
+          { label: 'Property', value: text(record, 'property'), hint: 'Parent building' },
+          { label: 'Status', value: prettyLabel(status), hint: 'Block state' },
+        ],
+        overview: [
+          field('Block ID', id, { mono: true, emphasis: true }),
+          badge('Status', status),
+          field('Name', text(record, 'name')),
+          field('Property', text(record, 'property')),
+        ],
+        related: [
+          {
+            title: 'Units',
+            subtitle: 'Units in this block',
+            empty: 'No units linked yet.',
+            items: items(related.units ?? [], 'unitCode', ['type', 'status'], collectionRoute(DataCollection.Units)),
+          },
+        ],
+        documents: [],
+        timeline: [{ id: 't1', title: 'Block created', at: text(record, 'createdAt'), tone: 'info' }],
+        notes: [],
+        actions: [
+          { label: 'Property', path: `/properties/${text(record, 'propertyId')}`, icon: 'building', variant: 'soft' },
+          { label: 'Units', path: collectionRoute(DataCollection.Units), icon: 'door', variant: 'secondary' },
+        ],
+      };
+    case DataCollection.Vendors:
+      return {
+        title: text(record, 'name'),
+        description: 'Maintenance vendor',
+        badgeLabel: status,
+        stats: [{ label: 'Status', value: prettyLabel(status), hint: 'Availability' }],
+        overview: [
+          field('Vendor ID', id, { mono: true, emphasis: true }),
+          badge('Status', status),
+          field('Name', text(record, 'name')),
+        ],
+        related: [
+          {
+            title: 'Tickets',
+            subtitle: 'Assigned work orders',
+            empty: 'No tickets assigned.',
+            items: items(related.tickets ?? [], 'id', ['category', 'priority', 'status'], collectionRoute(DataCollection.Tickets)),
+          },
+        ],
+        documents: [],
+        timeline: [{ id: 't1', title: 'Vendor added', at: text(record, 'createdAt'), tone: 'success' }],
+        notes: [],
+        actions: [{ label: 'Maintenance', path: collectionRoute(DataCollection.Tickets), icon: 'wrench', variant: 'soft' }],
+      };
     case DataCollection.Tenants:
       return {
         title: text(record, 'fullName'),

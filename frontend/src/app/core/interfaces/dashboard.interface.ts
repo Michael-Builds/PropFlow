@@ -24,6 +24,7 @@ export interface DashboardPipelineStep {
 }
 
 export interface DashboardPropertyHealth {
+  id?: string;
   name: string;
   health: 'healthy' | 'watch' | 'risk';
   units: number;

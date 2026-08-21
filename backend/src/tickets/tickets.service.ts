@@ -1,18 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '../generated/prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { AppLogger } from '../common/logger/app-logger.service';
-import { pageArgs, pageResult } from '../common/pagination';
-import { ticketSlaDue } from '../common/document-status';
-import { toNumber } from '../common/money';
 import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import type { OrgScopedUser } from '../auth/decorators/org-id.decorator';
-import { CreateTicketDto } from './dto/create-ticket.dto';
-import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { ListTicketsQueryDto } from './dto/list-tickets-query.dto';
-import { AssignTicketDto } from './dto/assign-ticket.dto';
-import { ResolveTicketDto } from './dto/resolve-ticket.dto';
+import { ticketSlaDue } from '../common/document-status';
+import { AppLogger } from '../common/logger/app-logger.service';
 import { OperationalMailService } from '../common/mail/operational-mail.service';
+import { toNumber } from '../common/money';
+import { pageArgs, pageResult } from '../common/pagination';
+import { Prisma } from '../generated/prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { AssignTicketDto } from './dto/assign-ticket.dto';
+import { AddTicketAttachmentDto } from './dto/add-ticket-attachment.dto';
+import { CreateTicketDto } from './dto/create-ticket.dto';
+import { ListTicketsQueryDto } from './dto/list-tickets-query.dto';
+import { ResolveTicketDto } from './dto/resolve-ticket.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 
 @Injectable()
 export class TicketsService {
@@ -72,7 +73,7 @@ export class TicketsService {
         category: dto.category,
         priority: dto.priority,
         notes: dto.notes,
-        slaDueAt: ticketSlaDue(dto.priority),
+        slaDueAt: ticketSlaDue(dto.priority, new Date(), dto.category),
         events: {
           create: {
             orgId: user.orgId,
@@ -91,8 +92,13 @@ export class TicketsService {
   async update(user: OrgScopedUser, id: string, dto: UpdateTicketDto) {
     const current = await this.requireTicket(user.orgId, id);
     const slaDueAt =
-      dto.priority && dto.priority !== current.priority
-        ? ticketSlaDue(dto.priority, current.createdAt)
+      (dto.priority && dto.priority !== current.priority) ||
+      (dto.category && dto.category !== current.category)
+        ? ticketSlaDue(
+            dto.priority ?? current.priority,
+            current.createdAt,
+            dto.category ?? current.category,
+          )
         : undefined;
     const row = await this.prisma.ticket.update({
       where: { id },
@@ -138,7 +144,6 @@ export class TicketsService {
       },
       include: { events: { orderBy: { createdAt: 'asc' } } },
     });
-    this.logger.success(`Ticket ${id} assigned`, TicketsService.name);
     if (dto.assigneeUserId) {
       const assignee = await this.prisma.user.findFirst({
         where: { id: dto.assigneeUserId, orgId: user.orgId },
@@ -236,6 +241,52 @@ export class TicketsService {
       include: { events: { orderBy: { createdAt: 'asc' } } },
     });
     return this.present(row);
+  }
+
+  async listAttachments(user: OrgScopedUser, id: string) {
+    await this.getById(user, id);
+    const rows = await this.prisma.document.findMany({
+      where: { orgId: user.orgId, entityType: 'ticket', entityId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      fileUrl: row.fileUrl,
+      docType: row.docType,
+      fileName: (row.metadataJson as { fileName?: string } | null)?.fileName ?? row.docType,
+      createdAt: row.createdAt,
+    }));
+  }
+
+  async addAttachment(user: OrgScopedUser, id: string, dto: AddTicketAttachmentDto) {
+    await this.requireTicket(user.orgId, id);
+    const doc = await this.prisma.document.create({
+      data: {
+        orgId: user.orgId,
+        entityType: 'ticket',
+        entityId: id,
+        docType: 'ticket_attachment',
+        fileUrl: dto.fileUrl,
+        status: 'valid',
+        metadataJson: { fileName: dto.fileName },
+      },
+    });
+    await this.prisma.ticketEvent.create({
+      data: {
+        orgId: user.orgId,
+        ticketId: id,
+        eventType: 'attachment_added',
+        actorUserId: user.sub,
+        payloadJson: { documentId: doc.id, fileName: dto.fileName },
+      },
+    });
+    return {
+      id: doc.id,
+      fileUrl: doc.fileUrl,
+      docType: doc.docType,
+      fileName: dto.fileName,
+      createdAt: doc.createdAt,
+    };
   }
 
   private async requireTicket(orgId: string, id: string) {

@@ -12,6 +12,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { ListTicketsQueryDto } from './dto/list-tickets-query.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { ResolveTicketDto } from './dto/resolve-ticket.dto';
+import { AddTicketAttachmentDto } from './dto/add-ticket-attachment.dto';
 
 @ApiTags('tickets')
 @ApiBearerAuth()
@@ -60,5 +61,22 @@ export class TicketsController {
   @Roles('owner', 'manager')
   close(@CurrentUser() user: JwtUser, @OrgId() orgId: string, @Param('id') id: string) {
     return this.ticketsService.close(withOrg(user, orgId), id);
+  }
+
+  @Get(':id/attachments')
+  @Roles('owner', 'manager', 'vendor', 'tenant')
+  listAttachments(@CurrentUser() user: JwtUser, @OrgId() orgId: string, @Param('id') id: string) {
+    return this.ticketsService.listAttachments(withOrg(user, orgId), id);
+  }
+
+  @Post(':id/attachments')
+  @Roles('owner', 'manager', 'vendor', 'tenant')
+  addAttachment(
+    @CurrentUser() user: JwtUser,
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @Body() dto: AddTicketAttachmentDto,
+  ) {
+    return this.ticketsService.addAttachment(withOrg(user, orgId), id, dto);
   }
 }

@@ -1,0 +1,46 @@
+<app-page-header
+  eyebrow="Operations"
+  title="Compliance"
+  description="Required document rules and portfolio compliance score."
+>
+  <app-button variant="secondary" icon="refresh" label="Refresh" (pressed)="reload()" />
+  <app-button icon="plus" label="Add rule" (pressed)="openCreate()" />
+</app-page-header>
+
+<div class="grid gap-4 lg:grid-cols-3">
+  <app-card title="Score" subtitle="Org-wide compliance">
+    <p class="text-3xl font-semibold text-text-primary">{{ scoreLabel() }}</p>
+  </app-card>
+  <app-card class="lg:col-span-2" title="Rules" subtitle="Required documents by entity">
+    @if (!rules().length && !loading()) {
+      <app-empty-state icon="shield" title="No rules yet" description="Add the first required document rule." />
+    } @else {
+      <ul class="divide-y divide-border-light">
+        @for (rule of rules(); track rule['id']) {
+          <li class="flex items-center justify-between gap-3 py-3">
+            <div>
+              <p class="text-sm font-medium text-text-primary">{{ rule['docType'] }}</p>
+              <p class="text-xs text-text-secondary">{{ rule['entityType'] }} · required {{ rule['required'] }}</p>
+            </div>
+            <app-button variant="ghost" size="sm" label="Remove" (pressed)="remove('' + rule['id'])" />
+          </li>
+        }
+      </ul>
+    }
+  </app-card>
+</div>
+
+@if (dialogOpen()) {
+  <app-form-dialog
+    title="Add compliance rule"
+    description="Require a document type for an entity."
+    [saving]="saving()"
+    (closed)="dialogOpen.set(false)"
+    (saved)="save()"
+  >
+    <form class="grid gap-4" [formGroup]="form">
+      <app-select label="Entity type" [options]="entityOptions" formControlName="entityType" />
+      <app-input label="Document type" formControlName="docType" placeholder="national_id" />
+    </form>
+  </app-form-dialog>
+}

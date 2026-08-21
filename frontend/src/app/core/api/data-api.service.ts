@@ -21,8 +21,12 @@ export class DataApiService {
     return this.http.get<RecordRow>(`${collectionPath(name)}/${id}`).pipe(map((row) => fromApi(name, row)));
   }
 
-  dashboard(): Observable<DashboardData> {
-    return this.http.get<DashboardData>(`${API_BASE}/dashboard/overview`);
+  dashboard(params?: { propertyId?: string; from?: string; to?: string }): Observable<DashboardData> {
+    let httpParams = new HttpParams();
+    if (params?.propertyId) httpParams = httpParams.set('propertyId', params.propertyId);
+    if (params?.from) httpParams = httpParams.set('from', params.from);
+    if (params?.to) httpParams = httpParams.set('to', params.to);
+    return this.http.get<DashboardData>(`${API_BASE}/dashboard/overview`, { params: httpParams });
   }
 
   create(name: DataCollection, payload: RecordRow): Observable<RecordRow> {
@@ -52,5 +56,98 @@ export class DataApiService {
 
   markNotificationRead(id: string): Observable<unknown> {
     return this.http.patch(`${API_BASE}/notifications/${id}/read`, {});
+  }
+
+  renewLease(id: string, body: { endDate: string; rentAmount?: number; dueDay?: number }): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/leases/${id}/renew`, body);
+  }
+
+  terminateLease(id: string, body: { notes?: string } = {}): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/leases/${id}/terminate`, body);
+  }
+
+  leaseHistory(id: string): Observable<RecordRow[]> {
+    return this.http.get<unknown>(`${API_BASE}/leases/${id}/history`).pipe(map((payload) => unwrapItems(payload)));
+  }
+
+  runArrearsReminders(): Observable<{ reminded: number }> {
+    return this.http.post<{ reminded: number }>(`${API_BASE}/arrears/reminders/run`, {});
+  }
+
+  promiseToPay(
+    invoiceId: string,
+    body: { promiseToPayAt: string; promisedAmount?: number },
+  ): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/arrears/${invoiceId}/promise-to-pay`, body);
+  }
+
+  escalateArrears(invoiceId: string, body: { level?: string; notes?: string } = {}): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/arrears/${invoiceId}/escalate`, body);
+  }
+
+  paymentReceipt(id: string): Observable<{ id: string; reference: string; contentType: string; body: string }> {
+    return this.http.get<{ id: string; reference: string; contentType: string; body: string }>(
+      `${API_BASE}/payments/${id}/receipt`,
+    );
+  }
+
+  importUnits(file: File): Observable<{ created: number; errors: { row: number; message: string }[] }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ created: number; errors: { row: number; message: string }[] }>(
+      `${API_BASE}/units/import`,
+      form,
+    );
+  }
+
+  assignTicket(id: string, body: { assigneeUserId?: string; vendorId?: string }): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/tickets/${id}/assign`, body);
+  }
+
+  resolveTicket(id: string, body: { notes?: string; costAmount?: number } = {}): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/tickets/${id}/resolve`, body);
+  }
+
+  closeTicket(id: string): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/tickets/${id}/close`, {});
+  }
+
+  startTicket(id: string): Observable<RecordRow> {
+    return this.http.patch<RecordRow>(`${API_BASE}/tickets/${id}`, { status: 'in_progress' });
+  }
+
+  listTicketAttachments(id: string): Observable<RecordRow[]> {
+    return this.http.get<unknown>(`${API_BASE}/tickets/${id}/attachments`).pipe(map((payload) => unwrapItems(payload)));
+  }
+
+  addTicketAttachment(id: string, body: { fileUrl: string; fileName: string }): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/tickets/${id}/attachments`, body);
+  }
+
+  createUploadUrl(fileName: string, contentType: string): Observable<{ key: string; uploadUrl: string; fileUrl: string }> {
+    return this.http.post<{ key: string; uploadUrl: string; fileUrl: string }>(`${API_BASE}/documents/upload-url`, {
+      fileName,
+      contentType,
+    });
+  }
+
+  complianceRules(): Observable<RecordRow[]> {
+    return this.http.get<unknown>(`${API_BASE}/compliance/rules`).pipe(map((payload) => unwrapItems(payload)));
+  }
+
+  complianceScore(): Observable<RecordRow> {
+    return this.http.get<RecordRow>(`${API_BASE}/compliance/score`);
+  }
+
+  upsertComplianceRule(body: RecordRow): Observable<RecordRow> {
+    return this.http.post<RecordRow>(`${API_BASE}/compliance/rules`, body);
+  }
+
+  deleteComplianceRule(id: string): Observable<unknown> {
+    return this.http.delete(`${API_BASE}/compliance/rules/${id}`);
+  }
+
+  exportPdf(resource: string): Observable<Blob> {
+    return this.http.get(`${API_BASE}/exports/pdf/${resource}`, { responseType: 'blob' });
   }
 }

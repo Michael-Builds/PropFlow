@@ -40,6 +40,8 @@ export function fromApi(collection: string, row: RecordRow): RecordRow {
         ...row,
         rent: ghs(row['rentAmount'] ?? row['rent']),
         rentAmount: parseMoney(row['rentAmount'] ?? row['rent']) ?? row['rentAmount'],
+        electricityMeter: (row['utilityJson'] as { electricityMeter?: string } | null)?.electricityMeter ?? '',
+        waterMeter: (row['utilityJson'] as { waterMeter?: string } | null)?.waterMeter ?? '',
       };
     case DataCollection.Leases:
       return {
@@ -123,6 +125,25 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
         rentAmount: parseMoney(payload['rentAmount'] ?? payload['rent']),
         currency: Currency.Ghs,
         status: payload['status'] || UnitStatus.Vacant,
+        utilityJson:
+          payload['electricityMeter'] || payload['waterMeter'] || payload['utilityJson']
+            ? {
+                ...((payload['utilityJson'] as object) || {}),
+                ...(payload['electricityMeter'] ? { electricityMeter: payload['electricityMeter'] } : {}),
+                ...(payload['waterMeter'] ? { waterMeter: payload['waterMeter'] } : {}),
+              }
+            : undefined,
+      };
+    case DataCollection.Blocks:
+      return {
+        name: payload['name'],
+        propertyId: payload['propertyId'] ?? payload['property'],
+        status: payload['status'] || RecordStatus.Active,
+      };
+    case DataCollection.Vendors:
+      return {
+        name: payload['name'],
+        status: payload['status'] || RecordStatus.Active,
       };
     case DataCollection.Tenants:
       return {

@@ -97,6 +97,18 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
+  [DataCollection.Blocks]: {
+    id: DataCollection.Blocks,
+    path: DataCollection.Blocks,
+    eyebrow: 'Portfolio',
+    title: 'Blocks',
+    description: 'Wings or blocks within a property for grouping units.',
+    createLabel: 'Add block',
+    exportFileName: 'propflow-blocks',
+    canCreate: true,
+    canEdit: true,
+    canDelete: false,
+  },
   [DataCollection.Units]: {
     id: DataCollection.Units,
     path: DataCollection.Units,
@@ -181,6 +193,18 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     canEdit: true,
     canDelete: true,
   },
+  [DataCollection.Vendors]: {
+    id: DataCollection.Vendors,
+    path: DataCollection.Vendors,
+    eyebrow: 'Maintenance',
+    title: 'Vendors',
+    description: 'Trade partners assigned to maintenance work orders.',
+    createLabel: 'Add vendor',
+    exportFileName: 'propflow-vendors',
+    canCreate: true,
+    canEdit: true,
+    canDelete: false,
+  },
   [DataCollection.Documents]: {
     id: DataCollection.Documents,
     path: DataCollection.Documents,
@@ -252,9 +276,16 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     badgeCol('status', 'Status'),
     ACTIONS,
   ],
+  blocks: [
+    { key: 'name', header: 'Block', sortable: true },
+    { key: 'property', header: 'Property', sortable: true },
+    badgeCol('status', 'Status'),
+    ACTIONS,
+  ],
   units: [
     { key: 'unitCode', header: 'Unit', sortable: true },
     { key: 'property', header: 'Property', sortable: true },
+    { key: 'block', header: 'Block' },
     { key: 'type', header: 'Type', sortable: true },
     { key: 'rent', header: 'Rent', sortable: true },
     badgeCol('status', 'Status'),
@@ -296,7 +327,18 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     { key: 'method', header: 'Method' },
     { key: 'reference', header: 'Reference' },
     { key: 'paidAt', header: 'Paid at', type: 'date', sortable: true },
-    ACTIONS,
+    {
+      key: 'actions',
+      header: '',
+      type: 'actions',
+      widthClass: 'w-36',
+      actions: [
+        { id: 'view', label: 'View' },
+        { id: 'receipt', label: 'Receipt' },
+        { id: 'edit', label: 'Edit' },
+        { id: 'delete', label: 'Delete', tone: 'danger' },
+      ],
+    },
   ],
   arrears: [
     { key: 'tenant', header: 'Tenant', sortable: true },
@@ -304,7 +346,17 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     { key: 'bucket', header: 'Bucket' },
     { key: 'balance', header: 'Balance' },
     { key: 'lastReminder', header: 'Last reminder', type: 'date' },
-    ACTIONS,
+    {
+      key: 'actions',
+      header: '',
+      type: 'actions',
+      widthClass: 'w-40',
+      actions: [
+        { id: 'view', label: 'View' },
+        { id: 'promise', label: 'Promise' },
+        { id: 'escalate', label: 'Escalate' },
+      ],
+    },
   ],
   tickets: [
     { key: 'id', header: 'Ticket', sortable: true },
@@ -313,7 +365,12 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     badgeCol('priority', 'Priority'),
     { key: 'assignee', header: 'Assignee' },
     badgeCol('status', 'Status'),
-    { key: 'slaDue', header: 'SLA due' },
+    { key: 'slaDue', header: 'SLA due', type: 'date' },
+    ACTIONS,
+  ],
+  vendors: [
+    { key: 'name', header: 'Vendor', sortable: true },
+    badgeCol('status', 'Status'),
     ACTIONS,
   ],
   documents: [
@@ -358,6 +415,7 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
 
 export const COLLECTION_FILTERS: Record<DataCollection, DataTableFilter[]> = {
   [DataCollection.Properties]: [{ key: 'status', label: 'Status', options: selectOpts([RecordStatus.Active]) }],
+  [DataCollection.Blocks]: [{ key: 'status', label: 'Status', options: selectOpts([RecordStatus.Active]) }],
   [DataCollection.Units]: [{ key: 'status', label: 'Status', options: enumOptions(UnitStatus) }],
   [DataCollection.Tenants]: [{ key: 'kycStatus', label: 'KYC', options: enumOptions(KycStatus) }],
   [DataCollection.Leases]: [
@@ -398,6 +456,7 @@ export const COLLECTION_FILTERS: Record<DataCollection, DataTableFilter[]> = {
     },
     { key: 'priority', label: 'Priority', options: enumOptions(TicketPriority) },
   ],
+  [DataCollection.Vendors]: [{ key: 'status', label: 'Status', options: selectOpts([RecordStatus.Active]) }],
   [DataCollection.Documents]: [
     { key: 'type', label: 'Type', options: selectOpts(VAULT_DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS) },
     { key: 'status', label: 'Status', options: enumOptions(DocumentStatus) },
@@ -414,6 +473,18 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
     { key: 'location', label: 'Location', type: 'text', required: true },
     { key: 'status', label: 'Status', type: 'select', options: enumOptions(RecordStatus) },
   ],
+  [DataCollection.Blocks]: [
+    { key: 'name', label: 'Block name', type: 'text', required: true },
+    {
+      key: 'propertyId',
+      label: 'Property',
+      type: 'select',
+      required: true,
+      searchable: true,
+      optionsFrom: from(DataCollection.Properties, 'name', { valueKey: 'id' }),
+    },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(RecordStatus) },
+  ],
   [DataCollection.Units]: [
     { key: 'unitCode', label: 'Unit code', type: 'text', required: true },
     {
@@ -424,8 +495,17 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       searchable: true,
       optionsFrom: from(DataCollection.Properties, 'name', { valueKey: 'id' }),
     },
+    {
+      key: 'blockId',
+      label: 'Block',
+      type: 'select',
+      searchable: true,
+      optionsFrom: from(DataCollection.Blocks, 'name', { valueKey: 'id' }),
+    },
     { key: 'type', label: 'Unit type', type: 'select', options: enumOptions(UnitType, UNIT_TYPE_LABELS) },
     { key: 'rentAmount', label: 'Rent (GHS)', type: 'number', required: true, placeholder: '2500' },
+    { key: 'electricityMeter', label: 'Electricity meter', type: 'text', placeholder: 'EL-001' },
+    { key: 'waterMeter', label: 'Water meter', type: 'text', placeholder: 'WT-001' },
     { key: 'status', label: 'Status', type: 'select', options: enumOptions(UnitStatus) },
   ],
   [DataCollection.Tenants]: [
@@ -538,6 +618,10 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
       rows: 4,
       placeholder: 'Describe the issue, access notes, or completion comments.',
     },
+  ],
+  [DataCollection.Vendors]: [
+    { key: 'name', label: 'Vendor name', type: 'text', required: true },
+    { key: 'status', label: 'Status', type: 'select', options: enumOptions(RecordStatus) },
   ],
   [DataCollection.Documents]: [
     { key: 'entityType', label: 'Entity type', type: 'select', required: true, options: enumOptions(EntityType) },

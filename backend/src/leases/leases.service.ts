@@ -60,7 +60,7 @@ export class LeasesService {
     return this.present(row);
   }
 
-  async create(orgId: string, dto: CreateLeaseDto) {
+  async create(orgId: string, dto: CreateLeaseDto, actorUserId?: string) {
     const startDate = new Date(dto.startDate);
     const endDate = new Date(dto.endDate);
     this.assertRange(startDate, endDate);
@@ -106,6 +106,17 @@ export class LeasesService {
         },
       });
       await tx.unit.update({ where: { id: unit.id }, data: { status: 'occupied' } });
+      await tx.leaseChange.create({
+        data: {
+          orgId,
+          leaseId: lease.id,
+          changeType: 'created',
+          fromVersion: null,
+          toVersion: lease.version,
+          snapshotJson: this.snapshot(lease),
+          actorUserId,
+        },
+      });
       return lease;
     });
 
@@ -113,7 +124,7 @@ export class LeasesService {
     return this.present(row);
   }
 
-  async update(orgId: string, id: string, dto: UpdateLeaseDto) {
+  async update(orgId: string, id: string, dto: UpdateLeaseDto, actorUserId?: string) {
     const current = await this.prisma.lease.findFirst({ where: { id, orgId } });
     if (!current) throw new NotFoundException('Lease not found.');
 
@@ -125,28 +136,50 @@ export class LeasesService {
       await this.assertNoOverlap(orgId, unitId, startDate, endDate, id);
     }
 
-    const row = await this.prisma.lease.update({
-      where: { id },
-      data: {
-        ...(dto.unitId != null ? { unitId: dto.unitId } : {}),
-        ...(dto.tenantId != null ? { tenantId: dto.tenantId } : {}),
-        ...(dto.startDate ? { startDate } : {}),
-        ...(dto.endDate ? { endDate } : {}),
-        ...(dto.rentAmount != null ? { rentAmount: dto.rentAmount } : {}),
-        ...(dto.dueDay != null ? { dueDay: dto.dueDay } : {}),
-        ...(dto.billingCycle != null ? { billingCycle: dto.billingCycle } : {}),
-        ...(dto.notes != null ? { notes: dto.notes } : {}),
-        ...(dto.status != null ? { status: dto.status } : {}),
-      },
-      include: {
-        tenant: { select: { fullName: true } },
-        unit: { select: { unitCode: true } },
-      },
+    const material =
+      dto.rentAmount != null ||
+      dto.startDate != null ||
+      dto.endDate != null ||
+      dto.dueDay != null ||
+      dto.billingCycle != null;
+
+    const row = await this.prisma.$transaction(async (tx) => {
+      const lease = await tx.lease.update({
+        where: { id },
+        data: {
+          ...(dto.unitId != null ? { unitId: dto.unitId } : {}),
+          ...(dto.tenantId != null ? { tenantId: dto.tenantId } : {}),
+          ...(dto.startDate ? { startDate } : {}),
+          ...(dto.endDate ? { endDate } : {}),
+          ...(dto.rentAmount != null ? { rentAmount: dto.rentAmount } : {}),
+          ...(dto.dueDay != null ? { dueDay: dto.dueDay } : {}),
+          ...(dto.billingCycle != null ? { billingCycle: dto.billingCycle } : {}),
+          ...(dto.notes != null ? { notes: dto.notes } : {}),
+          ...(dto.status != null ? { status: dto.status } : {}),
+          ...(material ? { version: { increment: 1 } } : {}),
+        },
+        include: {
+          tenant: { select: { fullName: true } },
+          unit: { select: { unitCode: true } },
+        },
+      });
+      await tx.leaseChange.create({
+        data: {
+          orgId,
+          leaseId: id,
+          changeType: 'updated',
+          fromVersion: current.version,
+          toVersion: lease.version,
+          snapshotJson: this.snapshot(lease),
+          actorUserId,
+        },
+      });
+      return lease;
     });
     return this.present(row);
   }
 
-  async renew(orgId: string, id: string, dto: RenewLeaseDto) {
+  async renew(orgId: string, id: string, dto: RenewLeaseDto, actorUserId?: string) {
     const current = await this.prisma.lease.findFirst({
       where: { id, orgId },
       include: {
@@ -179,6 +212,18 @@ export class LeasesService {
         },
       });
       await tx.unit.update({ where: { id: current.unitId }, data: { status: 'occupied' } });
+      await tx.leaseChange.create({
+        data: {
+          orgId,
+          leaseId: id,
+          changeType: 'renewed',
+          fromVersion: current.version,
+          toVersion: lease.version,
+          snapshotJson: this.snapshot(lease),
+          actorUserId,
+          notes: `Renewed to ${dto.endDate}`,
+        },
+      });
       return lease;
     });
 
@@ -186,7 +231,7 @@ export class LeasesService {
     return this.present(row);
   }
 
-  async terminate(orgId: string, id: string, dto: TerminateLeaseDto) {
+  async terminate(orgId: string, id: string, dto: TerminateLeaseDto, actorUserId?: string) {
     const current = await this.prisma.lease.findFirst({ where: { id, orgId } });
     if (!current) throw new NotFoundException('Lease not found.');
     if (current.status === 'terminated') {
@@ -211,11 +256,65 @@ export class LeasesService {
       if (stillOccupied === 0) {
         await tx.unit.update({ where: { id: current.unitId }, data: { status: 'vacant' } });
       }
+      await tx.leaseChange.create({
+        data: {
+          orgId,
+          leaseId: id,
+          changeType: 'terminated',
+          fromVersion: current.version,
+          toVersion: lease.version,
+          snapshotJson: this.snapshot(lease),
+          actorUserId,
+          notes: dto.notes,
+        },
+      });
       return lease;
     });
 
     this.logger.success(`Lease ${id} terminated`, LeasesService.name);
     return this.present(row);
+  }
+
+  async history(orgId: string, id: string) {
+    await this.getById(orgId, id);
+    const rows = await this.prisma.leaseChange.findMany({
+      where: { orgId, leaseId: id },
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map((row) => ({
+      id: row.id,
+      changeType: row.changeType,
+      fromVersion: row.fromVersion,
+      toVersion: row.toVersion,
+      snapshot: row.snapshotJson,
+      actorUserId: row.actorUserId,
+      notes: row.notes,
+      createdAt: row.createdAt,
+    }));
+  }
+
+  private snapshot(row: {
+    id: string;
+    status: string;
+    version: number;
+    startDate: Date;
+    endDate: Date;
+    rentAmount: { toString(): string };
+    dueDay: number;
+    billingCycle: string;
+    notes: string | null;
+  }) {
+    return {
+      id: row.id,
+      status: row.status,
+      version: row.version,
+      startDate: row.startDate.toISOString(),
+      endDate: row.endDate.toISOString(),
+      rentAmount: toNumber(row.rentAmount),
+      dueDay: row.dueDay,
+      billingCycle: row.billingCycle,
+      notes: row.notes,
+    };
   }
 
   private assertRange(start: Date, end: Date) {

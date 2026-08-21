@@ -1,5 +1,21 @@
 <app-page-header [eyebrow]="config.eyebrow" [title]="config.title" [description]="config.description">
   <app-button variant="secondary" icon="refresh" label="Refresh" (pressed)="refresh(true)" />
+  @if (collection === 'arrears') {
+    <app-button variant="secondary" icon="bell" label="Send reminders" (pressed)="runReminders()" />
+  }
+  @if (collection === 'units') {
+    <label class="inline-flex cursor-pointer">
+      <input #unitCsv type="file" accept=".csv,text/csv" class="sr-only" (change)="onImportFile($event)" />
+      <app-button variant="secondary" icon="file" label="Import CSV" (pressed)="unitCsv.click()" />
+    </label>
+  }
+  @if (collection === 'tickets') {
+    <app-button
+      variant="secondary"
+      [label]="ticketView() === 'table' ? 'Board view' : 'Table view'"
+      (pressed)="ticketView.set(ticketView() === 'table' ? 'board' : 'table')"
+    />
+  }
   @if (canGenerate()) {
     <app-button variant="secondary" icon="file" label="Generate agreement" (pressed)="openGenerate()" />
   }
@@ -8,18 +24,54 @@
   }
 </app-page-header>
 
-<app-data-table
-  [columns]="columns"
-  [data]="rows()"
-  [filters]="filters"
-  [loading]="loading()"
-  [selectable]="config.canDelete"
-  [exportFileName]="config.exportFileName"
-  [exportTitle]="config.title"
-  (rowClick)="openDetail($event)"
-  (rowAction)="onRowAction($event)"
-  (bulkDelete)="onBulkDelete($event)"
-/>
+@if (collection === 'tickets' && ticketView() === 'board') {
+  <div class="grid gap-3 overflow-x-auto md:grid-cols-5">
+    @for (col of boardColumns(); track col.status) {
+      <section class="min-w-[14rem] rounded-xl border border-border-light bg-surface p-3">
+        <h3 class="mb-3 text-xs font-semibold tracking-wide text-text-muted uppercase">
+          {{ col.label }} ({{ col.rows.length }})
+        </h3>
+        <div class="space-y-2">
+          @for (row of col.rows; track row['id']) {
+            <article class="rounded-lg border border-border-light bg-bg p-3">
+              <button type="button" class="w-full text-left" (click)="openDetail(row)">
+                <p class="truncate text-sm font-semibold text-text-primary">{{ row['id'] }}</p>
+                <p class="mt-0.5 text-xs text-text-secondary">{{ row['category'] }} · {{ row['priority'] }}</p>
+              </button>
+              <div class="mt-2 flex flex-wrap gap-1">
+                @if (row['status'] === 'open') {
+                  <app-button size="sm" variant="secondary" label="Assign" (pressed)="openAssign(row)" />
+                }
+                @if (row['status'] === 'assigned' || row['status'] === 'open') {
+                  <app-button size="sm" variant="secondary" label="Start" (pressed)="startTicket(row)" />
+                }
+                @if (row['status'] === 'in_progress' || row['status'] === 'assigned') {
+                  <app-button size="sm" variant="secondary" label="Resolve" (pressed)="resolveTicket(row)" />
+                }
+                @if (row['status'] === 'resolved') {
+                  <app-button size="sm" variant="secondary" label="Close" (pressed)="closeTicket(row)" />
+                }
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  </div>
+} @else {
+  <app-data-table
+    [columns]="columns"
+    [data]="rows()"
+    [filters]="filters"
+    [loading]="loading()"
+    [selectable]="config.canDelete || collection === 'units'"
+    [exportFileName]="config.exportFileName"
+    [exportTitle]="config.title"
+    (rowClick)="openDetail($event)"
+    (rowAction)="onRowAction($event)"
+    (bulkDelete)="onBulkDelete($event)"
+  />
+}
 
 @if (dialogOpen()) {
   <app-form-dialog
@@ -55,6 +107,28 @@
             />
           }
         </div>
+      }
+    </form>
+  </app-form-dialog>
+}
+
+@if (actionDialog(); as kind) {
+  <app-form-dialog
+    [title]="kind === 'promise' ? 'Promise to pay' : kind === 'escalate' ? 'Escalate arrears' : 'Assign vendor'"
+    [description]="kind === 'assign' ? 'Assign this ticket to a vendor.' : 'Update collections follow-up.'"
+    (closed)="actionDialog.set(null)"
+    (saved)="submitActionDialog()"
+  >
+    <form class="grid gap-4" [formGroup]="actionForm">
+      @if (kind === 'promise') {
+        <app-input label="Promise date" type="date" formControlName="promiseToPayAt" />
+        <app-input label="Promised amount" type="number" formControlName="promisedAmount" />
+      }
+      @if (kind === 'escalate') {
+        <app-textarea label="Notes" formControlName="notes" [rows]="3" />
+      }
+      @if (kind === 'assign') {
+        <app-select label="Vendor" [options]="vendorOptions()" formControlName="vendorId" />
       }
     </form>
   </app-form-dialog>
