@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +6,7 @@ import {
 } from '../../core/interfaces/platform-availability.interface';
 import { PlatformAvailabilityService } from '../../core/services/platform-availability/platform-availability.service';
 import { ToastService } from '../../core/services/toast/toast.service';
+import { formatDisplayDate } from '../../core/utils';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
 import { InputComponent } from '../../shared/ui/input/input.component';
@@ -27,7 +27,6 @@ type ModeOption = {
   selector: 'app-system-status-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe,
     FormsModule,
     PageHeaderComponent,
     ButtonComponent,
@@ -185,6 +184,10 @@ export class SystemStatusPageComponent {
     if (tone === 'live') return 'border-success/30 bg-success-soft text-success';
     if (tone === 'maintenance') return 'border-warning/30 bg-warning-soft text-warning';
     return 'border-info/30 bg-info-soft text-info';
+  }
+
+  formatDate(value: string | null | undefined): string {
+    return formatDisplayDate(value);
   }
 
   save(): void {

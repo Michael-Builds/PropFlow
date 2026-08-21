@@ -9,7 +9,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgIcon } from '@ng-icons/core';
 import { IconComponent } from '../../icons/icon.component';
@@ -28,6 +27,7 @@ import {
   DataTableRowAction,
   DataTableRowActionEvent,
 } from '../../../core/interfaces/data-table.interface';
+import { formatDisplayDate } from '../../../core/utils';
 import { RowActionsComponent } from '../row-actions/row-actions.component';
 import { downloadDataTableCsv, downloadDataTablePdf } from './data-table.export';
 
@@ -45,7 +45,6 @@ export type {
   selector: 'app-data-table',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe,
     FormsModule,
     NgIcon,
     IconComponent,
@@ -222,6 +221,10 @@ export class DataTableComponent<T = any> {
       return value;
     }
     return String(value);
+  }
+
+  formatDate(value: string | number | Date): string {
+    return formatDisplayDate(value);
   }
 
   onSearch(value: string): void {

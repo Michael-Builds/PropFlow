@@ -182,7 +182,7 @@
                     @case ('date') {
                       @if (dateValue(row, col.key); as raw) {
                         <span class="leading-snug text-text-secondary">
-                          {{ raw | date: col.dateFormat || 'medium' }}
+                          {{ formatDate(raw) }}
                         </span>
                       } @else {
                         <span class="leading-snug">—</span>
@@ -248,7 +248,7 @@
                     @case ('date') {
                       @if (dateValue(row, second.key); as raw) {
                         <p class="truncate text-xs text-text-secondary">
-                          {{ raw | date: second.dateFormat || 'medium' }}
+                          {{ formatDate(raw) }}
                         </p>
                       }
                     }
@@ -279,7 +279,7 @@
                       }
                       @case ('date') {
                         @if (dateValue(row, col.key); as raw) {
-                          {{ raw | date: col.dateFormat || 'medium' }}
+                          {{ formatDate(raw) }}
                         } @else {
                           —
                         }

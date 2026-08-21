@@ -75,11 +75,7 @@ export function formatRelativeTime(iso: string, now = Date.now()): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(then).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  return formatDisplayDate(iso);
 }
 
 export function formatNumber(value: number, locale = 'en-GH'): string {
@@ -118,24 +114,55 @@ export function prettyLabel(value: string): string {
   return value.replace(/[_-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export function formatDisplayDate(value: string): string {
+/** UI date: "18th August 2026" — date only, no time. */
+export function formatDisplayDate(value: string | number | Date | null | undefined): string {
+  const date = parseDisplayDate(value);
+  if (!date) {
+    if (value == null || value === '') return '—';
+    const raw = String(value).trim();
+    return raw || '—';
+  }
+
+  const day = date.getDate();
+  const month = date.toLocaleDateString('en-GB', { month: 'long' });
+  const year = date.getFullYear();
+  return `${day}${dayOrdinal(day)} ${month} ${year}`;
+}
+
+function dayOrdinal(day: number): string {
+  const mod100 = day % 100;
+  if (mod100 >= 11 && mod100 <= 13) return 'th';
+  switch (day % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+}
+
+function parseDisplayDate(value: string | number | Date | null | undefined): Date | null {
+  if (value == null || value === '') return null;
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? value : null;
+  }
+  if (typeof value === 'number') {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date : null;
+  }
+
   const raw = value.trim();
-  if (!raw || raw === '—') return '—';
+  if (!raw || raw === '—') return null;
 
   const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
   if (dateOnly) {
-    const date = new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
-    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
   }
 
-  const normalised = raw.includes('T') ? raw : raw.replace(' ', 'T');
+  const normalised = raw.includes('T') ? raw : raw.includes(' ') ? raw.replace(' ', 'T') : raw;
   const parsed = new Date(normalised);
-  if (!Number.isFinite(parsed.getTime())) return raw;
-  const hasClock = /T\d{2}:\d{2}|\d{2}:\d{2}/.test(raw);
-  return parsed.toLocaleString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    ...(hasClock ? { hour: '2-digit', minute: '2-digit' } : {}),
-  });
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
 }

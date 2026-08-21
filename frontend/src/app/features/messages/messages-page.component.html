@@ -105,7 +105,7 @@
             [class.text-text-primary]="msg.senderUserId !== me()"
           >
             <p class="mb-1 text-[0.7rem] opacity-80">
-              {{ msg.senderName || 'User' }} · {{ msg.createdAt | date: 'short' }}
+              {{ msg.senderName || 'User' }} · {{ formatDate(msg.createdAt) }}
             </p>
             <p class="whitespace-pre-wrap">{{ msg.body }}</p>
           </div>

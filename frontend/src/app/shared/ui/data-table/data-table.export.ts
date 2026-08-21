@@ -1,5 +1,6 @@
 import type { jsPDF } from 'jspdf';
 import { DataTableCellType, DataTableColumn } from '../../../core/interfaces/data-table.interface';
+import { formatDisplayDate } from '../../../core/utils';
 
 const PDF_FONT = 'Figtree';
 const PDF_FONT_FILE = 'Figtree.ttf';
@@ -44,15 +45,7 @@ function formatExportValue(row: unknown, column: DataTableColumn): string {
   if (raw === null || raw === undefined || raw === '') return '';
 
   if (cellType(column) === 'date') {
-    const date = raw instanceof Date ? raw : new Date(String(raw));
-    if (Number.isNaN(date.getTime())) return String(raw);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(date);
+    return formatDisplayDate(raw as string | number | Date);
   }
 
   return String(raw).replace(/—/g, '').trim();

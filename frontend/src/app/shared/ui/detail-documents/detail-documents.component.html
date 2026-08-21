@@ -19,7 +19,7 @@
             <td class="py-3 pr-4">
               <app-badge [variant]="statusVariant(doc.status)" [label]="doc.status" />
             </td>
-            <td class="py-3 text-text-muted tabular-nums">{{ doc.uploadedAt | date: 'mediumDate' }}</td>
+            <td class="py-3 text-text-muted">{{ formatDate(doc.uploadedAt) }}</td>
           </tr>
         }
       </tbody>

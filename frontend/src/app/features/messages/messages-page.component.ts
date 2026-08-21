@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -10,6 +9,7 @@ import { AuthService } from '../../core/services/auth/auth.service';
 import { RealtimeService } from '../../core/services/realtime/realtime.service';
 import { ToastService } from '../../core/services/toast/toast.service';
 import { UserRole } from '../../core/enums/user-role.enum';
+import { formatDisplayDate } from '../../core/utils';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 import { CardComponent } from '../../shared/ui/card/card.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
@@ -21,7 +21,6 @@ import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state.com
   selector: 'app-messages-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe,
     FormsModule,
     PageHeaderComponent,
     CardComponent,
@@ -111,5 +110,9 @@ export class MessagesPageComponent implements OnInit {
 
   closeThread(): void {
     this.messaging.closeActive();
+  }
+
+  formatDate(value: string | null | undefined): string {
+    return formatDisplayDate(value);
   }
 }

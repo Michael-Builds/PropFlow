@@ -30,7 +30,7 @@
     </h2>
     <p class="mt-1.5 text-sm text-white/65">
       @if (current().updatedAt) {
-        Last changed {{ current().updatedAt | date: 'medium' }}
+        Last changed {{ formatDate(current().updatedAt) }}
       } @else {
         Not published yet
       }

@@ -1,4 +1,4 @@
-import { DatePipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -14,7 +14,7 @@ import { DataService } from '../../core/services/data/data.service';
 import { LoaderService } from '../../core/services/loader/loader.service';
 import { ModalService } from '../../core/services/modal/modal.service';
 import { ToastService } from '../../core/services/toast/toast.service';
-import { oddLastGridClass } from '../../core/utils';
+import { formatDisplayDate, oddLastGridClass } from '../../core/utils';
 import { IconComponent } from '../../shared/icons/icon.component';
 import { BadgeComponent } from '../../shared/ui/badge/badge.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
@@ -42,7 +42,6 @@ type ChartPanel = {
   selector: 'app-dashboard-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe,
     NgClass,
     RouterLink,
     PageHeaderComponent,
@@ -213,6 +212,10 @@ export class DashboardPageComponent {
 
   iconName(icon: string | undefined): NavIconName {
     return (icon as NavIconName) || 'dashboard';
+  }
+
+  formatDate(value: string | null | undefined): string {
+    return formatDisplayDate(value);
   }
 
   statusVariant(status: string): BadgeVariant {

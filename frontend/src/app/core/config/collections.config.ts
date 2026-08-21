@@ -328,7 +328,7 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     { key: 'title', header: 'Title', sortable: true },
     { key: 'message', header: 'Message' },
     { key: 'type', header: 'Type' },
-    { key: 'createdAt', header: 'When' },
+    { key: 'createdAt', header: 'When', type: 'date', sortable: true },
     VIEW_DELETE,
   ],
   'audit-logs': [
@@ -336,7 +336,7 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     { key: 'action', header: 'Action' },
     { key: 'entity', header: 'Entity' },
     { key: 'ip', header: 'IP' },
-    { key: 'createdAt', header: 'When', sortable: true },
+    { key: 'createdAt', header: 'When', type: 'date', sortable: true },
     VIEW_ONLY,
   ],
   users: [

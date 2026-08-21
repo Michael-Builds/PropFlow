@@ -1,13 +1,13 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { BadgeComponent } from '../badge/badge.component';
 import { BadgeVariant } from '../../../core/interfaces/badge.interface';
 import { DetailDocument } from '../../../core/interfaces/detail.interface';
+import { formatDisplayDate } from '../../../core/utils';
 
 @Component({
   selector: 'app-detail-documents',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, BadgeComponent],
+  imports: [BadgeComponent],
   templateUrl: './detail-documents.component.html',
   styleUrl: './detail-documents.component.css',
   host: { class: 'block' },
@@ -15,6 +15,10 @@ import { DetailDocument } from '../../../core/interfaces/detail.interface';
 export class DetailDocumentsComponent {
   readonly documents = input.required<DetailDocument[]>();
   readonly emptyLabel = input('No documents attached.');
+
+  formatDate(value: string | null | undefined): string {
+    return formatDisplayDate(value);
+  }
 
   statusVariant(status: string): BadgeVariant {
     const value = status.toLowerCase();

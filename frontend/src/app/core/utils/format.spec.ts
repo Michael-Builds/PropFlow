@@ -1,4 +1,5 @@
 import {
+  formatDisplayDate,
   formatGhs,
   formatNumber,
   formatPercent,
@@ -28,6 +29,18 @@ describe('format', () => {
     expect(formatRelativeTime('2026-08-13T09:00:00.000Z', now)).toBe('3h ago');
     expect(formatRelativeTime('2026-08-11T12:00:00.000Z', now)).toBe('2d ago');
     expect(formatRelativeTime('not-a-date', now)).toBe('—');
+  });
+
+  it('formats display dates as ordinal long dates without time', () => {
+    expect(formatDisplayDate(new Date(2026, 7, 18))).toBe('18th August 2026');
+    expect(formatDisplayDate('2026-03-19')).toBe('19th March 2026');
+    expect(formatDisplayDate('2026-01-01')).toBe('1st January 2026');
+    expect(formatDisplayDate('2026-02-02')).toBe('2nd February 2026');
+    expect(formatDisplayDate('2026-03-03')).toBe('3rd March 2026');
+    expect(formatDisplayDate('2026-03-11')).toBe('11th March 2026');
+    expect(formatDisplayDate('2026-08-18T12:00:00.000Z')).toMatch(/August 2026$/);
+    expect(formatDisplayDate('')).toBe('—');
+    expect(formatDisplayDate(null)).toBe('—');
   });
 
   it('formats numbers, percents, and GHS', () => {

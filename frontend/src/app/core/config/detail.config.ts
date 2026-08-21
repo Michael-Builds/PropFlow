@@ -16,8 +16,8 @@ import {
   DetailStat,
   DetailTimelineEvent,
 } from '../interfaces/detail.interface';
-import { badgeVariantFor, prettyLabel } from '../utils';
 import { RecordRow } from '../services/data/data.service';
+import { badgeVariantFor, formatDisplayDate, prettyLabel } from '../utils';
 import { COLLECTION_PAGES } from './collections.config';
 
 const AGREEMENT_TYPE_SET = new Set<string>(AGREEMENT_DOC_TYPES);
@@ -39,6 +39,12 @@ function text(record: RecordRow, key: string, fallback = '—'): string {
   const value = record[key];
   if (value == null || value === '') return fallback;
   return String(value);
+}
+
+function dateText(record: RecordRow, key: string, fallback = '—'): string {
+  const value = record[key];
+  if (value == null || value === '') return fallback;
+  return formatDisplayDate(value as string | number | Date);
 }
 
 function field(label: string, value: string, extra?: Partial<Extract<DetailField, { kind: 'text' }>>): DetailField {
@@ -159,7 +165,7 @@ export function buildCollectionDetail(
           badge('Status', status),
           field('Manager', text(record, 'manager')),
           field('Address', text(record, 'address', text(record, 'location'))),
-          field('Created', text(record, 'createdAt')),
+          field('Created', dateText(record, 'createdAt')),
         ],
         related: [
           {
@@ -240,7 +246,7 @@ export function buildCollectionDetail(
           { label: 'KYC', value: prettyLabel(text(record, 'kycStatus')), hint: 'Identity check' },
           { label: 'Status', value: prettyLabel(status), hint: 'Occupant state' },
           { label: 'Occupation', value: text(record, 'occupation'), hint: 'Profile' },
-          { label: 'Joined', value: text(record, 'joinedAt'), hint: 'First recorded' },
+          { label: 'Joined', value: dateText(record, 'joinedAt'), hint: 'First recorded' },
         ],
         overview: [
           field('Tenant ID', id, { mono: true, emphasis: true }),
@@ -288,8 +294,8 @@ export function buildCollectionDetail(
         badgeLabel: status,
         stats: [
           { label: 'Rent', value: text(record, 'rent'), hint: 'Contract rent' },
-          { label: 'Start', value: text(record, 'startDate'), hint: 'Commencement' },
-          { label: 'End', value: text(record, 'endDate'), hint: 'Expiry' },
+          { label: 'Start', value: dateText(record, 'startDate'), hint: 'Commencement' },
+          { label: 'End', value: dateText(record, 'endDate'), hint: 'Expiry' },
           { label: 'Status', value: prettyLabel(status), hint: 'Lifecycle' },
         ],
         overview: [
@@ -332,7 +338,7 @@ export function buildCollectionDetail(
         stats: [
           { label: 'Amount', value: text(record, 'amount'), hint: 'Invoice total' },
           { label: 'Balance', value: text(record, 'balance'), hint: 'Outstanding' },
-          { label: 'Due', value: text(record, 'dueDate'), hint: 'Due date' },
+          { label: 'Due', value: dateText(record, 'dueDate'), hint: 'Due date' },
           { label: 'Status', value: prettyLabel(status), hint: 'Collections' },
         ],
         overview: [
@@ -368,7 +374,7 @@ export function buildCollectionDetail(
         stats: [
           { label: 'Amount', value: text(record, 'amount'), hint: 'Posted' },
           { label: 'Method', value: prettyLabel(text(record, 'method')), hint: 'Channel' },
-          { label: 'Paid at', value: text(record, 'paidAt'), hint: 'Value date' },
+          { label: 'Paid at', value: dateText(record, 'paidAt'), hint: 'Value date' },
           { label: 'Invoice', value: text(record, 'invoiceId'), hint: 'Applied to' },
         ],
         overview: [
@@ -395,7 +401,7 @@ export function buildCollectionDetail(
           { label: 'Balance', value: text(record, 'balance'), hint: 'Outstanding' },
           { label: 'Bucket', value: text(record, 'bucket'), hint: 'Aging' },
           { label: 'Lease', value: text(record, 'lease'), hint: 'Linked lease' },
-          { label: 'Last reminder', value: text(record, 'lastReminder'), hint: 'Collections' },
+          { label: 'Last reminder', value: dateText(record, 'lastReminder'), hint: 'Collections' },
         ],
         overview: [
           field('Arrears ID', id, { mono: true, emphasis: true }),
@@ -438,7 +444,7 @@ export function buildCollectionDetail(
           badge('Status', status),
           badge('Priority', text(record, 'priority')),
           field('Unit', text(record, 'unit')),
-          field('Opened', text(record, 'openedAt')),
+          field('Opened', dateText(record, 'openedAt')),
         ],
         related: [],
         documents: [],
@@ -460,8 +466,8 @@ export function buildCollectionDetail(
         stats: [
           { label: 'Type', value: prettyLabel(text(record, 'type')), hint: 'Vault class' },
           { label: 'Status', value: prettyLabel(status), hint: 'Validity' },
-          { label: 'Expires', value: text(record, 'expiresAt'), hint: 'Highlight window' },
-          { label: 'Uploaded', value: text(record, 'uploadedAt'), hint: 'Vaulted on' },
+          { label: 'Expires', value: dateText(record, 'expiresAt'), hint: 'Highlight window' },
+          { label: 'Uploaded', value: dateText(record, 'uploadedAt'), hint: 'Vaulted on' },
         ],
         overview: [
           field('Document ID', id, { mono: true, emphasis: true }),
@@ -486,7 +492,7 @@ export function buildCollectionDetail(
         stats: [
           { label: 'Type', value: prettyLabel(text(record, 'type')), hint: 'Channel' },
           { label: 'Read', value: record['read'] ? 'Yes' : 'No', hint: 'Inbox state' },
-          { label: 'When', value: text(record, 'createdAt'), hint: 'Raised' },
+          { label: 'When', value: dateText(record, 'createdAt'), hint: 'Raised' },
           { label: 'ID', value: id, hint: 'Notification' },
         ],
         overview: [
@@ -518,7 +524,7 @@ export function buildCollectionDetail(
           field('Audit ID', id, { mono: true, emphasis: true }),
           field('Actor', text(record, 'actor')),
           field('Action', text(record, 'action'), { mono: true }),
-          field('When', text(record, 'createdAt')),
+          field('When', dateText(record, 'createdAt')),
         ],
         related: [],
         documents: [],
