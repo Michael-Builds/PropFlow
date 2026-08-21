@@ -10,6 +10,7 @@ import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { PromiseToPayDto } from './dto/promise-to-pay.dto';
 import { EscalateArrearsDto } from './dto/escalate-arrears.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { OperationalMailService } from '../common/mail/operational-mail.service';
 
 @Injectable()
 export class InvoicesService {
@@ -18,6 +19,7 @@ export class InvoicesService {
     private readonly config: ConfigService,
     private readonly logger: AppLogger,
     private readonly notifications: NotificationsService,
+    private readonly operationalMail: OperationalMailService,
   ) {}
 
   async generate(orgId: string, dto: GenerateInvoiceDto) {
@@ -57,6 +59,14 @@ export class InvoicesService {
     });
 
     this.logger.success(`Invoice ${invoice.id} generated for lease ${lease.id}`, InvoicesService.name);
+    void this.operationalMail.invoiceReminder({
+      orgId,
+      tenantId: lease.tenantId,
+      invoiceId: invoice.id,
+      balance: amountDue,
+      dueDate,
+      kind: 'due',
+    });
     return this.present(invoice);
   }
 
@@ -108,22 +118,17 @@ export class InvoicesService {
         OR: [{ lastReminderAt: null }, { lastReminderAt: { lt: weekAgo } }],
       },
     });
-    const operators = await this.prisma.user.findMany({
-      where: { orgId, status: 'active', role: { in: ['owner', 'manager', 'finance'] } },
-      select: { id: true },
-    });
 
     for (const invoice of overdue) {
-      const payload = {
-        invoiceId: invoice.id,
+      await this.operationalMail.invoiceReminder({
+        orgId,
         tenantId: invoice.tenantId,
+        invoiceId: invoice.id,
         balance: toNumber(invoice.balance),
         dueDate: invoice.dueDate,
-        message: 'Rent balance is overdue. This is an operational reminder, not an eviction notice.',
-      };
-      for (const operator of operators) {
-        await this.notifications.queueEmail(orgId, operator.id, 'arrears_reminder', payload);
-      }
+        kind: 'overdue',
+        alsoNotifyOperators: true,
+      });
       await this.prisma.invoice.update({
         where: { id: invoice.id },
         data: { lastReminderAt: new Date() },

@@ -5,9 +5,10 @@ import { PaystackService } from './paystack.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { InvoicesModule } from '../invoices/invoices.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, InvoicesModule],
+  imports: [PrismaModule, AuthModule, InvoicesModule, NotificationsModule],
   controllers: [PaymentsController],
   providers: [PaymentsService, PaystackService],
 })

@@ -16,6 +16,7 @@ import { ListPaymentsQueryDto } from './dto/list-payments-query.dto';
 import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import { InvoicesService } from '../invoices/invoices.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { OperationalMailService } from '../common/mail/operational-mail.service';
 
 @Injectable()
 export class PaymentsService {
@@ -25,6 +26,7 @@ export class PaymentsService {
     private readonly invoices: InvoicesService,
     private readonly config: ConfigService,
     private readonly logger: AppLogger,
+    private readonly operationalMail: OperationalMailService,
   ) {}
 
   async checkout(dto: CreateCheckoutDto, user?: JwtUser) {
@@ -145,6 +147,14 @@ export class PaymentsService {
         where: { id: payment.id },
         data: { status: 'failed' },
       });
+      void this.operationalMail.paymentFailed({
+        orgId: invoice.orgId,
+        tenantId: invoice.tenantId,
+        reference,
+        invoiceId: invoice.id,
+        amount: fees.netAmount,
+        currency,
+      });
       throw error;
     }
   }
@@ -161,7 +171,7 @@ export class PaymentsService {
     const reference = dto.reference?.trim() || this.newReference();
     const paidAt = dto.paidAt ? new Date(dto.paidAt) : new Date();
 
-    return this.prisma.$transaction(async (tx) => {
+    const settled = await this.prisma.$transaction(async (tx) => {
       const payment = await tx.payment.create({
         data: {
           orgId,
@@ -197,6 +207,19 @@ export class PaymentsService {
       );
       return this.present(payment);
     });
+
+    void this.operationalMail.paymentReceipt({
+      orgId,
+      tenantId: invoice.tenantId,
+      reference: settled.reference,
+      invoiceId: invoice.id,
+      amount: dto.amount,
+      currency: invoice.currency,
+      method: dto.method,
+      paidAt,
+    });
+
+    return settled;
   }
 
   feeQuote(netGhs: number) {
@@ -279,6 +302,19 @@ export class PaymentsService {
       where: { id: payment.id },
       data: { status, providerRef: verified.reference },
     });
+    if (status === 'failed') {
+      const invoice = await this.prisma.invoice.findUnique({ where: { id: payment.invoiceId } });
+      if (invoice) {
+        void this.operationalMail.paymentFailed({
+          orgId: payment.orgId,
+          tenantId: invoice.tenantId,
+          reference: payment.reference,
+          invoiceId: invoice.id,
+          amount: toNumber(payment.amount),
+          currency: payment.currency,
+        });
+      }
+    }
     return this.present(updated);
   }
 
@@ -319,10 +355,12 @@ export class PaymentsService {
       throw new BadRequestException('Paystack transaction is not successful.');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const settled = await this.prisma.$transaction(async (tx) => {
       const payment = await tx.payment.findUnique({ where: { reference } });
       if (!payment) throw new NotFoundException('Payment not found.');
-      if (payment.status === 'success') return this.present(payment);
+      if (payment.status === 'success') {
+        return { presented: this.present(payment), tenantId: null as string | null, applied: 0, fresh: false };
+      }
 
       const invoice = await tx.invoice.findUnique({ where: { id: payment.invoiceId } });
       if (!invoice) throw new NotFoundException('Invoice not found.');
@@ -365,9 +403,29 @@ export class PaymentsService {
         PaymentsService.name,
       );
 
-      const settled = await tx.payment.findUnique({ where: { id: payment.id } });
-      return this.present(settled!);
+      const row = await tx.payment.findUnique({ where: { id: payment.id } });
+      return {
+        presented: this.present(row!),
+        tenantId: invoice.tenantId,
+        applied,
+        fresh: true,
+      };
     });
+
+    if (settled.fresh && settled.tenantId) {
+      void this.operationalMail.paymentReceipt({
+        orgId: settled.presented.orgId,
+        tenantId: settled.tenantId,
+        reference: settled.presented.reference,
+        invoiceId: settled.presented.invoiceId,
+        amount: settled.applied,
+        currency: settled.presented.currency,
+        method: settled.presented.method,
+        paidAt: settled.presented.paidAt ? new Date(settled.presented.paidAt) : null,
+      });
+    }
+
+    return settled.presented;
   }
 
   private newReference(): string {

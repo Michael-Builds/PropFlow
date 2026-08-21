@@ -4,9 +4,10 @@ import { LeasesService } from './leases.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { ComplianceModule } from '../compliance/compliance.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ComplianceModule],
+  imports: [PrismaModule, AuthModule, ComplianceModule, NotificationsModule],
   controllers: [LeasesController],
   providers: [LeasesService],
   exports: [LeasesService],

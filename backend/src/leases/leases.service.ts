@@ -10,6 +10,7 @@ import { UpdateLeaseDto } from './dto/update-lease.dto';
 import { ListLeasesQueryDto } from './dto/list-leases-query.dto';
 import { RenewLeaseDto } from './dto/renew-lease.dto';
 import { TerminateLeaseDto } from './dto/terminate-lease.dto';
+import { OperationalMailService } from '../common/mail/operational-mail.service';
 
 const ACTIVE_STATUSES = ['active', 'ending'];
 
@@ -19,6 +20,7 @@ export class LeasesService {
     private readonly prisma: PrismaService,
     private readonly logger: AppLogger,
     private readonly compliance: ComplianceService,
+    private readonly operationalMail: OperationalMailService,
   ) {}
 
   async list(orgId: string, query: ListLeasesQueryDto) {
@@ -70,6 +72,14 @@ export class LeasesService {
 
     const ready = await this.compliance.assertLeaseReady(orgId, tenant.id);
     if (!ready.ok) {
+      void this.operationalMail.complianceBlock({
+        orgId,
+        tenantName: tenant.fullName,
+        reason: ready.message,
+        gapsLabel: ready.gaps.length
+          ? ready.gaps.map((g) => `${g.docType} (${g.reason})`).join(', ')
+          : null,
+      });
       throw new BadRequestException(ready.message);
     }
 
@@ -234,6 +244,63 @@ export class LeasesService {
     if (overlap) {
       throw new BadRequestException('This unit already has an overlapping active lease.');
     }
+  }
+
+  async runEndingSoonAlerts(orgId: string) {
+    const leases = await this.prisma.lease.findMany({
+      where: { orgId, status: { in: ACTIVE_STATUSES } },
+      include: {
+        tenant: { select: { id: true, fullName: true, email: true } },
+        unit: { select: { unitCode: true } },
+      },
+    });
+    const operators = await this.prisma.user.findMany({
+      where: { orgId, status: 'active', role: { in: ['owner', 'manager'] } },
+      select: { id: true, email: true, fullName: true },
+    });
+    let alerted = 0;
+    const now = Date.now();
+    for (const lease of leases) {
+      const days = Math.ceil((lease.endDate.getTime() - now) / 86_400_000);
+      if (![30, 14, 7].includes(days)) continue;
+
+      for (const op of operators) {
+        await this.operationalMail.leaseEnding({
+          orgId,
+          recipientUserId: op.id,
+          recipientEmail: op.email,
+          recipientName: op.fullName,
+          tenantName: lease.tenant.fullName,
+          unitCode: lease.unit.unitCode,
+          endDate: lease.endDate,
+          daysRemaining: days,
+          rentAmount: toNumber(lease.rentAmount),
+          leaseId: lease.id,
+        });
+      }
+
+      const tenantUser = await this.prisma.user.findFirst({
+        where: { orgId, tenantId: lease.tenantId, status: 'active' },
+        select: { id: true, email: true, fullName: true },
+      });
+      const tenantEmail = (tenantUser?.email || lease.tenant.email || '').trim();
+      if (tenantEmail) {
+        await this.operationalMail.leaseEnding({
+          orgId,
+          recipientUserId: tenantUser?.id ?? null,
+          recipientEmail: tenantEmail,
+          recipientName: tenantUser?.fullName || lease.tenant.fullName,
+          tenantName: lease.tenant.fullName,
+          unitCode: lease.unit.unitCode,
+          endDate: lease.endDate,
+          daysRemaining: days,
+          rentAmount: toNumber(lease.rentAmount),
+          leaseId: lease.id,
+        });
+      }
+      alerted += 1;
+    }
+    return { alerted };
   }
 
   present(row: {

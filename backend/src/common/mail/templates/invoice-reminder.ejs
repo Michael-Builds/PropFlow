@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+
+<p class="email-eyebrow"><%= kind === 'overdue' ? 'Overdue balance' : 'Invoice reminder' %></p>
+<h1 class="email-title"><%= kind === 'overdue' ? 'Rent balance is overdue' : 'Invoice coming due' %></h1>
+<p class="email-copy">
+  Hi<% if (fullName) { %> <%= fullName %><% } %>,
+  <%= kind === 'overdue'
+    ? 'you have an outstanding balance that is past its due date.'
+    : 'you have an invoice due soon on PropFlow.' %>
+</p>
+<table class="email-panel" id="propflow-invoice-reminder" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td class="email-panel__inner">
+      <p class="email-panel__label">Invoice details</p>
+      <p class="email-panel__row"><span class="email-strong">Invoice:</span> <%= invoiceId %></p>
+      <p class="email-panel__row"><span class="email-strong">Balance:</span> <%= amountLabel %></p>
+      <% if (dueDate) { %><p class="email-panel__row"><span class="email-strong">Due date:</span> <%= dueDate %></p><% } %>
+    </td>
+  </tr>
+</table>
+<table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <a class="email-cta" id="propflow-invoice-cta" href="<%= actionUrl || frontendUrl %>">Review invoice</a>
+    </td>
+  </tr>
+</table>
+<p class="email-muted">This is an operational reminder, not an eviction notice.</p>
+
+<%- include('partials/footer') %>

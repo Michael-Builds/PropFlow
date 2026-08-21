@@ -17,7 +17,15 @@ export type MailTemplateName =
   | 'forgot-password'
   | 'password-changed'
   | 'user-invite'
-  | 'notification';
+  | 'notification'
+  | 'payment-receipt'
+  | 'payment-failed'
+  | 'invoice-reminder'
+  | 'document-expiry'
+  | 'lease-ending'
+  | 'ticket-update'
+  | 'new-message'
+  | 'compliance-block';
 
 const LOGO_CID = 'propflow-logo';
 

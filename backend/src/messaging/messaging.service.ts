@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppLogger } from '../common/logger/app-logger.service';
 import { PlatformRealtimeGateway } from '../realtime/platform-realtime.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
+import { OperationalMailService } from '../common/mail/operational-mail.service';
 import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import { CreateConversationDto, SendMessageDto } from './dto/messaging.dto';
 
@@ -21,7 +22,7 @@ export class MessagingService {
     private readonly prisma: PrismaService,
     private readonly logger: AppLogger,
     private readonly realtime: PlatformRealtimeGateway,
-    private readonly notifications: NotificationsService,
+    private readonly operationalMail: OperationalMailService,
   ) {}
 
   async list(user: JwtUser) {
@@ -342,12 +343,16 @@ export class MessagingService {
     const recipients = participantIds.filter((id) => id !== message.senderUserId);
     const users = await this.prisma.user.findMany({
       where: { id: { in: recipients } },
-      select: { id: true, orgId: true },
+      select: { id: true, orgId: true, email: true, fullName: true },
     });
     for (const u of users) {
       const orgId = u.orgId ?? 'platform';
       try {
-        await this.notifications.queueInApp(orgId, u.id, 'message', {
+        await this.operationalMail.newMessage({
+          orgId,
+          userId: u.id,
+          email: u.email,
+          fullName: u.fullName,
           conversationId,
           preview: message.body.slice(0, 120),
         });

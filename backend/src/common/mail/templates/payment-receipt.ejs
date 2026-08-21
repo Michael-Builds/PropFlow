@@ -1,0 +1,47 @@
+<%- include('partials/header') %>
+
+  <p class="email-eyebrow email-eyebrow--success">Payment received</p>
+  <h1 class="email-title">Payment receipt</h1>
+  <p class="email-copy">
+    Hi<% if (fullName) { %>
+      <%= fullName %>
+        <% } %>, we’ve recorded your payment on PropFlow.
+  </p>
+  <table class="email-panel" id="propflow-payment-receipt" role="presentation" width="100%" cellpadding="0"
+    cellspacing="0" border="0">
+    <tr>
+      <td class="email-panel__inner">
+        <p class="email-panel__label">Receipt details</p>
+        <p class="email-panel__row"><span class="email-strong">Reference:</span>
+          <%= reference %>
+        </p>
+        <p class="email-panel__row"><span class="email-strong">Invoice:</span>
+          <%= invoiceId %>
+        </p>
+        <p class="email-panel__row"><span class="email-strong">Amount:</span>
+          <%= amountLabel %>
+        </p>
+        <% if (method) { %>
+          <p class="email-panel__row"><span class="email-strong">Method:</span>
+            <%= method %>
+          </p>
+          <% } %>
+            <% if (paidAt) { %>
+              <p class="email-panel__row"><span class="email-strong">Paid at:</span>
+                <%= paidAt %>
+              </p>
+              <% } %>
+      </td>
+    </tr>
+  </table>
+  <table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center">
+        <a class="email-cta" id="propflow-payment-receipt-cta" href="<%= actionUrl || frontendUrl %>">View in
+          PropFlow</a>
+      </td>
+    </tr>
+  </table>
+  <p class="email-muted">This is an operational receipt, not a tax invoice.</p>
+
+  <%- include('partials/footer') %>

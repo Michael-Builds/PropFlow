@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<p class="email-eyebrow email-eyebrow--danger">Compliance</p>
+<h1 class="email-title">Lease blocked by compliance gaps</h1>
+<p class="email-copy">
+  Hi<% if (fullName) { %> <%= fullName %><% } %>, a lease could not be created because required onboarding checks failed.
+</p>
+<table class="email-panel" id="propflow-compliance-block" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td class="email-panel__inner">
+      <p class="email-panel__label">What needs attention</p>
+      <% if (tenantName) { %><p class="email-panel__row"><span class="email-strong">Tenant:</span> <%= tenantName %></p><% } %>
+      <p class="email-panel__row"><span class="email-strong">Reason:</span> <%= reason %></p>
+      <% if (gapsLabel) { %><p class="email-panel__row"><span class="email-strong">Gaps:</span> <%= gapsLabel %></p><% } %>
+    </td>
+  </tr>
+</table>
+<table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <a class="email-cta" id="propflow-compliance-cta" href="<%= actionUrl || frontendUrl %>">Fix compliance</a>
+    </td>
+  </tr>
+</table>
+<p class="email-muted">Verify KYC and upload required documents, then try creating the lease again.</p>
+
+<%- include('partials/footer') %>

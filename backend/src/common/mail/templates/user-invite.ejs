@@ -1,31 +1,43 @@
 <%- include('partials/header') %>
 
-<p class="email-eyebrow">Welcome</p>
-<h1 class="email-title">You’re invited to PropFlow</h1>
-<p class="email-copy">
-  Hi<% if (fullName) { %> <%= fullName %><% } %>, you’ve been added as
-  <span class="email-strong"><%= roleLabel %></span>
-  <% if (orgName) { %> for <span class="email-strong"><%= orgName %></span><% } %>.
-  Use the details below to sign in for the first time.
-</p>
-<table class="email-panel" id="propflow-invite-credentials" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr>
-    <td class="email-panel__inner">
-      <p class="email-panel__label">Sign-in details</p>
-      <p class="email-panel__row"><span class="email-strong">Email:</span> <%= email %></p>
-      <p class="email-panel__row"><span class="email-strong">Temporary password:</span> <%= temporaryPassword %></p>
-    </td>
-  </tr>
-</table>
-<table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
-  <tr>
-    <td align="center">
-      <a class="email-cta" id="propflow-invite-cta" href="<%= loginUrl %>">Open PropFlow</a>
-    </td>
-  </tr>
-</table>
-<p class="email-muted">
-  For security, change this temporary password after your first sign-in.
-</p>
+  <p class="email-eyebrow">Welcome</p>
+  <h1 class="email-title">You’re invited to PropFlow</h1>
+  <p class="email-copy">
+    Hi<% if (fullName) { %>
+      <%= fullName %>
+        <% } %>, you’ve been added as
+          <span class="email-strong">
+            <%= roleLabel %>
+          </span>
+          <% if (orgName) { %> for <span class="email-strong">
+              <%= orgName %>
+            </span>
+            <% } %>.
+              Use the details below to sign in for the first time.
+  </p>
+  <table class="email-panel" id="propflow-invite-credentials" role="presentation" width="100%" cellpadding="0"
+    cellspacing="0" border="0">
+    <tr>
+      <td class="email-panel__inner">
+        <p class="email-panel__label">Sign-in details</p>
+        <p class="email-panel__row"><span class="email-strong">Email:</span>
+          <%= email %>
+        </p>
+        <p class="email-panel__row"><span class="email-strong">Temporary password:</span>
+          <%= temporaryPassword %>
+        </p>
+      </td>
+    </tr>
+  </table>
+  <table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center">
+        <a class="email-cta" id="propflow-invite-cta" href="<%= loginUrl %>">Open PropFlow</a>
+      </td>
+    </tr>
+  </table>
+  <p class="email-muted">
+    For security, change this temporary password after your first sign-in.
+  </p>
 
-<%- include('partials/footer') %>
+  <%- include('partials/footer') %>

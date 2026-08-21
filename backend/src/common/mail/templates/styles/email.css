@@ -81,6 +81,10 @@ body {
   color: #0f9f6e;
 }
 
+.email-eyebrow--danger {
+  color: #d90a2c;
+}
+
 .email-title {
   margin: 0 0 14px 0;
   font-size: 24px;

@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+
+<p class="email-eyebrow">Messages</p>
+<h1 class="email-title">You have a new message</h1>
+<p class="email-copy">
+  Hi<% if (fullName) { %> <%= fullName %><% } %>, someone sent you a message on PropFlow.
+</p>
+<table class="email-panel" id="propflow-new-message" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td class="email-panel__inner">
+      <p class="email-panel__label">Preview</p>
+      <p class="email-panel__row"><%= preview %></p>
+    </td>
+  </tr>
+</table>
+<table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <a class="email-cta" id="propflow-message-cta" href="<%= actionUrl || frontendUrl %>">Open conversation</a>
+    </td>
+  </tr>
+</table>
+
+<%- include('partials/footer') %>

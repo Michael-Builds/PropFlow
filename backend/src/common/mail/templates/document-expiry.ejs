@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<p class="email-eyebrow">Document vault</p>
+<h1 class="email-title">Document expires in <%= daysRemaining %> days</h1>
+<p class="email-copy">
+  Hi<% if (fullName) { %> <%= fullName %><% } %>, a required document in PropFlow is approaching expiry.
+</p>
+<table class="email-panel" id="propflow-document-expiry" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td class="email-panel__inner">
+      <p class="email-panel__label">Document details</p>
+      <p class="email-panel__row"><span class="email-strong">Type:</span> <%= docTypeLabel %></p>
+      <% if (expiresAt) { %><p class="email-panel__row"><span class="email-strong">Expires:</span> <%= expiresAt %></p><% } %>
+      <% if (entityLabel) { %><p class="email-panel__row"><span class="email-strong">Linked to:</span> <%= entityLabel %></p><% } %>
+    </td>
+  </tr>
+</table>
+<table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <a class="email-cta" id="propflow-document-cta" href="<%= actionUrl || frontendUrl %>">Open documents</a>
+    </td>
+  </tr>
+</table>
+<p class="email-muted">Upload a renewed copy before expiry to keep compliance in date.</p>
+
+<%- include('partials/footer') %>

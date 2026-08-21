@@ -6,10 +6,14 @@ import { documentStatus } from '../common/document-status';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { ListDocumentsQueryDto } from './dto/list-documents-query.dto';
+import { OperationalMailService } from '../common/mail/operational-mail.service';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly operationalMail: OperationalMailService,
+  ) {}
 
   async list(orgId: string, query: ListDocumentsQueryDto) {
     const { page, pageSize, skip, take } = pageArgs(query.page, query.pageSize);
@@ -82,7 +86,7 @@ export class DocumentsService {
     });
     const operators = await this.prisma.user.findMany({
       where: { orgId, status: 'active', role: { in: ['owner', 'manager', 'finance'] } },
-      select: { id: true },
+      select: { id: true, email: true, fullName: true },
     });
     let alerted = 0;
     const now = Date.now();
@@ -91,21 +95,15 @@ export class DocumentsService {
       const days = Math.ceil((doc.expiresAt.getTime() - now) / 86_400_000);
       if (![30, 14, 7].includes(days)) continue;
       for (const operator of operators) {
-        await this.prisma.notification.create({
-          data: {
-            orgId,
-            userId: operator.id,
-            channel: 'in_app',
-            type: 'document_expiry',
-            payloadJson: {
-              documentId: doc.id,
-              docType: doc.docType,
-              expiresAt: doc.expiresAt,
-              daysRemaining: days,
-            },
-            status: 'sent',
-            sentAt: new Date(),
-          },
+        await this.operationalMail.documentExpiry({
+          orgId,
+          userId: operator.id,
+          email: operator.email,
+          fullName: operator.fullName,
+          docType: doc.docType,
+          daysRemaining: days,
+          expiresAt: doc.expiresAt,
+          entityLabel: `${doc.entityType}:${doc.entityId}`,
         });
       }
       alerted += 1;

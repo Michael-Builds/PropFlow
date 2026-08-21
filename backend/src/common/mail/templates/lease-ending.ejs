@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+
+<p class="email-eyebrow">Lease timeline</p>
+<h1 class="email-title">Lease ending in <%= daysRemaining %> days</h1>
+<p class="email-copy">
+  Hi<% if (fullName) { %> <%= fullName %><% } %>, a lease on PropFlow is approaching its end date.
+</p>
+<table class="email-panel" id="propflow-lease-ending" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td class="email-panel__inner">
+      <p class="email-panel__label">Lease details</p>
+      <% if (tenantName) { %><p class="email-panel__row"><span class="email-strong">Tenant:</span> <%= tenantName %></p><% } %>
+      <% if (unitCode) { %><p class="email-panel__row"><span class="email-strong">Unit:</span> <%= unitCode %></p><% } %>
+      <% if (endDate) { %><p class="email-panel__row"><span class="email-strong">End date:</span> <%= endDate %></p><% } %>
+      <% if (rentLabel) { %><p class="email-panel__row"><span class="email-strong">Rent:</span> <%= rentLabel %></p><% } %>
+    </td>
+  </tr>
+</table>
+<table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <a class="email-cta" id="propflow-lease-cta" href="<%= actionUrl || frontendUrl %>">Review lease</a>
+    </td>
+  </tr>
+</table>
+<p class="email-muted">Start renewal or move-out planning while there is still time.</p>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+
+<p class="email-eyebrow">Maintenance</p>
+<h1 class="email-title"><%= headline %></h1>
+<p class="email-copy">
+  Hi<% if (fullName) { %> <%= fullName %><% } %>, <%= intro %>
+</p>
+<table class="email-panel" id="propflow-ticket-update" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td class="email-panel__inner">
+      <p class="email-panel__label">Ticket details</p>
+      <p class="email-panel__row"><span class="email-strong">Ticket:</span> <%= ticketId %></p>
+      <% if (category) { %><p class="email-panel__row"><span class="email-strong">Category:</span> <%= category %></p><% } %>
+      <% if (priority) { %><p class="email-panel__row"><span class="email-strong">Priority:</span> <%= priority %></p><% } %>
+      <% if (status) { %><p class="email-panel__row"><span class="email-strong">Status:</span> <%= status %></p><% } %>
+      <% if (notes) { %><p class="email-panel__row"><span class="email-strong">Notes:</span> <%= notes %></p><% } %>
+    </td>
+  </tr>
+</table>
+<table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center">
+      <a class="email-cta" id="propflow-ticket-cta" href="<%= actionUrl || frontendUrl %>">Open ticket</a>
+    </td>
+  </tr>
+</table>
+
+<%- include('partials/footer') %>

@@ -12,12 +12,14 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { ListTicketsQueryDto } from './dto/list-tickets-query.dto';
 import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { ResolveTicketDto } from './dto/resolve-ticket.dto';
+import { OperationalMailService } from '../common/mail/operational-mail.service';
 
 @Injectable()
 export class TicketsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: AppLogger,
+    private readonly operationalMail: OperationalMailService,
   ) {}
 
   async list(user: OrgScopedUser, query: ListTicketsQueryDto) {
@@ -137,6 +139,25 @@ export class TicketsService {
       include: { events: { orderBy: { createdAt: 'asc' } } },
     });
     this.logger.success(`Ticket ${id} assigned`, TicketsService.name);
+    if (dto.assigneeUserId) {
+      const assignee = await this.prisma.user.findFirst({
+        where: { id: dto.assigneeUserId, orgId: user.orgId },
+        select: { id: true, email: true, fullName: true },
+      });
+      if (assignee?.email) {
+        void this.operationalMail.ticketUpdate({
+          orgId: user.orgId,
+          userId: assignee.id,
+          email: assignee.email,
+          fullName: assignee.fullName,
+          event: 'assigned',
+          ticketId: row.id,
+          category: row.category,
+          priority: row.priority,
+          status: row.status,
+        });
+      }
+    }
     return this.present(row);
   }
 
@@ -160,6 +181,40 @@ export class TicketsService {
       },
       include: { events: { orderBy: { createdAt: 'asc' } } },
     });
+
+    const recipients: { id: string; email: string; fullName: string | null }[] = [];
+    if (row.assigneeUserId) {
+      const assignee = await this.prisma.user.findFirst({
+        where: { id: row.assigneeUserId },
+        select: { id: true, email: true, fullName: true },
+      });
+      if (assignee?.email) recipients.push(assignee);
+    }
+    if (row.tenantId) {
+      const tenantUser = await this.prisma.user.findFirst({
+        where: { orgId: user.orgId, tenantId: row.tenantId, status: 'active' },
+        select: { id: true, email: true, fullName: true },
+      });
+      if (tenantUser?.email) recipients.push(tenantUser);
+    }
+    const seen = new Set<string>();
+    for (const recipient of recipients) {
+      if (seen.has(recipient.id)) continue;
+      seen.add(recipient.id);
+      void this.operationalMail.ticketUpdate({
+        orgId: user.orgId,
+        userId: recipient.id,
+        email: recipient.email,
+        fullName: recipient.fullName,
+        event: 'resolved',
+        ticketId: row.id,
+        category: row.category,
+        priority: row.priority,
+        status: row.status,
+        notes: dto.notes ?? null,
+      });
+    }
+
     return this.present(row);
   }
 

@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentsService } from '../documents/documents.service';
 import { InvoicesService } from '../invoices/invoices.service';
+import { LeasesService } from '../leases/leases.service';
 import { AppLogger } from '../common/logger/app-logger.service';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class JobsSchedulerService implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly documents: DocumentsService,
     private readonly invoices: InvoicesService,
+    private readonly leases: LeasesService,
     private readonly logger: AppLogger,
   ) {}
 
@@ -31,6 +33,7 @@ export class JobsSchedulerService implements OnModuleInit {
         await this.documents.runExpiryAlerts(org.id);
         await this.invoices.runReminders(org.id);
         await this.invoices.snapshotArrears(org.id);
+        await this.leases.runEndingSoonAlerts(org.id);
       } catch (error) {
         this.logger.warning(
           `Scheduled job failed for org ${org.id}: ${error instanceof Error ? error.message : 'unknown'}`,
