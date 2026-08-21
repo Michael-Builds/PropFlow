@@ -47,8 +47,6 @@ PropFlow/
         └── features/      Login, dashboard, appearance, collection list + detail
 ```
 
-Frontend structure follows a TrustNET-style layout: each UI piece typically has `.html`, `.css`, `.ts`, and `.spec.ts`. Overlays (`toast`, `modal`, `loader`) sit on `app-root`.
-
 ## Architecture
 
 | Layer | Stack |
