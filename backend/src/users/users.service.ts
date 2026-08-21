@@ -5,7 +5,6 @@ import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLogger } from '../common/logger/app-logger.service';
 import { MailService } from '../common/mail/mail.service';
-import { ConfigService } from '@nestjs/config';
 import { pageArgs, pageResult } from '../common/pagination';
 import type { JwtUser } from '../auth/decorators/current-user.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,7 +19,6 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly logger: AppLogger,
     private readonly mail: MailService,
-    private readonly config: ConfigService,
   ) {}
 
   findByEmail(email: string) {
@@ -103,15 +101,32 @@ export class UsersService {
       },
     });
 
-    const frontend = this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
-    await this.mail.send(
+    const frontend = this.mail.frontendUrl();
+    const loginUrl = `${frontend}/auth/login`;
+    const org = await this.prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { name: true },
+    });
+    const roleLabel = dto.role.replace(/_/g, ' ');
+
+    await this.mail.sendTemplate(
       email,
-      'You have been added to PropFlow',
+      'user-invite',
+      'You’re invited to PropFlow',
+      {
+        preheader: `You’ve been added as ${roleLabel} on PropFlow.`,
+        fullName: dto.fullName,
+        roleLabel,
+        orgName: org?.name ?? null,
+        email,
+        temporaryPassword: password,
+        loginUrl,
+      },
       [
         `Hello${dto.fullName ? ` ${dto.fullName}` : ''},`,
         '',
-        `You now have ${dto.role} access in PropFlow.`,
-        `Sign in at ${frontend}/auth/login`,
+        `You now have ${roleLabel} access in PropFlow${org?.name ? ` (${org.name})` : ''}.`,
+        `Sign in at ${loginUrl}`,
         `Email: ${email}`,
         `Temporary password: ${password}`,
         '',

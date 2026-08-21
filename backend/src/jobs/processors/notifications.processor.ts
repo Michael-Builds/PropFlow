@@ -48,10 +48,27 @@ export class NotificationsProcessor extends WorkerHost {
     }
 
     const payload = (notification.payloadJson ?? {}) as Record<string, unknown>;
-    const { subject, text } = renderEmail(notification.type, payload);
+    const rendered = renderNotification(notification.type, payload, this.mail.frontendUrl());
 
     try {
-      await this.mail.send(user.email, subject, text);
+      await this.mail.sendTemplate(
+        user.email,
+        'notification',
+        rendered.subject,
+        {
+          preheader: rendered.preheader,
+          title: rendered.title,
+          message: rendered.message,
+          invoiceId: payload.invoiceId ?? null,
+          amount: payload.amount ?? null,
+          orgName: payload.orgName ?? null,
+          docType: payload.docType ?? null,
+          mode: payload.mode ?? null,
+          actionUrl: rendered.actionUrl,
+          actionLabel: rendered.actionLabel,
+        },
+        rendered.text,
+      );
       await this.notifications.markSent(notificationId);
     } catch (error) {
       const reason = error instanceof Error ? error.message : 'Mail transport failed';
@@ -61,26 +78,44 @@ export class NotificationsProcessor extends WorkerHost {
   }
 }
 
-function renderEmail(
+function renderNotification(
   type: string,
   payload: Record<string, unknown>,
-): { subject: string; text: string } {
-  const title = type.replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  const message = String(payload.message ?? payload.docType ?? '');
+  frontendUrl: string,
+): {
+  subject: string;
+  title: string;
+  message: string;
+  preheader: string;
+  text: string;
+  actionUrl: string;
+  actionLabel: string;
+} {
+  const title =
+    String(payload.title ?? '').trim() ||
+    type.replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const message = String(payload.message ?? payload.docType ?? '').trim();
+  const actionUrl = String(payload.actionUrl ?? frontendUrl);
+  const actionLabel = String(payload.actionLabel ?? 'Open PropFlow');
   const lines = [
-    `PropFlow notification`,
-    ``,
+    'PropFlow notification',
+    '',
     title,
-    message ? message : null,
+    message || null,
     payload.invoiceId ? `Invoice: ${payload.invoiceId}` : null,
     payload.amount != null ? `Amount: ${payload.amount}` : null,
     payload.orgName ? `Company: ${payload.orgName}` : null,
-    ``,
-    `Sign in to PropFlow for details.`,
+    '',
+    `Open PropFlow: ${actionUrl}`,
   ].filter((line): line is string => line != null);
 
   return {
     subject: `PropFlow · ${title}`,
+    title,
+    message,
+    preheader: message || title,
     text: lines.join('\n'),
+    actionUrl,
+    actionLabel,
   };
 }

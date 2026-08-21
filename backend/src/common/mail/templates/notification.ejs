@@ -1,0 +1,56 @@
+<%- include('partials/header') %>
+
+  <p class="email-eyebrow">Notification</p>
+  <h1 class="email-title email-title--sm">
+    <%= title %>
+  </h1>
+  <p class="email-copy email-copy--pre">
+    <%= message || 'There is an update waiting for you in PropFlow.' %>
+  </p>
+
+  <% if (invoiceId || amount || orgName || docType || mode) { %>
+    <table class="email-panel" id="propflow-notification-details" role="presentation" width="100%" cellpadding="0"
+      cellspacing="0" border="0">
+      <tr>
+        <td class="email-panel__inner">
+          <% if (invoiceId) { %>
+            <p class="email-panel__row"><span class="email-strong">Invoice:</span>
+              <%= invoiceId %>
+            </p>
+            <% } %>
+              <% if (amount !=null && amount !=='' ) { %>
+                <p class="email-panel__row"><span class="email-strong">Amount:</span>
+                  <%= amount %>
+                </p>
+                <% } %>
+                  <% if (orgName) { %>
+                    <p class="email-panel__row"><span class="email-strong">Company:</span>
+                      <%= orgName %>
+                    </p>
+                    <% } %>
+                      <% if (docType) { %>
+                        <p class="email-panel__row"><span class="email-strong">Document:</span>
+                          <%= docType %>
+                        </p>
+                        <% } %>
+                          <% if (mode) { %>
+                            <p class="email-panel__row"><span class="email-strong">Status:</span>
+                              <%= String(mode).replace(/_/g, ' ' ) %>
+                            </p>
+                            <% } %>
+        </td>
+      </tr>
+    </table>
+    <% } %>
+
+      <table class="email-cta-wrap" role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <a class="email-cta" id="propflow-notification-cta" href="<%= actionUrl || frontendUrl %>">
+              <%= actionLabel || 'Open PropFlow' %>
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <%- include('partials/footer') %>

@@ -1,0 +1,37 @@
+              </td>
+            </tr>
+            <tr>
+              <td class="email-footer" id="propflow-email-footer">
+                <table class="email-footer__rule" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td class="email-help">
+                      This message was sent by PropFlow for property operations.
+                      <% if (supportEmail) { %>
+                        Need help?
+                        <a class="email-link" href="mailto:<%= supportEmail %>"><%= supportEmail %></a>
+                      <% } %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="email-legal">© <%= year %> PropFlow. All rights reserved.</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <table class="email-subfooter" role="presentation" width="560" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td class="email-subfooter__copy">
+                You’re receiving this because of activity on your PropFlow account.
+                <% if (frontendUrl) { %>
+                  <br />
+                  <a class="email-link" href="<%= frontendUrl %>">Open PropFlow</a>
+                <% } %>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

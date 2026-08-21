@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" id="propflow-email">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title><%= subject %></title>
+    <style type="text/css">
+<%- emailCss %>
+    </style>
+  </head>
+  <body id="propflow-email-body">
+    <div class="preheader"><%= preheader %></div>
+    <table class="email-shell" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td class="email-shell__pad" align="center">
+          <table class="email-card" id="propflow-email-card" role="presentation" width="560" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td class="email-hero" id="propflow-email-hero">
+                <table class="email-hero__table" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="left" valign="middle">
+                      <img
+                        class="email-logo"
+                        id="propflow-email-logo"
+                        src="cid:<%= logoCid %>"
+                        width="40"
+                        height="40"
+                        alt="PropFlow"
+                      />
+                    </td>
+                    <td class="email-hero__brand" align="right" valign="middle">PropFlow</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-body" id="propflow-email-content">

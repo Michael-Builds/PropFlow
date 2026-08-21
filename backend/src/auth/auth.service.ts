@@ -133,11 +133,26 @@ export class AuthService {
           expiresAt: new Date(Date.now() + 60 * 60 * 1000),
         },
       });
-      const frontend = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
-      await this.mail.send(
+      const frontend = this.mail.frontendUrl();
+      const resetUrl = `${frontend}/auth/reset?token=${token}`;
+      await this.mail.sendTemplate(
         user.email,
+        'forgot-password',
         'Reset your PropFlow password',
-        `Use this link within one hour:\n${frontend}/auth/reset?token=${token}`,
+        {
+          preheader: 'Use this secure link within one hour to reset your password.',
+          fullName: user.fullName,
+          resetUrl,
+        },
+        [
+          'Reset your PropFlow password',
+          '',
+          `Hi${user.fullName ? ` ${user.fullName}` : ''},`,
+          'Use this link within one hour to reset your password:',
+          resetUrl,
+          '',
+          'If you did not request this, you can ignore this email.',
+        ].join('\n'),
       );
     }
     return { ok: true };
@@ -146,6 +161,7 @@ export class AuthService {
   async resetPassword(token: string, password: string) {
     const stored = await this.prisma.passwordResetToken.findUnique({
       where: { tokenHash: hashToken(token) },
+      include: { user: { select: { email: true, fullName: true } } },
     });
     if (!stored || stored.usedAt || stored.expiresAt.getTime() < Date.now()) {
       throw new UnauthorizedException('Invalid or expired reset token');
@@ -164,6 +180,30 @@ export class AuthService {
         data: { revokedAt: new Date() },
       }),
     ]);
+
+    const loginUrl = `${this.mail.frontendUrl()}/auth/login`;
+    try {
+      await this.mail.sendTemplate(
+        stored.user.email,
+        'password-changed',
+        'Your PropFlow password was updated',
+        {
+          preheader: 'Your password was changed successfully.',
+          fullName: stored.user.fullName,
+          loginUrl,
+        },
+        [
+          'Your PropFlow password was updated.',
+          '',
+          `Sign in at ${loginUrl}`,
+          '',
+          'If you did not make this change, contact support immediately.',
+        ].join('\n'),
+      );
+    } catch {
+      // Password already changed — do not fail the request on mail errors.
+    }
+
     return { ok: true };
   }
 
