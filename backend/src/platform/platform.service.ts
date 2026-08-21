@@ -38,6 +38,7 @@ export class PlatformService {
         id: row.id,
         name: row.name,
         status: row.status,
+        onboardingComplete: row.onboardingComplete,
         users: row._count.users,
         properties: row._count.properties,
         createdAt: row.createdAt,
@@ -58,6 +59,11 @@ export class PlatformService {
       id: row.id,
       name: row.name,
       status: row.status,
+      phone: row.phone,
+      address: row.address,
+      city: row.city,
+      country: row.country,
+      onboardingComplete: row.onboardingComplete,
       properties: row._count.properties,
       users: row.users,
       createdAt: row.createdAt,
@@ -65,9 +71,16 @@ export class PlatformService {
   }
 
   async createOrganization(actor: JwtUser, dto: CreateOrganizationDto) {
-    const password = dto.ownerPassword?.trim() || randomPassword();
+    const password = randomPassword();
     const org = await this.prisma.organization.create({
-      data: { name: dto.name.trim(), status: 'active' },
+      data: {
+        name: dto.name.trim(),
+        status: 'active',
+        phone: dto.phone?.trim() || null,
+        address: dto.address?.trim() || null,
+        city: dto.city?.trim() || null,
+        onboardingComplete: false,
+      },
     });
     await this.compliance.ensureDefaults(org.id);
     const owner = await this.users.createInOrg(actor, org.id, {
@@ -76,7 +89,18 @@ export class PlatformService {
       role: 'owner',
       password,
     });
-    return { organization: { id: org.id, name: org.name, status: org.status }, owner };
+    return {
+      id: org.id,
+      name: org.name,
+      status: org.status,
+      onboardingComplete: org.onboardingComplete,
+      users: 1,
+      properties: 0,
+      createdAt: org.createdAt,
+      ownerEmail: owner.email,
+      ownerFullName: owner.fullName,
+      temporaryPassword: password,
+    };
   }
 
   updateOrganization(id: string, dto: UpdateOrganizationDto) {

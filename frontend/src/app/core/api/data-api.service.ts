@@ -28,13 +28,7 @@ export class DataApiService {
   create(name: DataCollection, payload: RecordRow): Observable<RecordRow> {
     const body = toApi(name, payload);
     const url = name === DataCollection.Invoices ? `${API_BASE}/invoices/generate` : collectionPath(name);
-    return this.http.post<RecordRow>(url, body).pipe(
-      map((row) =>
-        name === DataCollection.Organizations && row['organization']
-          ? fromApi(name, row['organization'] as RecordRow)
-          : fromApi(name, row),
-      ),
-    );
+    return this.http.post<RecordRow>(url, body).pipe(map((row) => fromApi(name, row)));
   }
 
   update(name: DataCollection, id: string, payload: RecordRow): Observable<RecordRow> {

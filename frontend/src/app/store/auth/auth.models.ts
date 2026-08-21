@@ -34,6 +34,9 @@ export function toSessionUser(user: AuthResponse['user']): SessionUser {
     email: user.email,
     role: user.role,
     initials: initialsFromName(fullName),
+    mustChangePassword: Boolean(user.mustChangePassword),
+    onboardingComplete: user.onboardingComplete !== false,
+    orgName: user.orgName ?? null,
   };
 }
 
@@ -68,7 +71,12 @@ function loadAuthState(): AuthState {
     const parsed = JSON.parse(raw) as StoredSession;
     if (!parsed?.accessToken || !parsed.user) return empty;
     return {
-      user: parsed.user,
+      user: {
+        ...parsed.user,
+        mustChangePassword: Boolean(parsed.user.mustChangePassword),
+        onboardingComplete: parsed.user.onboardingComplete !== false,
+        orgName: parsed.user.orgName ?? null,
+      },
       accessToken: parsed.accessToken,
       refreshToken: parsed.refreshToken,
       activeOrgId: parsed.user.role === UserRole.PlatformAdmin ? null : (parsed.activeOrgId ?? parsed.user.orgId ?? null),

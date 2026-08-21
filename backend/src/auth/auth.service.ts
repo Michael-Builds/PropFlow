@@ -215,6 +215,12 @@ export class AuthService {
     fullName?: string | null;
     tenantId: string | null;
     vendorId: string | null;
+    mustChangePassword?: boolean;
+    organization?: {
+      name: string;
+      onboardingComplete: boolean;
+      status?: string;
+    } | null;
   }) {
     const claims: TokenClaims = {
       sub: user.id,
@@ -257,6 +263,12 @@ export class AuthService {
         fullName: user.fullName ?? null,
         tenantId: user.tenantId,
         vendorId: user.vendorId,
+        mustChangePassword: user.mustChangePassword ?? false,
+        onboardingComplete:
+          user.role === 'platform_admin'
+            ? true
+            : (user.organization?.onboardingComplete ?? true),
+        orgName: user.organization?.name ?? null,
       },
     };
   }

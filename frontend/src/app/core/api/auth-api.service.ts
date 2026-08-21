@@ -16,6 +16,9 @@ export type AuthResponse = {
     fullName?: string | null;
     tenantId?: string | null;
     vendorId?: string | null;
+    mustChangePassword?: boolean;
+    onboardingComplete?: boolean;
+    orgName?: string | null;
   };
 };
 

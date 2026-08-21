@@ -39,6 +39,16 @@ const authReducer = createReducer(
     ...state,
     activeOrgId: state.user?.role === UserRole.PlatformAdmin ? null : orgId,
   })),
+  on(AuthActions.updateSessionUser, (state, { patch }) => {
+    if (!state.user) return state;
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...patch,
+      },
+    };
+  }),
   on(AuthActions.resetPasswordFailure, (state, { message }) => ({
     ...state,
     error: message,

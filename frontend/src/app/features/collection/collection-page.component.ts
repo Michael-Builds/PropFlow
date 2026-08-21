@@ -182,9 +182,21 @@ export class CollectionPageComponent {
       ? this.data.update(this.collection, String(current['id']), payload)
       : this.data.create(this.collection, payload);
     request.subscribe({
-      next: () => {
+      next: async (created) => {
         this.saving.set(false);
-        this.toast.success(current ? 'Record updated.' : 'Record created.');
+        if (!current && this.collection === DataCollection.Organizations) {
+          const email = String(created?.['ownerEmail'] ?? payload['ownerEmail'] ?? '');
+          const temp = String(created?.['temporaryPassword'] ?? '');
+          await this.modal.confirm({
+            title: 'Company created',
+            message: temp
+              ? `Owner invite sent to ${email}. Temporary password (also emailed):\n\n${temp}\n\nThey must finish onboarding before the workspace unlocks.`
+              : `Company created. Owner invite sent to ${email}. They must finish onboarding before the workspace unlocks.`,
+            confirmLabel: 'Done',
+          });
+        } else {
+          this.toast.success(current ? 'Record updated.' : 'Record created.');
+        }
         this.closeDialog();
         this.refresh();
       },

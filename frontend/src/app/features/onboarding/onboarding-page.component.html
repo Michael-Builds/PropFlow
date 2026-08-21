@@ -1,0 +1,155 @@
+<app-page-header
+  eyebrow="Company setup"
+  title="Finish onboarding"
+  [description]="
+    isOwner()
+      ? 'Secure your account, confirm company details, and add your first property before the workspace unlocks.'
+      : 'Your company owner is still finishing setup. Workspace features stay locked until onboarding is complete.'
+  "
+/>
+
+@if (loading()) {
+  <p class="text-sm text-text-muted">Loading setup…</p>
+} @else {
+  <div class="grid gap-4 xl:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)] xl:items-start">
+    <aside class="rounded-2xl border border-border bg-card p-4">
+      <p class="text-xs font-semibold tracking-[0.12em] text-text-muted uppercase">Checklist</p>
+      <ul class="mt-3 space-y-2">
+        @for (item of steps(); track item.id) {
+          <li>
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition"
+              [class.border-brand]="step() === item.id"
+              [class.bg-brand-soft]="step() === item.id"
+              [class.border-border]="step() !== item.id"
+              [disabled]="!isOwner() && item.id !== 'password'"
+              (click)="selectStep(item.id)"
+            >
+              <span
+                class="inline-flex size-6 items-center justify-center rounded-full text-xs font-bold"
+                [class.bg-success]="item.done"
+                [class.text-white]="item.done"
+                [class.bg-surface]="!item.done"
+                [class.text-text-muted]="!item.done"
+              >
+                @if (item.done) {
+                  <app-icon name="check" [size]="14" />
+                } @else {
+                  {{ $index + 1 }}
+                }
+              </span>
+              <span class="text-sm font-medium text-text-primary">{{ item.label }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+      <p class="mt-4 text-xs leading-relaxed text-text-muted">
+        Setting up <strong class="text-text-secondary">{{ orgName() }}</strong>. Navigation stays locked until
+        setup is finished.
+      </p>
+    </aside>
+
+    <app-card>
+      @if (!isOwner() && !status()?.steps?.password) {
+        <div class="space-y-4">
+          <h2 class="text-base font-semibold text-text-primary">Change temporary password</h2>
+          <p class="text-sm text-text-secondary">
+            Use a password only you know. After that, wait for the owner to finish company setup.
+          </p>
+          <form class="grid max-w-md gap-3" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+            <app-input label="New password" type="password" formControlName="password" />
+            <app-input label="Confirm password" type="password" formControlName="confirm" />
+            <app-button type="submit" label="Save password" [loading]="saving()" [disabled]="saving()" />
+          </form>
+        </div>
+      } @else if (!isOwner()) {
+        <div class="space-y-3 py-6 text-center">
+          <div class="mx-auto inline-flex size-12 items-center justify-center rounded-2xl bg-warning-soft text-warning">
+            <app-icon name="lock" [size]="22" />
+          </div>
+          <h2 class="text-lg font-semibold text-text-primary">Waiting on the owner</h2>
+          <p class="mx-auto max-w-md text-sm text-text-secondary">
+            {{ orgName() }} is not fully onboarded yet. Ask the owner to complete company profile and first
+            property setup.
+          </p>
+        </div>
+      } @else if (step() === 'password') {
+        <div class="space-y-4">
+          <h2 class="text-base font-semibold text-text-primary">Secure your owner account</h2>
+          <p class="text-sm text-text-secondary">
+            Replace the temporary invite password before unlocking PropFlow.
+          </p>
+          <form class="grid max-w-md gap-3" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+            <app-input label="New password" type="password" formControlName="password" />
+            <app-input label="Confirm password" type="password" formControlName="confirm" />
+            <app-button type="submit" label="Save password" [loading]="saving()" [disabled]="saving()" />
+          </form>
+        </div>
+      } @else if (step() === 'profile') {
+        <div class="space-y-4">
+          <h2 class="text-base font-semibold text-text-primary">Company profile</h2>
+          <p class="text-sm text-text-secondary">
+            These details appear on invoices, documents, and tenant communications.
+          </p>
+          <form class="grid gap-3 sm:grid-cols-2" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+            <div class="sm:col-span-2">
+              <app-input label="Company name" formControlName="name" />
+            </div>
+            <app-input label="Phone" type="tel" leftIcon="phone" formControlName="phone" />
+            <app-input label="City" formControlName="city" />
+            <div class="sm:col-span-2">
+              <app-input label="Address" formControlName="address" />
+            </div>
+            <app-input label="Country" formControlName="country" />
+            <div class="flex items-end sm:col-span-2">
+              <app-button type="submit" label="Save profile" [loading]="saving()" [disabled]="saving()" />
+            </div>
+          </form>
+        </div>
+      } @else if (step() === 'property') {
+        <div class="space-y-4">
+          <h2 class="text-base font-semibold text-text-primary">Add your first property</h2>
+          <p class="text-sm text-text-secondary">
+            PropFlow needs at least one property before portfolio features unlock.
+          </p>
+          <form class="grid gap-3 sm:grid-cols-2" [formGroup]="propertyForm" (ngSubmit)="saveProperty()">
+            <div class="sm:col-span-2">
+              <app-input label="Property name" formControlName="name" />
+            </div>
+            <app-input label="Location" formControlName="location" />
+            <app-input label="Type" formControlName="type" hint="e.g. residential, commercial" />
+            <div class="sm:col-span-2">
+              <app-button type="submit" label="Add property" [loading]="saving()" [disabled]="saving()" />
+            </div>
+          </form>
+        </div>
+      } @else {
+        <div class="space-y-4">
+          <h2 class="text-base font-semibold text-text-primary">Ready to go live</h2>
+          <p class="text-sm text-text-secondary">
+            Password, company profile, and first property are in place. Unlock the full workspace for your team.
+          </p>
+          <ul class="space-y-2 text-sm text-text-secondary">
+            <li class="flex items-center gap-2 text-success">
+              <app-icon name="check" [size]="16" /> Secure password set
+            </li>
+            <li class="flex items-center gap-2 text-success">
+              <app-icon name="check" [size]="16" /> Company profile complete
+            </li>
+            <li class="flex items-center gap-2 text-success">
+              <app-icon name="check" [size]="16" /> First property added
+            </li>
+          </ul>
+          <app-button
+            label="Finish onboarding"
+            icon="check"
+            [loading]="saving()"
+            [disabled]="saving()"
+            (pressed)="finish()"
+          />
+        </div>
+      }
+    </app-card>
+  </div>
+}

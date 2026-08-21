@@ -16,5 +16,13 @@ export const AuthActions = createActionGroup({
     'Logout Success': emptyProps(),
     'Refresh Success': props<{ response: AuthResponse }>(),
     'Set Active Org': props<{ orgId: string }>(),
+    'Update Session User': props<{
+      patch: Partial<{
+        mustChangePassword: boolean;
+        onboardingComplete: boolean;
+        orgName: string | null;
+        fullName: string;
+      }>;
+    }>(),
   },
 });

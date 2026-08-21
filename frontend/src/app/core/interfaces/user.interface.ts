@@ -7,6 +7,9 @@ export interface SessionUser {
   email: string;
   role: UserRole;
   initials: string;
+  mustChangePassword: boolean;
+  onboardingComplete: boolean;
+  orgName: string | null;
 }
 
 export interface AppNotification {

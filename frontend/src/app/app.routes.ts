@@ -46,6 +46,13 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard-page.component').then((m) => m.DashboardPageComponent),
       },
       {
+        path: 'onboarding',
+        loadComponent: () =>
+          import('./features/onboarding/onboarding-page.component').then(
+            (m) => m.OnboardingPageComponent,
+          ),
+      },
+      {
         path: 'appearance',
         loadComponent: () =>
           import('./features/appearance/appearance-page.component').then((m) => m.AppearancePageComponent),

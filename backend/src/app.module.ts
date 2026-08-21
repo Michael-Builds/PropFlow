@@ -29,6 +29,7 @@ import { ScheduledJobsModule } from './jobs/scheduled-jobs.module';
 import { LeasesModule } from './leases/leases.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PlatformModule } from './platform/platform.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -105,6 +106,7 @@ import { VendorsModule } from './vendors/vendors.module';
     RealtimeModule,
     ComplianceModule,
     MessagingModule,
+    OnboardingModule,
   ],
   controllers: [AppController],
   providers: [

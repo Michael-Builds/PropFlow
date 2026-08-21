@@ -94,6 +94,9 @@ export function fromApi(collection: string, row: RecordRow): RecordRow {
         ...row,
         users: row['users'] ?? 0,
         properties: row['properties'] ?? 0,
+        onboarding: row['onboardingComplete'] === false ? 'pending' : 'complete',
+        temporaryPassword: row['temporaryPassword'],
+        ownerEmail: row['ownerEmail'],
       };
     default:
       return row;
@@ -188,7 +191,9 @@ export function toApi(collection: string, payload: RecordRow): RecordRow {
         name: payload['name'],
         ownerEmail: payload['ownerEmail'],
         ownerFullName: payload['ownerFullName'],
-        ownerPassword: payload['ownerPassword'] || undefined,
+        phone: payload['phone'] || undefined,
+        address: payload['address'] || undefined,
+        city: payload['city'] || undefined,
       };
     default:
       return payload;

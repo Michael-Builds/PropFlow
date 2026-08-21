@@ -69,7 +69,14 @@ export class AuthEffects {
   persist$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.loginSuccess, AuthActions.refreshSuccess, AuthActions.logout, AuthActions.logoutSuccess, AuthActions.setActiveOrg),
+        ofType(
+          AuthActions.loginSuccess,
+          AuthActions.refreshSuccess,
+          AuthActions.logout,
+          AuthActions.logoutSuccess,
+          AuthActions.setActiveOrg,
+          AuthActions.updateSessionUser,
+        ),
         withLatestFrom(this.store.select(authFeature.selectAuthState)),
         tap(([, state]) => persistAuth(state)),
       ),

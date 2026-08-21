@@ -93,7 +93,13 @@ export class AuthService {
     return roles.includes(role);
   }
 
+  needsOnboarding(): boolean {
+    const user = this.user();
+    if (!user || user.role === UserRole.PlatformAdmin) return false;
+    return user.onboardingComplete === false;
+  }
+
   homePath(): string {
-    return '/dashboard';
+    return this.needsOnboarding() ? '/onboarding' : '/dashboard';
   }
 }

@@ -19,6 +19,7 @@ const SUCCESS_STATUSES = new Set<string>([
   TicketStatus.Resolved,
   TicketStatus.Closed,
   UnitStatus.Occupied,
+  'complete',
 ]);
 
 const WARNING_STATUSES = new Set<string>([
@@ -29,6 +30,7 @@ const WARNING_STATUSES = new Set<string>([
   LeaseStatus.Ending,
   TicketStatus.Open,
   UnitStatus.Vacant,
+  'pending',
 ]);
 
 const DANGER_STATUSES = new Set<string>([

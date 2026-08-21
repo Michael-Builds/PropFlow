@@ -28,12 +28,29 @@ export class SidebarComponent {
   readonly mobileOpen = this.sidebar.mobileOpen;
   readonly expanded = computed(() => !this.collapsed());
 
-  readonly visibleSections = computed(() =>
-    NAV_SECTIONS.map((section) => ({
+  readonly visibleSections = computed(() => {
+    if (this.auth.needsOnboarding()) {
+      return [
+        {
+          id: 'setup',
+          label: 'Setup',
+          items: [
+            {
+              id: 'onboarding',
+              label: 'Finish onboarding',
+              path: '/onboarding',
+              icon: 'lock' as const,
+              roles: [] as const,
+            },
+          ],
+        },
+      ];
+    }
+    return NAV_SECTIONS.map((section) => ({
       ...section,
       items: section.items.filter((item) => this.auth.canAccess(item.roles)),
-    })).filter((section) => section.items.length > 0),
-  );
+    })).filter((section) => section.items.length > 0);
+  });
 
   async logout(): Promise<void> {
     const confirmed = await this.modal.confirm({

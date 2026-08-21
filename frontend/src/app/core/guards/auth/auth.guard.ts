@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
+import { UserRole } from '../../enums/user-role.enum';
 import { NAV_SECTIONS } from '../../config/nav.config';
 
 export const authGuard: CanActivateFn = (_route, state) => {
@@ -11,6 +12,16 @@ export const authGuard: CanActivateFn = (_route, state) => {
   }
 
   const path = '/' + state.url.split('?')[0].split('/').filter(Boolean)[0];
+  const onOnboarding = path === '/onboarding';
+
+  if (auth.needsOnboarding() && !onOnboarding) {
+    return router.createUrlTree(['/onboarding']);
+  }
+
+  if (!auth.needsOnboarding() && onOnboarding && auth.user()?.role !== UserRole.PlatformAdmin) {
+    return router.createUrlTree(['/dashboard']);
+  }
+
   const item = NAV_SECTIONS.flatMap((section) => section.items).find(
     (nav) => nav.path === path || nav.path === state.url.split('?')[0],
   );

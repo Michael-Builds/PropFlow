@@ -88,6 +88,7 @@ export class UsersService {
     if (existing) throw new BadRequestException('A user with this email already exists.');
 
     const password = dto.password?.trim() || randomPassword();
+    const generated = !dto.password?.trim();
     const row = await this.prisma.user.create({
       data: {
         orgId,
@@ -96,6 +97,7 @@ export class UsersService {
         role: dto.role,
         passwordHash: await bcrypt.hash(password, 10),
         status: 'active',
+        mustChangePassword: generated,
         tenantId: dto.tenantId,
         vendorId: dto.vendorId,
       },

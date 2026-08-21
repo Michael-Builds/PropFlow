@@ -234,7 +234,7 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     path: DataCollection.Organizations,
     eyebrow: 'Platform',
     title: 'Companies',
-    description: 'Real-estate operators on PropFlow. Open a company to manage its portfolio.',
+    description: 'Real-estate operators on PropFlow. A temporary owner password is generated and emailed; they must finish onboarding before the workspace unlocks.',
     createLabel: 'Add company',
     exportFileName: 'propflow-organizations',
     canCreate: true,
@@ -351,6 +351,7 @@ export const COLLECTION_COLUMNS: Record<DataCollection, DataTableColumn[]> = {
     { key: 'users', header: 'Users', align: 'right' },
     { key: 'properties', header: 'Properties', align: 'right' },
     badgeCol('status', 'Status'),
+    badgeCol('onboarding', 'Onboarding'),
     ACTIONS,
   ],
 };
@@ -582,6 +583,8 @@ export const COLLECTION_FIELDS: Record<DataCollection, FormField[]> = {
     { key: 'name', label: 'Company name', type: 'text', required: true },
     { key: 'ownerEmail', label: 'Owner email', type: 'email', required: true },
     { key: 'ownerFullName', label: 'Owner name', type: 'text', required: true },
-    { key: 'ownerPassword', label: 'Owner password', type: 'text', placeholder: 'Leave blank to generate' },
+    { key: 'phone', label: 'Company phone', type: 'text' },
+    { key: 'address', label: 'Address', type: 'text' },
+    { key: 'city', label: 'City', type: 'text' },
   ],
 };
