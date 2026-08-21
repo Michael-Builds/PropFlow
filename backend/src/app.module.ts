@@ -1,42 +1,45 @@
-import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BullModule } from '@nestjs/bullmq';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CommonModule } from './common/common.module';
-import { HealthModule } from './health/health.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { PropertiesModule } from './properties/properties.module';
-import { UnitsModule } from './units/units.module';
-import { TenantsModule } from './tenants/tenants.module';
-import { LeasesModule } from './leases/leases.module';
-import { InvoicesModule } from './invoices/invoices.module';
-import { PaymentsModule } from './payments/payments.module';
-import { TicketsModule } from './tickets/tickets.module';
-import { VendorsModule } from './vendors/vendors.module';
-import { DocumentsModule } from './documents/documents.module';
-import { DashboardModule } from './dashboard/dashboard.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { JobsModule } from './jobs/jobs.module';
-import { StorageModule } from './storage/storage.module';
-import { PlatformModule } from './platform/platform.module';
+import { AuthModule } from './auth/auth.module';
 import { BlocksModule } from './blocks/blocks.module';
-import { ExportsModule } from './exports/exports.module';
-import { ScheduledJobsModule } from './jobs/scheduled-jobs.module';
-import { envSchema } from './config/env.schema';
+import { CommonModule } from './common/common.module';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { HttpLoggingInterceptor } from './common/interceptors/http-logging.interceptor';
 import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { AppThrottlerGuard } from './common/throttler/app-throttler.guard';
-import { RedisService } from './common/redis/redis.service';
 import { createRedisOptions } from './common/redis/redis-options';
+import { RedisService } from './common/redis/redis.service';
+import { AppThrottlerGuard } from './common/throttler/app-throttler.guard';
+import { ComplianceModule } from './compliance/compliance.module';
+import { envSchema } from './config/env.schema';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { DocumentsModule } from './documents/documents.module';
+import { ExportsModule } from './exports/exports.module';
+import { HealthModule } from './health/health.module';
+import { InvoicesModule } from './invoices/invoices.module';
+import { JobsModule } from './jobs/jobs.module';
+import { ScheduledJobsModule } from './jobs/scheduled-jobs.module';
+import { LeasesModule } from './leases/leases.module';
+import { MessagingModule } from './messaging/messaging.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { PaymentsModule } from './payments/payments.module';
+import { PlatformModule } from './platform/platform.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { PropertiesModule } from './properties/properties.module';
+import { RealtimeModule } from './realtime/realtime.module';
+import { StorageModule } from './storage/storage.module';
+import { TenantsModule } from './tenants/tenants.module';
+import { TicketsModule } from './tickets/tickets.module';
+import { UnitsModule } from './units/units.module';
+import { UsersModule } from './users/users.module';
+import { VendorsModule } from './vendors/vendors.module';
 
 @Module({
   imports: [
@@ -99,6 +102,9 @@ import { createRedisOptions } from './common/redis/redis-options';
     BlocksModule,
     ExportsModule,
     ScheduledJobsModule,
+    RealtimeModule,
+    ComplianceModule,
+    MessagingModule,
   ],
   controllers: [AppController],
   providers: [

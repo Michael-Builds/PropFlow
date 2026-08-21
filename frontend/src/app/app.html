@@ -1,4 +1,8 @@
-<router-outlet />
+@if (showGate()) {
+  <app-platform-gate />
+} @else {
+  <router-outlet />
+}
 <app-toast-host />
 <app-modal-host />
 <app-loader />

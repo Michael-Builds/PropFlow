@@ -215,6 +215,34 @@ export enum Currency {
   Ghs = 'GHS',
 }
 
+export enum PlatformAvailabilityMode {
+  Live = 'live',
+  Maintenance = 'maintenance',
+  ComingSoon = 'coming_soon',
+}
+
+export const PLATFORM_AVAILABILITY_MODES = [
+  PlatformAvailabilityMode.Live,
+  PlatformAvailabilityMode.Maintenance,
+  PlatformAvailabilityMode.ComingSoon,
+] as const;
+
+export const PLATFORM_AVAILABILITY_LABELS: Record<PlatformAvailabilityMode, string> = {
+  [PlatformAvailabilityMode.Live]: 'Live',
+  [PlatformAvailabilityMode.Maintenance]: 'Maintenance',
+  [PlatformAvailabilityMode.ComingSoon]: 'Coming soon',
+};
+
+export enum ConversationType {
+  TenantOps = 'tenant_ops',
+  OwnerPlatform = 'owner_platform',
+}
+
+export const CONVERSATION_TYPE_LABELS: Record<ConversationType, string> = {
+  [ConversationType.TenantOps]: 'Property support',
+  [ConversationType.OwnerPlatform]: 'Platform support',
+};
+
 export enum AgreementTemplateId {
   LeaseAgreement = 'lease_agreement',
   LeaseRenewal = 'lease_renewal',

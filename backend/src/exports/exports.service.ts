@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { toCsv } from '../common/csv';
 import { toNumber } from '../common/money';
 import { arrearsBucket } from '../common/aging';
+import { decryptPii } from '../common/pii';
 
 @Injectable()
 export class ExportsService {
@@ -87,7 +88,7 @@ export class ExportsService {
           id: row.id,
           fullName: row.fullName,
           email: row.email ?? '',
-          phone: row.phone ?? '',
+          phone: decryptPii(row.phone) ?? '',
           kycStatus: row.kycStatus,
           status: row.status,
         })),

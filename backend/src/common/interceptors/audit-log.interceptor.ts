@@ -7,6 +7,7 @@ import {
 import { Observable, tap } from 'rxjs';
 import { AuditLogsService } from '../../audit-logs/audit-logs.service';
 import { AppLogger } from '../logger/app-logger.service';
+import { redactPii } from '../pii';
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
@@ -34,7 +35,7 @@ export class AuditLogInterceptor implements NestInterceptor {
             action: `${method} ${req.originalUrl}`,
             entityType: 'api_action',
             entityId: responseBody?.id,
-            afterJson: responseBody ?? {},
+            afterJson: redactPii(responseBody ?? {}),
             ip: req.ip,
           })
           .catch((error: unknown) => {

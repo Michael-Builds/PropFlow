@@ -1,12 +1,24 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
 
 const PREFIX = 'enc:v1:';
+const SENSITIVE_KEYS = new Set([
+  'phone',
+  'emergencyContact',
+  'password',
+  'passwordHash',
+  'accessToken',
+  'refreshToken',
+]);
 
 function keyBytes(): Buffer | null {
   const raw = process.env.PII_ENCRYPTION_KEY?.trim();
   if (!raw) return null;
   if (/^[0-9a-fA-F]{64}$/.test(raw)) return Buffer.from(raw, 'hex');
   return createHash('sha256').update(raw).digest();
+}
+
+export function isPiiEncryptionEnabled(): boolean {
+  return keyBytes() !== null;
 }
 
 export function encryptPii(value: string | null | undefined): string | null {
@@ -35,4 +47,22 @@ export function decryptPii(value: string | null | undefined): string | null {
     decipher.update(Buffer.from(dataB64, 'base64url')),
     decipher.final(),
   ]).toString('utf8');
+}
+
+export function redactPii<T>(value: T): T {
+  return redactValue(value) as T;
+}
+
+function redactValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactValue);
+  if (!value || typeof value !== 'object') return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (SENSITIVE_KEYS.has(key)) {
+      out[key] = entry == null || entry === '' ? entry : '[redacted]';
+      continue;
+    }
+    out[key] = redactValue(entry);
+  }
+  return out;
 }

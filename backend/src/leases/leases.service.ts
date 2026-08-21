@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppLogger } from '../common/logger/app-logger.service';
 import { pageArgs, pageResult } from '../common/pagination';
 import { toNumber } from '../common/money';
+import { ComplianceService } from '../compliance/compliance.service';
 import { CreateLeaseDto } from './dto/create-lease.dto';
 import { UpdateLeaseDto } from './dto/update-lease.dto';
 import { ListLeasesQueryDto } from './dto/list-leases-query.dto';
@@ -17,6 +18,7 @@ export class LeasesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: AppLogger,
+    private readonly compliance: ComplianceService,
   ) {}
 
   async list(orgId: string, query: ListLeasesQueryDto) {
@@ -65,6 +67,11 @@ export class LeasesService {
     if (!unit) throw new NotFoundException('Unit not found.');
     const tenant = await this.prisma.tenant.findFirst({ where: { id: dto.tenantId, orgId } });
     if (!tenant) throw new NotFoundException('Tenant not found.');
+
+    const ready = await this.compliance.assertLeaseReady(orgId, tenant.id);
+    if (!ready.ok) {
+      throw new BadRequestException(ready.message);
+    }
 
     await this.assertNoOverlap(orgId, unit.id, startDate, endDate);
 

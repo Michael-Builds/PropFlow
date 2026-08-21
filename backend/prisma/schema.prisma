@@ -24,6 +24,22 @@ enum EntityType {
   lease
 }
 
+enum PlatformAvailabilityMode {
+  live
+  maintenance
+  coming_soon
+}
+
+enum ConversationType {
+  tenant_ops
+  owner_platform
+}
+
+enum ConversationStatus {
+  open
+  closed
+}
+
 model Organization {
   id        String   @id @default(cuid())
   name      String
@@ -336,6 +352,9 @@ model ComplianceRule {
   docType      String
   required     Boolean    @default(true)
   validityDays Int?
+
+  @@unique([orgId, entityType, docType])
+  @@index([orgId, entityType])
 }
 
 model Notification {
@@ -351,6 +370,58 @@ model Notification {
   createdAt   DateTime  @default(now())
 
   @@index([orgId, userId, status])
+}
+
+model PlatformAvailability {
+  id           String                   @id @default("default")
+  mode         PlatformAvailabilityMode @default(live)
+  title        String                   @default("")
+  message      String                   @default("")
+  supportEmail String?
+  updatedBy    String?
+  updatedAt    DateTime                 @updatedAt
+}
+
+model Conversation {
+  id        String             @id @default(cuid())
+  orgId     String?
+  type      ConversationType
+  subject   String?
+  status    ConversationStatus @default(open)
+  createdBy String
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([orgId, type, updatedAt])
+  @@index([type, updatedAt])
+}
+
+model ConversationParticipant {
+  id             String    @id @default(cuid())
+  conversationId String
+  userId         String
+  role           UserRole
+  lastReadAt     DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderUserId  String
+  body           String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
 }
 
 model AuditLog {

@@ -1,0 +1,37 @@
+<section
+  class="flex min-h-full items-center justify-center bg-[radial-gradient(circle_at_top,#e8eeff,#f7f8fc_55%,#eef1f7)] px-4 py-10"
+>
+  <div class="w-full max-w-lg text-center">
+    <div class="mb-8 flex justify-center">
+      <app-logo />
+    </div>
+    <div
+      class="mx-auto mb-6 flex size-14 items-center justify-center rounded-2xl border border-border bg-white text-brand shadow-sm"
+    >
+      <app-icon [name]="icon()" [size]="28" />
+    </div>
+    <h1 class="text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
+      {{ state().title }}
+    </h1>
+    <p class="mt-3 text-sm leading-relaxed text-text-secondary sm:text-base">
+      {{ state().message }}
+    </p>
+    @if (state().supportEmail) {
+      <p class="mt-4 text-sm text-text-muted">
+        Need help?
+        <a class="font-medium text-brand hover:underline" [href]="'mailto:' + state().supportEmail">
+          {{ state().supportEmail }}
+        </a>
+      </p>
+    }
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      @if (!auth.authenticated()) {
+        <a routerLink="/auth/login">
+          <app-button variant="secondary" type="button" label="Operator sign in" />
+        </a>
+      } @else {
+        <app-button variant="secondary" type="button" label="Sign out" (pressed)="auth.logout()" />
+      }
+    </div>
+  </div>
+</section>

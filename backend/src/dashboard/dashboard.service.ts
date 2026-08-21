@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { toNumber } from '../common/money';
+import { ComplianceService } from '../compliance/compliance.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly compliance: ComplianceService,
+  ) {}
 
   async summary(orgId: string) {
     const now = new Date();
@@ -149,21 +153,21 @@ export class DashboardService {
   }
 
   async overview(orgId: string) {
-    const [summary, collections, maintenance, tickets, documents, properties] = await Promise.all([
+    const [summary, collections, maintenance, tickets, properties, complianceScore] =
+      await Promise.all([
       this.summary(orgId),
       this.collections(orgId),
       this.maintenance(orgId),
       this.prisma.ticket.groupBy({ by: ['status'], where: { orgId }, _count: true }),
-      this.prisma.document.findMany({ where: { orgId }, select: { status: true } }),
       this.prisma.property.findMany({
         where: { orgId },
         include: { _count: { select: { units: true } }, units: { select: { status: true } } },
         take: 6,
       }),
+      this.compliance.orgScore(orgId),
     ]);
 
-    const validDocs = documents.filter((doc) => doc.status === 'valid').length;
-    const compliance = documents.length === 0 ? 100 : Math.round((validDocs / documents.length) * 100);
+    const compliance = complianceScore.score;
 
     return {
       posture: {
@@ -214,7 +218,10 @@ export class DashboardService {
         {
           label: 'Compliance',
           value: `${compliance}%`,
-          hint: 'Documents in date',
+          hint:
+            complianceScore.checked === 0
+              ? 'Documents in date'
+              : `${complianceScore.gaps} gaps · ${complianceScore.checked} checks`,
           delta: 0,
           icon: 'folder',
         },

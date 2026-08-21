@@ -50,6 +50,18 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/appearance/appearance-page.component').then((m) => m.AppearancePageComponent),
       },
+      {
+        path: 'system-status',
+        loadComponent: () =>
+          import('./features/system-status/system-status-page.component').then(
+            (m) => m.SystemStatusPageComponent,
+          ),
+      },
+      {
+        path: 'messages',
+        loadComponent: () =>
+          import('./features/messages/messages-page.component').then((m) => m.MessagesPageComponent),
+      },
       ...DATA_COLLECTIONS.map((collection) => ({
         path: collection,
         children: [

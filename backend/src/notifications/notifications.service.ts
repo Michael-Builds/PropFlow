@@ -67,6 +67,23 @@ export class NotificationsService {
     return notification;
   }
 
+  async queueInApp(orgId: string, userId: string, type: string, payload: Record<string, unknown>) {
+    return this.prisma.notification.create({
+      data: {
+        orgId,
+        userId,
+        channel: 'in_app',
+        type,
+        payloadJson: {
+          message: String(payload.preview ?? payload.message ?? 'New message'),
+          ...payload,
+        },
+        status: 'sent',
+        sentAt: new Date(),
+      },
+    });
+  }
+
   async markSent(notificationId: string) {
     return this.prisma.notification.update({
       where: { id: notificationId },

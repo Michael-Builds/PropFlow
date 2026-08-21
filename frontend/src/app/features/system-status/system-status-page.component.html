@@ -1,0 +1,247 @@
+<app-page-header
+  eyebrow="Platform"
+  title="System status"
+  description="Broadcast PropFlow’s availability to every company workspace. Changes go out over WebSocket the moment you save."
+/>
+
+<section
+  class="relative flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-br from-navy-deep to-navy px-5 py-5 text-white"
+  [class.from-navy-deep]="true"
+>
+  <div
+    class="pointer-events-none absolute -bottom-10 -left-6 size-32 rounded-full blur-2xl"
+    [class.bg-success/40]="current().mode === 'live'"
+    [class.bg-warning/40]="current().mode === 'maintenance'"
+    [class.bg-info/40]="current().mode === 'coming_soon'"
+    aria-hidden="true"
+  ></div>
+
+  <div class="relative">
+    <p class="text-[0.7rem] font-semibold tracking-[0.14em] text-white/70 uppercase">
+      {{ publishedLabel() }}
+    </p>
+    <h2 class="mt-1.5 text-xl font-semibold tracking-tight">
+      @if (current().mode === 'live') {
+        All systems open
+      } @else if (current().mode === 'maintenance') {
+        Maintenance gate is on
+      } @else {
+        Coming soon gate is on
+      }
+    </h2>
+    <p class="mt-1.5 text-sm text-white/65">
+      @if (current().updatedAt) {
+        Last changed {{ current().updatedAt | date: 'medium' }}
+      } @else {
+        Not published yet
+      }
+      @if (dirty()) {
+        <span class="font-semibold text-warning"> · Draft unsaved</span>
+      }
+    </p>
+  </div>
+
+  <div
+    class="relative inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2 text-sm font-semibold capitalize backdrop-blur-sm"
+  >
+    <app-icon
+      [name]="current().mode === 'maintenance' ? 'warning' : current().mode === 'coming_soon' ? 'clock' : 'check'"
+      [size]="18"
+    />
+    <span>{{ current().mode.replace('_', ' ') }}</span>
+  </div>
+</section>
+
+<div class="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] xl:items-start">
+  <section class="rounded-2xl border border-border bg-card p-5 shadow-card">
+    <header>
+      <h2 class="text-base font-semibold text-text-primary">Availability mode</h2>
+      <p class="mt-1 text-sm text-text-secondary">
+        Choose what company users experience. Platform admins always stay inside.
+      </p>
+    </header>
+
+    <div class="mt-4 grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Availability mode">
+      @for (option of modes; track option.value) {
+        <button
+          type="button"
+          role="radio"
+          class="relative flex min-h-full flex-col gap-3 rounded-xl border p-4 text-left transition hover:-translate-y-0.5 md:cursor-pointer"
+          [class]="modeCardClass(option)"
+          [attr.aria-checked]="mode() === option.value"
+          (click)="selectMode(option.value)"
+        >
+          <span
+            class="inline-flex size-9 items-center justify-center rounded-lg"
+            [class]="modeIconClass(option)"
+          >
+            <app-icon [name]="option.icon" [size]="18" />
+          </span>
+          <span>
+            <span class="block text-sm font-semibold text-text-primary">{{ option.label }}</span>
+            <span class="mt-0.5 block text-xs font-semibold" [class]="modeHintClass(option)">
+              {{ option.hint }}
+            </span>
+            <span class="mt-2 block text-xs leading-relaxed text-text-secondary">
+              {{ option.detail }}
+            </span>
+          </span>
+          @if (mode() === option.value) {
+            <span
+              class="absolute top-3 right-3 inline-flex size-5 items-center justify-center rounded-full text-white"
+              [class]="modeCheckClass(option)"
+              aria-hidden="true"
+            >
+              <app-icon name="check" [size]="14" />
+            </span>
+          }
+        </button>
+      }
+    </div>
+
+    @if (mode() !== 'live') {
+      <div class="mt-5 space-y-3 border-t border-border-light pt-5">
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-semibold text-text-secondary">Gate title</span>
+          <input
+            class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text-primary outline-none focus:border-brand focus:ring-3 focus:ring-brand/15"
+            [ngModel]="title()"
+            (ngModelChange)="title.set($event); markDirty()"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-semibold text-text-secondary">Gate message</span>
+          <textarea
+            rows="4"
+            class="min-h-24 w-full resize-y rounded-xl border border-border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-brand focus:ring-3 focus:ring-brand/15"
+            [ngModel]="message()"
+            (ngModelChange)="message.set($event); markDirty()"
+          ></textarea>
+        </label>
+      </div>
+    }
+
+    <div class="mt-5 space-y-3">
+      <label class="block">
+        <span class="mb-1.5 block text-xs font-semibold text-text-secondary">Support email</span>
+        <input
+          type="email"
+          class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text-primary outline-none focus:border-brand focus:ring-3 focus:ring-brand/15"
+          [ngModel]="supportEmail()"
+          (ngModelChange)="supportEmail.set($event); markDirty()"
+        />
+      </label>
+
+      @if (showNotify()) {
+        <label
+          class="flex cursor-pointer items-start gap-3 rounded-xl border border-border-light bg-surface px-3.5 py-3 text-sm text-text-secondary"
+        >
+          <input
+            type="checkbox"
+            class="mt-1 accent-brand"
+            [ngModel]="notifyUsers()"
+            (ngModelChange)="notifyUsers.set($event); markDirty()"
+          />
+          <span>
+            <strong class="block font-semibold text-text-primary">Notify company users</strong>
+            Queue an email when you enter this mode.
+          </span>
+        </label>
+      }
+    </div>
+
+    <footer class="mt-5 flex flex-wrap items-center gap-3 border-t border-border-light pt-5">
+      <app-button
+        type="button"
+        [loading]="saving()"
+        [disabled]="saving()"
+        label="Save status"
+        (pressed)="save()"
+      />
+      <p class="max-w-sm text-xs text-text-muted">
+        Saving {{ selected().label.toLowerCase() }} updates every connected client immediately.
+      </p>
+    </footer>
+  </section>
+
+  <aside class="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5">
+    <header class="flex items-start justify-between gap-3">
+      <div>
+        <h2 class="text-base font-semibold text-text-primary">Live preview</h2>
+        <p class="mt-1 text-sm text-text-secondary">Same layout company users get when gated.</p>
+      </div>
+      <span class="shrink-0 rounded-full border px-2.5 py-1 text-[0.7rem] font-semibold" [class]="chipClass()">
+        {{ selected().label }}
+      </span>
+    </header>
+
+    <div class="mt-4 overflow-hidden rounded-xl border border-border bg-white">
+      <div class="flex items-center gap-1.5 border-b border-border-light bg-surface px-3 py-2">
+        <span class="size-1.5 rounded-full bg-border"></span>
+        <span class="size-1.5 rounded-full bg-border"></span>
+        <span class="size-1.5 rounded-full bg-border"></span>
+        <p
+          class="mx-auto max-w-40 truncate rounded-md border border-border-light bg-white px-2 py-0.5 text-[0.68rem] text-text-muted"
+        >
+          propflow.app
+        </p>
+      </div>
+
+      <div
+        class="grid min-h-66 place-content-center justify-items-center gap-2 bg-[radial-gradient(circle_at_top,_#e8eeff,_transparent_42%),linear-gradient(180deg,#f7f8fc_0%,#eef1f7_100%)] px-4 py-6 text-center"
+      >
+        @if (mode() === 'live') {
+          <span class="size-2 rounded-full bg-success shadow-[0_0_0_4px] shadow-success/20"></span>
+          <p class="mt-1 text-[0.7rem] font-semibold tracking-[0.08em] text-success uppercase">No gate</p>
+          <h3 class="max-w-64 text-lg font-semibold tracking-tight text-text-primary">
+            {{ previewTitle() }}
+          </h3>
+          <p class="max-w-72 text-sm leading-relaxed text-text-secondary">{{ previewMessage() }}</p>
+        } @else {
+          <p class="text-xs font-bold tracking-[0.08em] text-brand uppercase">PropFlow</p>
+          <div
+            class="mt-1 inline-flex size-11 items-center justify-center rounded-xl border border-border bg-white text-brand shadow-sm"
+          >
+            <app-icon [name]="selected().icon" [size]="22" />
+          </div>
+          <h3 class="mt-1 max-w-64 text-lg font-semibold tracking-tight text-text-primary">
+            {{ previewTitle() }}
+          </h3>
+          <p class="max-w-72 text-sm leading-relaxed text-text-secondary">{{ previewMessage() }}</p>
+          @if (supportEmail()) {
+            <p class="text-xs text-text-muted">
+              Need help?
+              <a class="font-semibold text-brand hover:underline" [href]="'mailto:' + supportEmail()">
+                {{ supportEmail() }}
+              </a>
+            </p>
+          }
+          <div
+            class="mt-2 rounded-md border border-border bg-white px-3 py-1.5 text-xs font-semibold text-text-secondary"
+          >
+            Operator sign in
+          </div>
+        }
+      </div>
+    </div>
+
+    <ul class="mt-3 grid gap-1.5">
+      <li class="flex items-center justify-between gap-3 rounded-lg bg-surface px-3 py-2 text-xs">
+        <span class="text-text-muted">Draft</span>
+        <strong class="font-semibold text-text-primary capitalize">{{ selected().label }}</strong>
+      </li>
+      <li class="flex items-center justify-between gap-3 rounded-lg bg-surface px-3 py-2 text-xs">
+        <span class="text-text-muted">Published</span>
+        <strong class="font-semibold text-text-primary capitalize">
+          {{ current().mode.replace('_', ' ') }}
+        </strong>
+      </li>
+      <li class="flex items-center justify-between gap-3 rounded-lg bg-surface px-3 py-2 text-xs">
+        <span class="text-text-muted">Who sees it</span>
+        <strong class="font-semibold text-text-primary">
+          {{ mode() === 'live' ? 'Everyone' : 'Company users' }}
+        </strong>
+      </li>
+    </ul>
+  </aside>
+</div>

@@ -2,6 +2,8 @@ import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client';
+import { encryptPii } from '../src/common/pii';
+import { DEFAULT_COMPLIANCE_PACK } from '../src/compliance/compliance.defaults';
 
 /** Demo seed only. Wipe before production. All passwords: password */
 async function main() {
@@ -155,15 +157,22 @@ async function main() {
   for (const tenant of tenantDefs) {
     await prisma.tenant.upsert({
       where: { id: tenant.id },
-      update: { fullName: tenant.fullName, email: tenant.email, status: 'active', kycStatus: tenant.kyc },
+      update: {
+        fullName: tenant.fullName,
+        email: tenant.email,
+        status: 'active',
+        kycStatus: tenant.kyc,
+        phone: encryptPii(tenant.phone),
+        emergencyContact: encryptPii('Next of kin · +233200000000'),
+      },
       create: {
         id: tenant.id,
         orgId: tenant.orgId ?? org.id,
         fullName: tenant.fullName,
         email: tenant.email,
-        phone: tenant.phone,
+        phone: encryptPii(tenant.phone),
         occupation: tenant.occupation,
-        emergencyContact: 'Next of kin · +233200000000',
+        emergencyContact: encryptPii('Next of kin · +233200000000'),
         status: 'active',
         kycStatus: tenant.kyc,
       },
@@ -326,18 +335,28 @@ async function main() {
 
   const docs = [
     { id: 'doc_001', entityType: 'lease' as const, entityId: 'lease_001', docType: 'lease_agreement' },
-    { id: 'doc_002', entityType: 'tenant' as const, entityId: 'tenant_001', docType: 'id_card' },
+    { id: 'doc_002', entityType: 'tenant' as const, entityId: 'tenant_001', docType: 'national_id' },
     { id: 'doc_003', entityType: 'property' as const, entityId: 'prop_001', docType: 'insurance' },
     { id: 'doc_004', entityType: 'lease' as const, entityId: 'lease_006', docType: 'lease_agreement' },
     { id: 'doc_005', entityType: 'unit' as const, entityId: 'unit_012', docType: 'fit_out_approval' },
+    { id: 'doc_006', entityType: 'property' as const, entityId: 'prop_001', docType: 'fire_certificate' },
+    { id: 'doc_007', entityType: 'tenant' as const, entityId: 'tenant_002', docType: 'national_id' },
+    { id: 'doc_008', entityType: 'tenant' as const, entityId: 'tenant_003', docType: 'national_id' },
+    { id: 'doc_009', entityType: 'tenant' as const, entityId: 'tenant_005', docType: 'national_id' },
+    { id: 'doc_010', entityType: 'tenant' as const, entityId: 'tenant_006', docType: 'national_id' },
+    { id: 'doc_011', entityType: 'tenant' as const, entityId: 'tenant_007', docType: 'national_id' },
+    { id: 'doc_012', entityType: 'tenant' as const, entityId: 'tenant_008', docType: 'national_id' },
+    { id: 'doc_013', entityType: 'tenant' as const, entityId: 'tenant_010', docType: 'national_id' },
+    { id: 'doc_014', entityType: 'tenant' as const, entityId: 'tenant_011', docType: 'national_id' },
+    { id: 'doc_015', entityType: 'tenant' as const, entityId: 'tenant_101', docType: 'national_id', orgId: org2.id },
   ];
   for (const doc of docs) {
     await prisma.document.upsert({
       where: { id: doc.id },
-      update: { status: 'valid' },
+      update: { status: 'valid', docType: doc.docType },
       create: {
         id: doc.id,
-        orgId: org.id,
+        orgId: doc.orgId ?? org.id,
         entityType: doc.entityType,
         entityId: doc.entityId,
         docType: doc.docType,
@@ -346,6 +365,22 @@ async function main() {
         status: 'valid',
       },
     });
+  }
+
+  for (const orgId of [org.id, org2.id]) {
+    for (const rule of DEFAULT_COMPLIANCE_PACK) {
+      await prisma.complianceRule.upsert({
+        where: {
+          orgId_entityType_docType: {
+            orgId,
+            entityType: rule.entityType,
+            docType: rule.docType,
+          },
+        },
+        create: { orgId, ...rule },
+        update: { required: rule.required, validityDays: rule.validityDays },
+      });
+    }
   }
 
   const users = await prisma.user.findMany({ where: { orgId: org.id } });

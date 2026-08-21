@@ -42,6 +42,9 @@ lerna-debug.log*
 # Prisma generated client
 /src/generated
 
+/prisma/migrations
+/prisma/seed.ts
+
 # temp
 .temp
 .tmp

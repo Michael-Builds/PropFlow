@@ -37,6 +37,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: 'Operations',
     items: [
       { id: DataCollection.Tickets, label: 'Maintenance', path: collectionRoute(DataCollection.Tickets), icon: 'wrench', roles: UserRoles.tickets },
+      { id: 'messages', label: 'Messages', path: '/messages', icon: 'mail', roles: UserRoles.messaging },
       { id: DataCollection.Documents, label: 'Documents', path: collectionRoute(DataCollection.Documents), icon: 'folder', roles: UserRoles.documents },
       { id: DataCollection.Notifications, label: 'Notifications', path: collectionRoute(DataCollection.Notifications), icon: 'bell', roles: UserRoles.all, badgeKey: DataCollection.Notifications },
     ],
@@ -46,6 +47,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: 'Admin',
     items: [
       { id: DataCollection.Organizations, label: 'Companies', path: collectionRoute(DataCollection.Organizations), icon: 'globe', roles: UserRoles.platform },
+      { id: 'system-status', label: 'System status', path: '/system-status', icon: 'activity', roles: UserRoles.platform },
       { id: DataCollection.Users, label: 'Users', path: collectionRoute(DataCollection.Users), icon: 'users', roles: UserRoles.portfolio },
       { id: DataCollection.AuditLogs, label: 'Audit logs', path: collectionRoute(DataCollection.AuditLogs), icon: 'shield', roles: UserRoles.audit },
       { id: 'appearance', label: 'Appearance', path: '/appearance', icon: 'palette', roles: UserRoles.all },

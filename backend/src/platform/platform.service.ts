@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService, randomPassword } from '../users/users.service';
+import { ComplianceService } from '../compliance/compliance.service';
 import { pageArgs, pageResult } from '../common/pagination';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
@@ -13,6 +14,7 @@ export class PlatformService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly users: UsersService,
+    private readonly compliance: ComplianceService,
   ) {}
 
   async listOrganizations(query: PaginationQueryDto) {
@@ -67,6 +69,7 @@ export class PlatformService {
     const org = await this.prisma.organization.create({
       data: { name: dto.name.trim(), status: 'active' },
     });
+    await this.compliance.ensureDefaults(org.id);
     const owner = await this.users.createInOrg(actor, org.id, {
       email: dto.ownerEmail,
       fullName: dto.ownerFullName,
