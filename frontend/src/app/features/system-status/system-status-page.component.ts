@@ -9,6 +9,9 @@ import { PlatformAvailabilityService } from '../../core/services/platform-availa
 import { ToastService } from '../../core/services/toast/toast.service';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
+import { InputComponent } from '../../shared/ui/input/input.component';
+import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
+import { CheckboxComponent } from '../../shared/ui/checkbox/checkbox.component';
 import { IconComponent } from '../../shared/icons/icon.component';
 
 type ModeOption = {
@@ -23,7 +26,16 @@ type ModeOption = {
 @Component({
   selector: 'app-system-status-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, FormsModule, PageHeaderComponent, ButtonComponent, IconComponent],
+  imports: [
+    DatePipe,
+    FormsModule,
+    PageHeaderComponent,
+    ButtonComponent,
+    InputComponent,
+    TextareaComponent,
+    CheckboxComponent,
+    IconComponent,
+  ],
   templateUrl: './system-status-page.component.html',
   styleUrl: './system-status-page.component.css',
   host: { class: 'block space-y-5' },
@@ -129,13 +141,13 @@ export class SystemStatusPageComponent {
     const active = this.mode() === option.value;
     const tones: Record<ModeOption['tone'], string> = {
       live: active
-        ? 'border-success bg-success-soft/40 ring-2 ring-success/30'
+        ? 'border-success bg-success-soft/40'
         : 'border-border bg-linear-to-b from-success-soft/50 to-white hover:border-success/40',
       maintenance: active
-        ? 'border-warning bg-warning-soft/50 ring-2 ring-warning/30'
+        ? 'border-warning bg-warning-soft/50'
         : 'border-border bg-linear-to-b from-warning-soft/50 to-white hover:border-warning/40',
       soon: active
-        ? 'border-info bg-info-soft/50 ring-2 ring-info/30'
+        ? 'border-info bg-info-soft/50'
         : 'border-border bg-linear-to-b from-info-soft/50 to-white hover:border-info/40',
     };
     return tones[option.tone];

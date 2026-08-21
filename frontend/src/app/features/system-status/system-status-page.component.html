@@ -6,7 +6,6 @@
 
 <section
   class="relative flex flex-wrap items-center justify-between gap-4 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-br from-navy-deep to-navy px-5 py-5 text-white"
-  [class.from-navy-deep]="true"
 >
   <div
     class="pointer-events-none absolute -bottom-10 -left-6 size-32 rounded-full blur-2xl"
@@ -66,7 +65,7 @@
         <button
           type="button"
           role="radio"
-          class="relative flex min-h-full flex-col gap-3 rounded-xl border p-4 text-left transition hover:-translate-y-0.5 md:cursor-pointer"
+          class="relative flex min-h-full flex-col gap-3 rounded-xl border p-4 text-left shadow-none transition md:cursor-pointer"
           [class]="modeCardClass(option)"
           [attr.aria-checked]="mode() === option.value"
           (click)="selectMode(option.value)"
@@ -101,52 +100,38 @@
 
     @if (mode() !== 'live') {
       <div class="mt-5 space-y-3 border-t border-border-light pt-5">
-        <label class="block">
-          <span class="mb-1.5 block text-xs font-semibold text-text-secondary">Gate title</span>
-          <input
-            class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text-primary outline-none focus:border-brand focus:ring-3 focus:ring-brand/15"
-            [ngModel]="title()"
-            (ngModelChange)="title.set($event); markDirty()"
-          />
-        </label>
-        <label class="block">
-          <span class="mb-1.5 block text-xs font-semibold text-text-secondary">Gate message</span>
-          <textarea
-            rows="4"
-            class="min-h-24 w-full resize-y rounded-xl border border-border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-brand focus:ring-3 focus:ring-brand/15"
-            [ngModel]="message()"
-            (ngModelChange)="message.set($event); markDirty()"
-          ></textarea>
-        </label>
+        <app-input
+          label="Gate title"
+          [ngModel]="title()"
+          (ngModelChange)="title.set($event); markDirty()"
+        />
+        <app-textarea
+          label="Gate message"
+          [rows]="4"
+          [ngModel]="message()"
+          (ngModelChange)="message.set($event); markDirty()"
+        />
       </div>
     }
 
     <div class="mt-5 space-y-3">
-      <label class="block">
-        <span class="mb-1.5 block text-xs font-semibold text-text-secondary">Support email</span>
-        <input
-          type="email"
-          class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text-primary outline-none focus:border-brand focus:ring-3 focus:ring-brand/15"
-          [ngModel]="supportEmail()"
-          (ngModelChange)="supportEmail.set($event); markDirty()"
-        />
-      </label>
+      <app-input
+        label="Support email"
+        type="email"
+        leftIcon="mail"
+        [ngModel]="supportEmail()"
+        (ngModelChange)="supportEmail.set($event); markDirty()"
+      />
 
       @if (showNotify()) {
-        <label
-          class="flex cursor-pointer items-start gap-3 rounded-xl border border-border-light bg-surface px-3.5 py-3 text-sm text-text-secondary"
-        >
-          <input
-            type="checkbox"
-            class="mt-1 accent-brand"
+        <div class="rounded-xl border border-border-light bg-surface px-3.5 py-3">
+          <app-checkbox
+            label="Notify company users"
+            description="Queue an email when you enter this mode."
             [ngModel]="notifyUsers()"
             (ngModelChange)="notifyUsers.set($event); markDirty()"
           />
-          <span>
-            <strong class="block font-semibold text-text-primary">Notify company users</strong>
-            Queue an email when you enter this mode.
-          </span>
-        </label>
+        </div>
       }
     </div>
 
@@ -216,10 +201,8 @@
               </a>
             </p>
           }
-          <div
-            class="mt-2 rounded-md border border-border bg-white px-3 py-1.5 text-xs font-semibold text-text-secondary"
-          >
-            Operator sign in
+          <div class="mt-2">
+            <app-button variant="secondary" size="sm" type="button" label="Operator sign in" />
           </div>
         }
       </div>

@@ -239,7 +239,7 @@ export const COLLECTION_PAGES: Record<DataCollection, CollectionPageConfig> = {
     exportFileName: 'propflow-organizations',
     canCreate: true,
     canEdit: true,
-    canDelete: false,
+    canDelete: true,
   },
 };
 

@@ -13,11 +13,23 @@ import { UserRole } from '../../core/enums/user-role.enum';
 import { PageHeaderComponent } from '../../shared/ui/page-header/page-header.component';
 import { CardComponent } from '../../shared/ui/card/card.component';
 import { ButtonComponent } from '../../shared/ui/button/button.component';
+import { InputComponent } from '../../shared/ui/input/input.component';
+import { TextareaComponent } from '../../shared/ui/textarea/textarea.component';
+import { EmptyStateComponent } from '../../shared/ui/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-messages-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, FormsModule, PageHeaderComponent, CardComponent, ButtonComponent],
+  imports: [
+    DatePipe,
+    FormsModule,
+    PageHeaderComponent,
+    CardComponent,
+    ButtonComponent,
+    InputComponent,
+    TextareaComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './messages-page.component.html',
   styleUrl: './messages-page.component.css',
   host: { class: 'block space-y-4' },

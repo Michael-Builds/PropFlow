@@ -1,41 +1,47 @@
 <app-page-header
   title="Messages"
-  subtitle="Tenants reach owners and managers. Owners reach platform support."
+  description="Tenants reach owners and managers. Owners reach platform support."
 />
 
 <div class="grid gap-4 lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
   <app-card class="flex min-h-112 flex-col">
     <div class="mb-3 flex flex-wrap gap-2">
       @if (canStartTenantOps()) {
-        <app-button size="sm" variant="secondary" (pressed)="openCompose(tenantOpsType)">
-          New property thread
-        </app-button>
+        <app-button
+          size="sm"
+          variant="secondary"
+          label="New property thread"
+          (pressed)="openCompose(tenantOpsType)"
+        />
       }
       @if (canStartPlatform()) {
-        <app-button size="sm" variant="secondary" (pressed)="openCompose(ownerPlatformType)">
-          Message platform
-        </app-button>
+        <app-button
+          size="sm"
+          variant="secondary"
+          label="Message platform"
+          (pressed)="openCompose(ownerPlatformType)"
+        />
       }
     </div>
 
     @if (composeOpen()) {
-      <div class="mb-3 space-y-2 rounded-lg border border-border p-3">
+      <div class="mb-3 space-y-3 rounded-lg border border-border p-3">
         <p class="text-sm font-medium text-text-primary">{{ typeLabel[composeType()] }}</p>
-        <input
-          class="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm text-text-primary"
-          placeholder="Subject"
+        <app-input
+          label="Subject"
           [ngModel]="composeSubject()"
           (ngModelChange)="composeSubject.set($event)"
         />
-        <textarea
-          class="min-h-20 w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm text-text-primary"
+        <app-textarea
+          label="Message"
           placeholder="Write your message…"
+          [rows]="3"
           [ngModel]="composeBody()"
           (ngModelChange)="composeBody.set($event)"
-        ></textarea>
+        />
         <div class="flex gap-2">
-          <app-button size="sm" (pressed)="sendCompose()">Send</app-button>
-          <app-button size="sm" variant="ghost" (pressed)="composeOpen.set(false)">Cancel</app-button>
+          <app-button size="sm" label="Send" (pressed)="sendCompose()" />
+          <app-button size="sm" variant="ghost" label="Cancel" (pressed)="composeOpen.set(false)" />
         </div>
       </div>
     }
@@ -50,7 +56,9 @@
             (click)="select(row.id)"
           >
             <div class="flex items-center justify-between gap-2">
-              <span class="truncate text-sm font-medium text-text-primary">{{ row.subject || typeLabel[row.type] }}</span>
+              <span class="truncate text-sm font-medium text-text-primary">
+                {{ row.subject || typeLabel[row.type] }}
+              </span>
               @if (row.unread) {
                 <span class="size-2 shrink-0 rounded-full bg-brand"></span>
               }
@@ -61,7 +69,13 @@
           </button>
         </li>
       } @empty {
-        <li class="px-2 py-6 text-sm text-text-muted">No conversations yet.</li>
+        <li>
+          <app-empty-state
+            title="No conversations yet"
+            description="Start a thread to message your property team or platform support."
+            icon="mail"
+          />
+        </li>
       }
     </ul>
   </app-card>
@@ -70,13 +84,13 @@
     @if (active(); as thread) {
       <div class="mb-3 flex items-start justify-between gap-3 border-b border-border pb-3">
         <div>
-          <h2 class="text-base font-semibold text-text-primary">{{ thread.subject || typeLabel[thread.type] }}</h2>
-          <p class="text-xs text-text-muted">
-            {{ typeLabel[thread.type] }} · {{ thread.status }}
-          </p>
+          <h2 class="text-base font-semibold text-text-primary">
+            {{ thread.subject || typeLabel[thread.type] }}
+          </h2>
+          <p class="text-xs text-text-muted">{{ typeLabel[thread.type] }} · {{ thread.status }}</p>
         </div>
         @if (canClose() && thread.status === 'open') {
-          <app-button size="sm" variant="ghost" (pressed)="closeThread()">Close</app-button>
+          <app-button size="sm" variant="ghost" label="Close" (pressed)="closeThread()" />
         }
       </div>
 
@@ -99,20 +113,25 @@
       </div>
 
       @if (thread.status === 'open') {
-        <div class="flex gap-2">
-          <textarea
-            class="min-h-11 flex-1 rounded-md border border-border bg-transparent px-3 py-2 text-sm text-text-primary"
-            placeholder="Reply…"
-            [ngModel]="draft()"
-            (ngModelChange)="draft.set($event)"
-          ></textarea>
-          <app-button (pressed)="sendReply()">Send</app-button>
+        <div class="flex items-end gap-2">
+          <div class="min-w-0 flex-1">
+            <app-textarea
+              placeholder="Reply…"
+              [rows]="2"
+              [ngModel]="draft()"
+              (ngModelChange)="draft.set($event)"
+            />
+          </div>
+          <app-button label="Send" (pressed)="sendReply()" />
         </div>
       }
     } @else {
-      <div class="flex flex-1 items-center justify-center text-sm text-text-muted">
-        Select a conversation or start a new one.
-      </div>
+      <app-empty-state
+        class="my-auto"
+        title="Select a conversation"
+        description="Pick a thread from the list, or start a new one."
+        icon="mail"
+      />
     }
   </app-card>
 </div>
